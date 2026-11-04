@@ -1,0 +1,10 @@
+node_modules
+.next
+.vercel
+backend
+README.md
+task.md
+implementation_plan.md
+walkthrough.md
+*.tar.gz
+*.zip

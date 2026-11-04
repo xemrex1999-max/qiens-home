@@ -1,0 +1,21 @@
+{
+  "items": [
+    {
+      "id": "69cc318de22d7976e207b2b6",
+      "name": "Tokyo Yatak Odasi",
+      "price": 88170,
+      "qty": 1,
+      "image": "/images/test.jpg"
+    }
+  ],
+  "shippingAddress": {
+    "name": "Test Musteri",
+    "email": "test@test.com",
+    "phone": "5551234567",
+    "city": "Istanbul",
+    "district": "Kadikoy",
+    "address": "Test Mahalle Test Sok No 1"
+  },
+  "totalAmount": "83761.5",
+  "paymentId": "HAV-TEST-001"
+}

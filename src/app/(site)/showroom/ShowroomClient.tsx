@@ -63,10 +63,58 @@ const getPiecesForProduct = (productName: string, defaultUrl: string) => {
   return null;
 };
 
+const DEFAULT_SHOWROOM_PRODUCTS = [
+  {
+    id: 'qiens-imparator-paket',
+    name: 'İmparator Lüks Düğün Paketi',
+    slug: 'imparator-dugun-paketi',
+    price: 145000,
+    category: 'Düğün Paketi',
+    description: 'Koltuk takımı, yatak odası ve yemek odasını tek konseptte buluşturan Qiens Home imza koleksiyonu.',
+    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800'],
+    colors: ['Zümrüt Yeşili', 'Safir Mavi', 'Krem', 'Antrasit'],
+    threeDModelUrl: '/models/GlamVelvetSofa.glb',
+  },
+  {
+    id: 'qiens-glam-velvet',
+    name: 'Glam Velvet İnegöl Koltuk Takımı',
+    slug: 'glam-velvet-koltuk',
+    price: 64900,
+    category: 'Koltuk Takımı',
+    description: 'İtalyan kadife dokusu ve fırınlanmış gürgen iskeletiyle üst düzey konfor.',
+    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800'],
+    colors: ['Zümrüt Yeşili', 'Safir Mavi', 'Kiremit', 'Bej'],
+    threeDModelUrl: '/models/GlamVelvetSofa.glb',
+  },
+  {
+    id: 'qiens-sheen-leather',
+    name: 'Sheen Royal Deri & Ahşap Set',
+    slug: 'sheen-royal-set',
+    price: 78500,
+    category: 'Yatak & Oturma Odası',
+    description: 'Doğal ceviz ahşap gövde ve birinci sınıf deri döşeme.',
+    images: ['https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800'],
+    colors: ['Ceviz', 'Kaba Taba Deri', 'Antik Kahve', 'Mat Siyah'],
+    threeDModelUrl: '/models/SheenWoodLeatherSofa.glb',
+  },
+  {
+    id: 'qiens-sheen-berjer',
+    name: 'Qiens Özel Tasarım Tekli Berjer',
+    slug: 'qiens-tekli-berjer',
+    price: 18900,
+    category: 'Berjer & Tamamlayıcı',
+    description: 'Ergonomik sırt kavisi ve leke tutmayan dokuma kumaşıyla okuma ve dinlenme köşeleri için ideal.',
+    images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800'],
+    colors: ['Kiremit', 'Zümrüt Yeşili', 'Krem', 'Antrasit'],
+    threeDModelUrl: '/models/SheenChair.glb',
+  }
+];
+
 export default function ShowroomClient({ initialProducts, localIp = 'localhost' }: ShowroomClientProps) {
-  const [products] = useState<any[]>(initialProducts);
-  const [selectedProduct, setSelectedProduct] = useState<any>(initialProducts[0] || null);
-  const [selectedColor, setSelectedColor] = useState<string>('');
+  const safeList = (initialProducts && initialProducts.length > 0) ? initialProducts : DEFAULT_SHOWROOM_PRODUCTS;
+  const [products] = useState<any[]>(safeList);
+  const [selectedProduct, setSelectedProduct] = useState<any>(safeList[0] || DEFAULT_SHOWROOM_PRODUCTS[0]);
+  const [selectedColor, setSelectedColor] = useState<string>(safeList[0]?.colors?.[0] || 'Zümrüt Yeşili');
   const [qty, setQty] = useState(1);
   const [autoRotate, setAutoRotate] = useState(true);
   const [environment, setEnvironment] = useState<'neutral' | 'sunset' | 'night' | 'studio'>('neutral');
@@ -75,8 +123,8 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
   const [activeTab, setActiveTab] = useState<'details' | 'specs'>('details');
 
   // Custom states for pieces and dimensions
-  const pieces = selectedProduct ? getPiecesForProduct(selectedProduct.name, selectedProduct.threeDModelUrl) : null;
-  const [selectedPieceUrl, setSelectedPieceUrl] = useState<string>(initialProducts[0]?.threeDModelUrl || '');
+  const pieces = selectedProduct ? getPiecesForProduct(selectedProduct.name, selectedProduct.threeDModelUrl || '/models/GlamVelvetSofa.glb') : null;
+  const [selectedPieceUrl, setSelectedPieceUrl] = useState<string>(safeList[0]?.threeDModelUrl || '/models/GlamVelvetSofa.glb');
   const [showDimensions, setShowDimensions] = useState(false);
   const [isSplitView, setIsSplitView] = useState(false);
   const [modelDims, setModelDims] = useState<{

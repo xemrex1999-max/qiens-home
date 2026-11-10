@@ -96,14 +96,15 @@ function resolveDefault3DModel(product: any): string {
 export default async function ShowroomPage() {
   const localIp = getLocalIp();
 
-  // Fetch all products and ensure each has a valid 3D GLB model URL
+  // Fetch all products with a strict 1200ms timeout so slow DB never delays or blocks 3D Showroom
   let products: any[] = [];
   try {
-    products = await prisma.product.findMany({
-      orderBy: {
-        category: 'asc'
-      }
-    });
+    products = await Promise.race([
+      prisma.product.findMany({
+        orderBy: { category: 'asc' }
+      }),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 1200))
+    ]);
   } catch (error) {
     console.error("Showroom products fetch error:", error);
   }

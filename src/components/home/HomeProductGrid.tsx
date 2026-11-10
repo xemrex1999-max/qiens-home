@@ -4,16 +4,88 @@ import ProductCard from '@/components/ui/ProductCard'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
+const FALLBACK_HOME_PRODUCTS = [
+  {
+    id: 'evseren-ayca-yatak',
+    name: 'Ayça Yatak Odası Takımı',
+    slug: 'ayca-yatak-odasi',
+    price: 75600,
+    category: 'Yatak Odası',
+    images: ['/images/yatak_odasi.png', '/evrensen/Aynalı Yatak Odası/WhatsApp Image 2025-09-01 at 11.43.59 (1).jpeg'],
+  },
+  {
+    id: 'evseren-ayca-yemek',
+    name: 'Ayça Yemek Odası Takımı',
+    slug: 'ayca-yemek-odasi',
+    price: 71400,
+    category: 'Yemek Odası',
+    images: ['/images/yemek_odasi.png', '/evrensen/Aynalı Yemek Odası/WhatsApp Image 2025-09-01 at 11.44.04 (2).jpeg'],
+  },
+  {
+    id: 'evseren-buglem-yatak',
+    name: 'Buğlem Yatak Odası Takımı',
+    slug: 'buglem-yatak-odasi',
+    price: 78400,
+    category: 'Yatak Odası',
+    images: ['/images/yatak_odasi.png', '/evrensen/Buğlem Yatak Odası/page1_img17.jpeg'],
+  },
+  {
+    id: 'evseren-buglem-yemek',
+    name: 'Buğlem Yemek Odası Takımı',
+    slug: 'buglem-yemek-odasi',
+    price: 72800,
+    category: 'Yemek Odası',
+    images: ['/images/yemek_odasi.png', '/evrensen/Buğlem Yemek Odası/page1_img18.jpeg'],
+  },
+  {
+    id: 'evseren-tokyo-yatak',
+    name: 'Tokyo Yatak Odası Takımı',
+    slug: 'tokyo-yatak-odasi',
+    price: 77000,
+    category: 'Yatak Odası',
+    images: ['/images/yatak_odasi.png'],
+  },
+  {
+    id: 'evseren-tokyo-yemek',
+    name: 'Tokyo Yemek Odası Takımı',
+    slug: 'tokyo-yemek-odasi',
+    price: 60900,
+    category: 'Yemek Odası',
+    images: ['/images/yemek_odasi.png'],
+  },
+  {
+    id: 'evseren-inci-yatak',
+    name: 'İnci Yatak Odası Takımı',
+    slug: 'inci-yatak-odasi',
+    price: 70000,
+    category: 'Yatak Odası',
+    images: ['/images/yatak_odasi.png', '/evrensen/İnci Yatak Odası/page1_img11.jpeg'],
+  },
+  {
+    id: 'evseren-inci-yemek',
+    name: 'İnci Yemek Odası Takımı',
+    slug: 'inci-yemek-odasi',
+    price: 58800,
+    category: 'Yemek Odası',
+    images: ['/images/yemek_odasi.png', '/evrensen/İnci Yemek Odası/page1_img10.jpeg'],
+  }
+];
+
 const HomeProductGrid = async () => {
   let products: any[] = []
   try {
-    products = await prisma.product.findMany({
+    products = await Promise.race([
+      prisma.product.findMany({
         orderBy: { createdAt: "desc" },
         take: 8
-    })
+      }),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 1200))
+    ]);
   } catch (error) {
     console.error("HomeProductGrid database error:", error)
   }
+
+  const displayList = (products && products.length > 0) ? products : FALLBACK_HOME_PRODUCTS;
 
   return (
     <section className="py-12 md:py-32 bg-white">
@@ -35,8 +107,8 @@ const HomeProductGrid = async () => {
         </div>
 
         <div className="flex overflow-x-auto lg:grid lg:grid-cols-4 gap-4 md:gap-x-8 gap-y-10 md:gap-y-24 no-scrollbar snap-x snap-mandatory pb-6">
-          {products.length > 0 ? (
-            products.map((product: any) => (
+          {displayList.length > 0 ? (
+            displayList.map((product: any) => (
               <div key={product.id} className="w-[220px] sm:w-[280px] lg:w-auto flex-shrink-0 snap-start">
                 <ProductCard product={JSON.parse(JSON.stringify(product))} />
               </div>

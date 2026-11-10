@@ -23,7 +23,7 @@ const ProductDetailClient = ({ product }: { product: any }) => {
   const [selectedColor, setSelectedColor] = useState<string | null>(
     product.colors && product.colors.length > 0 ? product.colors[0] : null
   )
-  const [viewMode, setViewMode] = useState<'image' | '3d'>('image')
+  const [viewMode, setViewMode] = useState<'image' | '3d'>('3d')
   const [selectedFabric, setSelectedFabric] = useState<string>('Kadife')
   const [selectedWood, setSelectedWood] = useState<string>('Doğal Meşe')
 

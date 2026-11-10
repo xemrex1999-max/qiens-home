@@ -93,6 +93,12 @@ const ProductCard: React.FC<ProductProps> = ({ product }) => {
       <div className="relative aspect-square md:aspect-[4/5] overflow-hidden bg-neutral-50 mb-4 md:mb-8 border border-neutral-100 group-hover:border-transparent group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] transition-all duration-700">
         <Link href={`/product/${product.id || (product as any)._id}`} className="absolute inset-0 z-10" />
         
+        {/* 3D BADGE (HER ÜRÜNDE AKTİF) */}
+        <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-accent/40 text-accent text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full z-20 flex items-center gap-1.5 shadow-lg">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+          3D MODEL
+        </div>
+
         {/* PRIMARY IMAGE */}
         <Image
           src={resolveImage(firstImage)}

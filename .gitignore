@@ -46,3 +46,8 @@ next-env.d.ts
 .vercel
 
 /src/generated/prisma
+
+*.mp4
+*.MP4
+*.zip
+*.tar.gz

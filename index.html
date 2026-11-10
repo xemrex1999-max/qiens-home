@@ -198,11 +198,18 @@
 
   <script>
     const PRODUCTS = [
-      { name: 'İmparator Lüks Düğün Paketi', cat: 'Düğün Paketi', price: '145.000 ₺', model: './models/GlamVelvetSofa.glb', desc: 'Koltuk takımı, yatak odası ve yemek odasını tek konseptte buluşturan Qiens Home imza koleksiyonu.' },
-      { name: 'Glam Velvet İnegöl Koltuk Takımı', cat: 'Koltuk Takımı', price: '64.900 ₺', model: './models/GlamVelvetSofa.glb', desc: 'İtalyan kadife dokusu, 35 DNS HR sünger ve fırınlanmış gürgen iskeletiyle üst düzey konfor.' },
-      { name: 'Qiens Safir & Ceviz Yatak Seti', cat: 'Yatak Odası', price: '125.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Safir detaylar, doğal ceviz ahşap işçiliği ve tamamlayıcı dinlenme modülü.' },
-      { name: 'Sheen Royal Deri & Ahşap Takım', cat: 'Oturma Grubu', price: '78.500 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Masif ceviz gövde ve birinci sınıf silinebilir İtalyan deri döşeme.' },
-      { name: 'Qiens Özel Tasarım Tekli Berjer', cat: 'Berjer & Tamamlayıcı', price: '18.900 ₺', model: './models/SheenChair.glb', desc: 'Ergonomik sırt kavisi ve leke tutmayan dokuma kumaşıyla okuma köşeleri için ideal.' }
+      { name: 'Ayça Yatak Odası Takımı', cat: 'Yatak Odası', price: '75.600 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - 2026 Model Premium Yatak Odası Takımı. Masif iskelet, baza ve komodin tasarımı.' },
+      { name: 'Ayça Yemek Odası Takımı', cat: 'Yemek Odası', price: '71.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - Modern ve estetik açılır yemek masası, sandalyeler ve şık konsol ünitesi.' },
+      { name: 'Buğlem Yatak Odası Takımı', cat: 'Yatak Odası', price: '78.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Buğlem Serisi - Zarafetin ve yüksek konforun buluşma noktası. Özel kapitone başlık ve geniş gardırop.' },
+      { name: 'Buğlem Yemek Odası Takımı', cat: 'Yemek Odası', price: '72.800 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Buğlem Serisi - Şık tasarımıyla salonunuza estetik katan açılır masa ve konsol ünitesi.' },
+      { name: 'Tokyo Yatak Odası Takımı', cat: 'Yatak Odası', price: '77.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Modern minimalist çizgileri ve fonksiyonel depolama alanlarıyla yeni nesil yatak odası.' },
+      { name: 'Tokyo Yemek Odası Takımı', cat: 'Yemek Odası', price: '60.900 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Sade ve şık tasarımıyla huzurlu yemek alanları için ideal konsept.' },
+      { name: 'İnci Yatak Odası Takımı', cat: 'Yatak Odası', price: '70.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Klasik ve modern tasarımın kusursuz uyumu.' },
+      { name: 'İnci Yemek Odası Takımı', cat: 'Yemek Odası', price: '58.800 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Estetik ve dayanıklılığı bir araya getiren lüks yemek odası takımı.' },
+      { name: 'Aynalı Yatak Odası Takımı', cat: 'Yatak Odası', price: '45.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Boydan aynalı sürgülü kapaklı gardırop, baza ve şifonyer seti.' },
+      { name: 'Aynalı Yemek Odası Takımı', cat: 'Yemek Odası', price: '46.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayna desenli konsol kapağı ve modern masa takımı.' },
+      { name: 'Bohem Yatak Odası Takımı', cat: 'Yatak Odası', price: '47.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Bohem stili masif detaylar ve konforlu başlık yapısı.' },
+      { name: 'Bohem Yemek Odası Takımı', cat: 'Yemek Odası', price: '48.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Bohem serisi açılır doğal ahşap masa ve konsol takımı.' }
     ];
 
     const mv1 = document.getElementById('mv1');

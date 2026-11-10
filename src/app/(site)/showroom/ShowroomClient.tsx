@@ -110,8 +110,30 @@ const DEFAULT_SHOWROOM_PRODUCTS = [
   }
 ];
 
+const resolveSafeImage = (img?: string) => {
+  const fallback = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80';
+  if (!img || typeof img !== 'string') return fallback;
+  const trimmed = img.trim();
+  if (!trimmed) return fallback;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed.replace(/\s/g, '%20');
+  if (trimmed.startsWith('/')) return trimmed;
+  if (trimmed.startsWith('images/')) return `/${trimmed}`;
+  return `/images/${trimmed}`;
+};
+
 export default function ShowroomClient({ initialProducts, localIp = 'localhost' }: ShowroomClientProps) {
-  const safeList = (initialProducts && initialProducts.length > 0) ? initialProducts : DEFAULT_SHOWROOM_PRODUCTS;
+  const rawList = (Array.isArray(initialProducts) && initialProducts.length > 0) ? initialProducts : DEFAULT_SHOWROOM_PRODUCTS;
+  const safeList = rawList.map((item, idx) => ({
+    ...item,
+    id: item?.id || `qiens-prod-${idx}`,
+    name: item?.name || 'Qiens Home Koleksiyonu',
+    category: item?.category || 'Özel Koleksiyon',
+    price: Number(item?.price) || 64900,
+    description: item?.description || 'Qiens Home birinci sınıf İnegöl mobilya koleksiyonu.',
+    images: Array.isArray(item?.images) && item.images.length > 0 ? item.images.map(resolveSafeImage) : [resolveSafeImage(item?.image)],
+    colors: Array.isArray(item?.colors) && item.colors.length > 0 ? item.colors : ['Zümrüt Yeşili', 'Safir Mavi', 'Krem', 'Antrasit'],
+    threeDModelUrl: (item?.threeDModelUrl && String(item.threeDModelUrl).endsWith('.glb')) ? item.threeDModelUrl : '/models/GlamVelvetSofa.glb',
+  }));
   const [products] = useState<any[]>(safeList);
   const [selectedProduct, setSelectedProduct] = useState<any>(safeList[0] || DEFAULT_SHOWROOM_PRODUCTS[0]);
   const [selectedColor, setSelectedColor] = useState<string>(safeList[0]?.colors?.[0] || 'Zümrüt Yeşili');
@@ -460,12 +482,11 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
               )}
             >
               <div className="relative w-12 h-12 lg:w-16 lg:h-16 bg-neutral-900 border border-white/5 rounded-xl overflow-hidden p-1 flex-shrink-0 flex items-center justify-center">
-                <Image 
-                  src={p.images[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=200'} 
-                  alt={p.name} 
-                  fill 
-                  className="object-contain p-1 mix-blend-screen opacity-80 group-hover:scale-105 transition-transform" 
-                  unoptimized={true}
+                <img 
+                  src={resolveSafeImage(p.images?.[0] || p.image)} 
+                  alt={p.name || 'Qiens Home'} 
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=200'; }}
+                  className="w-full h-full object-contain p-1 opacity-85 group-hover:scale-105 transition-transform" 
                 />
               </div>
               <div className="flex-grow min-w-0">
@@ -902,7 +923,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
           <div className="space-y-3 lg:space-y-4">
             <span className="text-[9px] lg:text-[10px] font-black tracking-widest text-neutral-400 uppercase block">Kumaş ve Renk Seçimi</span>
             <div className="flex flex-wrap gap-2 lg:gap-2.5">
-              {selectedProduct.colors.map((color: string) => (
+              {(Array.isArray(selectedProduct?.colors) && selectedProduct.colors.length > 0 ? selectedProduct.colors : ['Zümrüt Yeşili', 'Safir Mavi', 'Krem', 'Antrasit']).map((color: string) => (
                 <button
                   key={color}
                   onClick={() => handleColorSelect(color)}

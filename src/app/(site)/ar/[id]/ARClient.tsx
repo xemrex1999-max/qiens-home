@@ -31,25 +31,45 @@ export default function ARClient({ product }: ARClientProps) {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !window.customElements?.get('model-viewer')) {
+      const existing = document.querySelector('script[src*="model-viewer"]');
+      if (!existing) {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = '/scripts/model-viewer.min.js';
+        document.head.appendChild(s);
+      }
+    }
     const viewer = viewerRef.current;
+    const safety = setTimeout(() => {
+      setIsLoaded(true);
+      setLoadProgress(100);
+    }, 2000);
     if (viewer) {
       const handleProgress = (event: any) => {
-        const progress = event.detail.totalProgress * 100;
+        const progress = (event?.detail?.totalProgress || 0) * 100;
         setLoadProgress(progress);
-        if (progress === 100) {
+        if (progress >= 99) {
           setIsLoaded(true);
-          // Auto-trigger AR on load
-          setTimeout(() => {
-            activateAR();
-          }, 1000);
         }
+      };
+      const handleLoad = () => {
+        setIsLoaded(true);
+        setLoadProgress(100);
       };
 
       viewer.addEventListener('progress', handleProgress);
+      viewer.addEventListener('load', handleLoad);
+      if (viewer.loaded || viewer.model) handleLoad();
       return () => {
-        if (viewer) viewer.removeEventListener('progress', handleProgress);
+        clearTimeout(safety);
+        if (viewer) {
+          viewer.removeEventListener('progress', handleProgress);
+          viewer.removeEventListener('load', handleLoad);
+        }
       };
     }
+    return () => clearTimeout(safety);
   }, []);
 
   return (

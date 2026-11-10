@@ -129,6 +129,19 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
   const addItem = useCart(state => state.addItem);
   const { openCart } = useUI();
 
+  // Ensure <model-viewer> custom element script is always loaded and registered in browser
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.customElements?.get('model-viewer')) {
+      const existing = document.querySelector('script[src*="model-viewer"]');
+      if (!existing) {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = '/scripts/model-viewer.min.js';
+        document.head.appendChild(s);
+      }
+    }
+  }, []);
+
 
   // Set default color when product changes
   useEffect(() => {
@@ -429,7 +442,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
             <div className="relative w-full h-full bg-gradient-to-b from-[#111] to-[#0A0A0A] rounded-[30px] overflow-hidden border border-white/5">
               <model-viewer
                 ref={viewerRef}
-                src={selectedPieceUrl || selectedProduct.threeDModelUrl}
+                src={selectedPieceUrl || selectedProduct.threeDModelUrl || '/models/GlamVelvetSofa.glb'}
                 alt={selectedProduct.name}
                 camera-controls
                 auto-rotate={autoRotate ? true : undefined}
@@ -438,7 +451,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
                 interaction-prompt="auto"
                 touch-action="none"
                 className="w-full h-full outline-none cursor-grab active:cursor-grabbing"
-                style={{ backgroundColor: 'transparent' } as any}
+                style={{ display: 'block', width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' } as any}
                 {...getLightingAttributes()}
               >
                 {/* Piece Selector (Top Center) */}

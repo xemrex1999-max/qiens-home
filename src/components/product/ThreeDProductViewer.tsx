@@ -115,18 +115,33 @@ const ThreeDProductViewer: React.FC<ThreeDProductViewerProps> = ({
 
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== 'undefined' && !window.customElements?.get('model-viewer')) {
+      const existing = document.querySelector('script[src*="model-viewer"]');
+      if (!existing) {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = '/scripts/model-viewer.min.js';
+        document.head.appendChild(s);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
     const viewer = viewerRef.current;
     if (!viewer) return;
 
     const onProgress = (event: any) => {
-      const progress = event.detail.totalProgress * 100;
+      const progress = (event?.detail?.totalProgress || 0) * 100;
       setLoadProgress(progress);
-      if (progress === 100) {
-        setTimeout(() => setIsLoaded(true), 500);
+      if (progress >= 99) {
+        setIsLoaded(true);
       }
     };
 
     const onLoad = () => {
+      setIsLoaded(true);
+      setLoadProgress(100);
       if (viewer && typeof viewer.getDimensions === 'function') {
         try {
           const size = viewer.getDimensions();
@@ -140,14 +155,19 @@ const ThreeDProductViewer: React.FC<ThreeDProductViewerProps> = ({
 
     viewer.addEventListener('progress', onProgress);
     viewer.addEventListener('load', onLoad);
+    if (viewer.loaded || viewer.model) {
+      onLoad();
+    }
+    const safetyTimer = setTimeout(() => setIsLoaded(true), 2500);
     
     return () => {
+      clearTimeout(safetyTimer);
       if (viewer) {
         viewer.removeEventListener('progress', onProgress);
         viewer.removeEventListener('load', onLoad);
       }
     };
-  }, [selectedPieceUrl]);
+  }, [isMounted, selectedPieceUrl]);
 
   if (!isMounted) return (
     <div className="w-full h-full min-h-[350px] md:min-h-[500px] bg-[#fdfdfd] rounded-3xl animate-pulse" />

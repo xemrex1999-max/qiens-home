@@ -117,14 +117,6 @@ const Navbar = () => {
             SANAL SHOWROOM (3D)
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
           </Link>
-          <Link href="/room-builder" className="hover:text-accent transition-colors whitespace-nowrap relative group text-accent font-black">
-            KOMBİN TASARIMCISI
-            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
-          </Link>
-          <Link href="/ai-designer" className="hover:text-accent transition-colors whitespace-nowrap relative group text-accent font-black">
-            AI İÇ MİMAR
-            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
-          </Link>
           <Link href="/hakkimizda" className="hover:text-accent transition-colors whitespace-nowrap relative group">
             HAKKIMIZDA
             <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
@@ -241,14 +233,6 @@ const Navbar = () => {
                   <Link href="/showroom" onClick={() => setIsMenuOpen(false)} className="text-lg font-black text-accent flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                     SANAL SHOWROOM (3D)
-                  </Link>
-                  <Link href="/room-builder" onClick={() => setIsMenuOpen(false)} className="text-lg font-black text-accent flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                    KOMBİN TASARIMCISI
-                  </Link>
-                  <Link href="/ai-designer" onClick={() => setIsMenuOpen(false)} className="text-lg font-black text-accent flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                    AI İÇ MİMAR
                   </Link>
                   <Link href="/hakkimizda" onClick={() => setIsMenuOpen(false)} className="text-lg font-bold text-neutral-700">Hakkımızda</Link>
                   <Link href="/iletisim" onClick={() => setIsMenuOpen(false)} className="text-lg font-bold text-neutral-700">İletişim</Link>

@@ -42,26 +42,27 @@ const getPiecesForProduct = (productName: string, defaultUrl: string) => {
       return null;
     }
     return [
-      { name: "3'lü Koltuk", url: defaultUrl },
-      { name: "2'li Koltuk", url: "/models/SheenWoodLeatherSofa.glb" },
+      { name: "Tam Oturma Grubu", url: "/models/oturma-grubu-tam-takim.glb" },
+      { name: "3'lü Koltuk", url: "/models/GlamVelvetSofa.glb" },
       { name: "Tekli Berjer", url: "/models/SheenChair.glb" },
-      { name: "Orta Sehpa", url: defaultUrl }
+      { name: "Orta Sehpa", url: "/models/orta-sehpa.glb" }
     ];
   }
   if (normalized.includes("yatak") || normalized.includes("bedroom")) {
     return [
-      { name: "Gardırop", url: defaultUrl },
-      { name: "Yatak & Baza", url: defaultUrl },
-      { name: "Şifonyer & Ayna", url: "/models/SheenChair.glb" },
-      { name: "Komodinler", url: "/models/SheenChair.glb" }
+      { name: "Tam Yatak Odası", url: "/models/yatak-odasi-tam-takim.glb" },
+      { name: "Gardırop", url: "/models/gardirop.glb" },
+      { name: "Yatak & Baza", url: "/models/yatak-baza.glb" },
+      { name: "Şifonyer", url: "/models/sifonyer.glb" },
+      { name: "Komodin", url: "/models/komodin.glb" }
     ];
   }
   if (normalized.includes("yemek") || normalized.includes("masa")) {
     return [
-      { name: "Yemek Masası", url: defaultUrl },
-      { name: "Konsol & Ayna", url: defaultUrl },
-      { name: "Sandalye Seti", url: "/models/SheenChair.glb" },
-      { name: "Vitrin / TV", url: defaultUrl }
+      { name: "Tam Yemek Odası", url: "/models/yemek-odasi-tam-takim.glb" },
+      { name: "Yemek Masası", url: "/models/yemek-masasi.glb" },
+      { name: "Konsol & Ayna", url: "/models/konsol.glb" },
+      { name: "Sandalye", url: "/models/SheenChair.glb" }
     ];
   }
   return null;

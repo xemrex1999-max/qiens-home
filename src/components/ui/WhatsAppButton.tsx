@@ -1,10 +1,15 @@
 "use client"
 
 import React from "react"
+import { usePathname } from "next/navigation"
 import { MessageCircle } from "lucide-react"
 import { motion } from "framer-motion"
 
 const WhatsAppButton = () => {
+    const pathname = usePathname()
+    if (pathname?.startsWith("/demo") || pathname?.startsWith("/vitrin")) {
+        return null
+    }
     // Mobilya sektörü için hızlı destek numarası
     const phoneNumber = "905314602597" 
     const message = encodeURIComponent("Merhaba, Qiens Home web sitenizden ulaşıyorum. Ürünleriniz hakkında bilgi alabilir miyim?")

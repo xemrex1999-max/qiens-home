@@ -1,11 +1,21 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import {
   RotateCw, Trash2, Plus, Sparkles, Maximize2, Move,
   Box, Layers, Eye, X, DoorOpen, Sliders
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const Real3DRoomScene = dynamic(() => import('./Real3DRoomScene'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[460px] rounded-[28px] bg-[#0c0d12] border border-amber-400/30 flex items-center justify-center text-xs font-black uppercase tracking-widest text-amber-400">
+      Gerçek 3D Oda Yükleniyor...
+    </div>
+  ),
+});
 
 export interface FurniturePieceSpec {
   id: string;
@@ -57,12 +67,12 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
   }
 
   return [
-    { id: 'piece-wardrobe', name: '6 Kapaklı / Sürgülü Gardırop', shortName: 'Gardırop', type: 'wardrobe', widthCm: 240, depthCm: 62, heightCm: 215, url: '/models/gardirop.glb', defaultX: 18, defaultY: 12, defaultRot: 0 },
-    { id: 'piece-bed', name: 'Yatak & Baza Başlık (160x200)', shortName: 'Yatak & Baza', type: 'bed', widthCm: 175, depthCm: 215, heightCm: 125, url: '/models/yatak-baza.glb', defaultX: 280, defaultY: 16, defaultRot: 0 },
-    { id: 'piece-nightstand-l', name: 'Sol Komodin', shortName: 'Sol Komodin', type: 'nightstand', widthCm: 55, depthCm: 45, heightCm: 50, url: '/models/komodin.glb', defaultX: 218, defaultY: 16, defaultRot: 0 },
-    { id: 'piece-nightstand-r', name: 'Sağ Komodin', shortName: 'Sağ Komodin', type: 'nightstand', widthCm: 55, depthCm: 45, heightCm: 50, url: '/models/komodin.glb', defaultX: 438, defaultY: 16, defaultRot: 0 },
-    { id: 'piece-dresser', name: 'Şifonyer & Makyaj Aynası', shortName: 'Şifonyer', type: 'dresser', widthCm: 125, depthCm: 48, heightCm: 85, url: '/models/sifonyer.glb', defaultX: 32, defaultY: 325, defaultRot: 180 },
-    { id: 'piece-pouf', name: 'Ayak Ucu Puf / Bench', shortName: 'Bench Puf', type: 'pouf', widthCm: 130, depthCm: 45, heightCm: 46, url: '/models/yatak-odasi-tam-takim.glb', defaultX: 302, defaultY: 245, defaultRot: 0 }
+    { id: 'piece-wardrobe', name: '6 Kapaklı / Sürgülü Gardırop', shortName: 'Gardırop', type: 'wardrobe', widthCm: 210, depthCm: 60, heightCm: 215, url: '/models/gardirop.glb', defaultX: 12, defaultY: 12, defaultRot: 0 },
+    { id: 'piece-nightstand-l', name: 'Sol Komodin', shortName: 'Sol Komodin', type: 'nightstand', widthCm: 52, depthCm: 44, heightCm: 50, url: '/models/komodin.glb', defaultX: 234, defaultY: 12, defaultRot: 0 },
+    { id: 'piece-bed', name: 'Yatak & Baza Başlık (160x200)', shortName: 'Yatak & Baza', type: 'bed', widthCm: 165, depthCm: 205, heightCm: 125, url: '/models/yatak-baza.glb', defaultX: 292, defaultY: 12, defaultRot: 0 },
+    { id: 'piece-nightstand-r', name: 'Sağ Komodin', shortName: 'Sağ Komodin', type: 'nightstand', widthCm: 52, depthCm: 44, heightCm: 50, url: '/models/komodin.glb', defaultX: 462, defaultY: 12, defaultRot: 0 },
+    { id: 'piece-dresser', name: 'Şifonyer & Makyaj Aynası', shortName: 'Şifonyer', type: 'dresser', widthCm: 125, depthCm: 48, heightCm: 85, url: '/models/sifonyer.glb', defaultX: 30, defaultY: 325, defaultRot: 180 },
+    { id: 'piece-pouf', name: 'Ayak Ucu Puf / Bench', shortName: 'Bench Puf', type: 'pouf', widthCm: 130, depthCm: 45, heightCm: 46, url: '/models/yatak-odasi-tam-takim.glb', defaultX: 310, defaultY: 235, defaultRot: 0 }
   ];
 };
 
@@ -97,17 +107,16 @@ export default function ShowroomRoomPlanner({
     selectedProduct?.threeDModelUrl || '/models/yatak-odasi-tam-takim.glb'
   );
 
-  const [roomWidthCm, setRoomWidthCm] = useState<number>(500);
+  const [roomWidthCm, setRoomWidthCm] = useState<number>(530);
   const [roomDepthCm, setRoomDepthCm] = useState<number>(400);
-  const [is3DPerspective, setIs3DPerspective] = useState<boolean>(true);
+  const [is3DPerspective, setIs3DPerspective] = useState<boolean>(false);
+  const [inlineViewMode, setInlineViewMode] = useState<'plan' | 'real3d'>('plan');
   const [placedPieces, setPlacedPieces] = useState<PlacedPiece[]>([]);
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
-  const [showMini3D, setShowMini3D] = useState<boolean>(true);
+  const [showMini3D] = useState<boolean>(true);
 
-  // Synced Full-Screen 3D Room Expansion Modal (shows EXACT user-arranged room!)
+  // Synced Full-Screen REAL THREE.JS 3D Room Expansion Modal (shows EXACT user-arranged room!)
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
-  const [cameraPitch, setCameraPitch] = useState<number>(52); // 3D Tilt angle
-  const [cameraYaw, setCameraYaw] = useState<number>(-22);   // 360° Room orbit spin
 
   const floorRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<{
@@ -445,7 +454,7 @@ export default function ShowroomRoomPlanner({
     }
   };
 
-  // Shared Floor Renderer (used BOTH in main planner AND in Synced Full-Screen 3D Expanded Modal!)
+  // Interactive 2D/Plan Floor Renderer
   const renderRoomFloorCanvas = (isExpandedView: boolean) => (
     <div
       ref={isExpandedView ? undefined : floorRef}
@@ -455,12 +464,10 @@ export default function ShowroomRoomPlanner({
       className="relative transition-transform duration-300 shadow-[0_30px_90px_rgba(0,0,0,0.85)]"
       style={{
         width: '100%',
-        maxWidth: isExpandedView ? '780px' : '620px',
+        maxWidth: '640px',
         aspectRatio: `${roomWidthCm} / ${roomDepthCm}`,
-        maxHeight: isExpandedView ? '520px' : '370px',
-        transform: isExpandedView
-          ? `perspective(1200px) rotateX(${cameraPitch}deg) rotateZ(${cameraYaw}deg) scale(0.92)`
-          : is3DPerspective
+        maxHeight: '380px',
+        transform: is3DPerspective
           ? 'perspective(1100px) rotateX(22deg) scale(0.94)'
           : 'none',
         transformStyle: 'preserve-3d',
@@ -689,63 +696,80 @@ export default function ShowroomRoomPlanner({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setIs3DPerspective(!is3DPerspective)}
+            onClick={() => setInlineViewMode(inlineViewMode === 'plan' ? 'real3d' : 'plan')}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all flex items-center gap-1.5 cursor-pointer",
-              is3DPerspective ? "bg-amber-400/20 text-amber-300 border-amber-400/40" : "bg-white/5 text-white border-white/10"
+              "px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all flex items-center gap-1.5 cursor-pointer shadow",
+              inlineViewMode === 'real3d'
+                ? "bg-emerald-500 text-black border-emerald-400"
+                : "bg-amber-400/20 text-amber-300 border-amber-400/50 hover:bg-amber-400 hover:text-black"
             )}
           >
-            <Layers size={12} />
-            {is3DPerspective ? '3D Perspektif' : '2D Kuşbakışı'}
+            <Box size={12} />
+            {inlineViewMode === 'real3d' ? '📐 2D Sürükle-Bırak Planına Dön' : '🧊 Gerçek 3D Odaya Geç'}
           </button>
 
-          {/* SYNCED FULL-SCREEN 3D VIEW OF USER'S EXACT ARRANGED ROOM! */}
+          {/* SYNCED FULL-SCREEN REAL THREE.JS 3D VIEW OF USER'S EXACT ARRANGED ROOM! */}
           <button
             type="button"
             onClick={() => setExpandedRoomModal(true)}
             className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-white text-black text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg cursor-pointer"
           >
-            <Maximize2 size={12} /> Büyüt (Dizdiğin Odayı 3D Gör)
+            <Maximize2 size={12} /> Büyüt (Tam Ekran Gerçek 3D Oda)
           </button>
         </div>
       </div>
 
-      {/* 3. SANAL ODA SÜRÜKLE-BIRAK SAHNESİ */}
-      <div className="relative w-full h-[430px] sm:h-[510px] bg-gradient-to-b from-[#15151e] to-[#09090d] border border-white/10 rounded-[32px] overflow-hidden flex items-center justify-center p-4 sm:p-8 shadow-2xl">
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/75 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[9px] font-black text-neutral-300 tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
-          <Move size={11} className="text-amber-400" />
-          {(roomWidthCm / 100).toFixed(1)}m × {(roomDepthCm / 100).toFixed(1)}m • Sürükle, Çevir, Kapak/Baza Aç
-        </div>
-
-        {renderRoomFloorCanvas(false)}
-
-        {/* Mini Live 3D Model-Viewer PIP of Active Piece */}
-        {showMini3D && activePiece && (
-          <div className="hidden sm:flex flex-col absolute bottom-4 right-4 z-30 w-44 h-44 bg-[#0b0b10]/95 backdrop-blur-xl border border-amber-400/40 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="px-2.5 py-1.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
-              <span className="text-[8px] font-black uppercase tracking-wider text-amber-300 truncate">
-                3D: {activePiece.shortName}
-              </span>
-              <button
-                type="button"
-                onClick={() => setExpandedRoomModal(true)}
-                className="text-[8px] font-black text-white hover:text-amber-300 underline cursor-pointer"
-              >
-                Odayı Büyüt
-              </button>
-            </div>
-            <div className="flex-1 relative">
-              <model-viewer
-                src={activePiece.url}
-                alt={activePiece.name}
-                camera-controls
-                auto-rotate
-                style={{ width: '100%', height: '100%', backgroundColor: 'transparent' } as any}
-              />
-            </div>
+      {/* 3. SANAL ODA SAHNESİ: 2D SÜRÜKLE-BIRAK PLAN VEYA GERÇEK 3D WEBGL ODA */}
+      {inlineViewMode === 'real3d' ? (
+        <Real3DRoomScene
+          placedPieces={placedPieces}
+          roomWidthCm={roomWidthCm}
+          roomDepthCm={roomDepthCm}
+          selectedColor={selectedColor}
+          onTogglePieceOpen={(id) => toggleOpenPiece(id)}
+          onToggleAllOpen={toggleOpenAll}
+          heightClass="h-[440px] sm:h-[520px]"
+        />
+      ) : (
+        <div className="relative w-full h-[430px] sm:h-[510px] bg-gradient-to-b from-[#15151e] to-[#09090d] border border-white/10 rounded-[32px] overflow-hidden flex items-center justify-center p-4 sm:p-8 shadow-2xl">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/75 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[9px] font-black text-neutral-300 tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
+            <Move size={11} className="text-amber-400" />
+            {(roomWidthCm / 100).toFixed(1)}m × {(roomDepthCm / 100).toFixed(1)}m • Sürükle, Çevir, Sonra "Gerçek 3D Odaya Geç" Tıkla
           </div>
-        )}
-      </div>
+
+          {renderRoomFloorCanvas(false)}
+
+          {/* Mini Live 3D Model-Viewer PIP of Active Piece (Properly Centered Camera Framing) */}
+          {showMini3D && activePiece && (
+            <div className="hidden sm:flex flex-col absolute bottom-4 right-4 z-30 w-44 h-44 bg-[#0b0b10]/95 backdrop-blur-xl border border-amber-400/40 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="px-2.5 py-1.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
+                <span className="text-[8px] font-black uppercase tracking-wider text-amber-300 truncate">
+                  3D: {activePiece.shortName}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setExpandedRoomModal(true)}
+                  className="text-[8px] font-black text-white hover:text-amber-300 underline cursor-pointer"
+                >
+                  3D Odayı Aç
+                </button>
+              </div>
+              <div className="flex-1 relative">
+                <model-viewer
+                  src={activePiece.url}
+                  alt={activePiece.name}
+                  camera-controls
+                  auto-rotate
+                  bounds="tight"
+                  camera-orbit="35deg 72deg 115%"
+                  camera-target="auto auto auto"
+                  style={{ width: '100%', height: '100%', minHeight: '140px', backgroundColor: 'transparent' } as any}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 4. SEÇİLİ PARÇA KONTROL PANELİ (GERÇEK 0°-360° ÇEVİRME + KAPAK/ÇEKMECE/BAZA AÇMA!) */}
       {activePiece ? (
@@ -850,68 +874,37 @@ export default function ShowroomRoomPlanner({
         </div>
       )}
 
-      {/* 5. FULL-SCREEN SYNCED 3D ROOM EXPANDED MODAL (PRESERVES YOUR EXACT ARRANGEMENT!) */}
+      {/* 5. FULL-SCREEN SYNCED REAL THREE.JS 3D ROOM MODAL (EXACT USER ARRANGEMENT IN TRUE 3D!) */}
       {expandedRoomModal && (
-        <div className="fixed inset-0 z-[100] bg-black/92 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-3 max-w-6xl w-full mx-auto">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 max-w-7xl w-full mx-auto pb-3">
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400">
-                SENİN DİZDİĞİN ODA • CANLI 3D TAM EKRAN GÖRÜNÜM
+                SENİN DİZDİĞİN ODA • GERÇEK 3D WEBGL TAM EKRAN STÜDYO
               </div>
               <div className="text-sm sm:text-lg font-serif font-black text-white">
-                {selectedProduct?.name} — Parçalara Tıklayarak Kapak / Çekmece / Baza Aç-Kapa
+                {selectedProduct?.name} — Fareyle 360° Çevir, Mobilyalara Tıklayıp Kapak / Çekmece / Baza Aç!
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleOpenAll}
-                className="px-3.5 py-2 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase cursor-pointer flex items-center gap-1"
-              >
-                <DoorOpen size={13} /> Tüm Kapak & Bazaları Aç/Kapa
-              </button>
-              <button
-                type="button"
-                onClick={() => setExpandedRoomModal(false)}
-                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setExpandedRoomModal(false)}
+              className="px-4 py-2 rounded-full bg-white/15 hover:bg-amber-400 hover:text-black text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+            >
+              <X size={16} /> Plana Dön
+            </button>
           </div>
 
-          <div className="flex-1 flex items-center justify-center overflow-hidden my-4">
-            {renderRoomFloorCanvas(true)}
-          </div>
-
-          {/* 3D Camera Orbit & Tilt Controls */}
-          <div className="max-w-3xl w-full mx-auto bg-[#14141d] border border-white/15 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 whitespace-nowrap">
-                🔄 Odayı Çevir ({cameraYaw}°):
-              </span>
-              <input
-                type="range"
-                min={-180}
-                max={180}
-                value={cameraYaw}
-                onChange={(e) => setCameraYaw(Number(e.target.value))}
-                className="flex-1 accent-amber-400 cursor-pointer"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 whitespace-nowrap">
-                📐 3D Eğim ({cameraPitch}°):
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={68}
-                value={cameraPitch}
-                onChange={(e) => setCameraPitch(Number(e.target.value))}
-                className="flex-1 accent-amber-400 cursor-pointer"
-              />
-            </div>
+          <div className="max-w-7xl w-full mx-auto flex-1 flex items-center">
+            <Real3DRoomScene
+              placedPieces={placedPieces}
+              roomWidthCm={roomWidthCm}
+              roomDepthCm={roomDepthCm}
+              selectedColor={selectedColor}
+              onTogglePieceOpen={(id) => toggleOpenPiece(id)}
+              onToggleAllOpen={toggleOpenAll}
+              heightClass="h-[74vh] sm:h-[78vh]"
+            />
           </div>
         </div>
       )}

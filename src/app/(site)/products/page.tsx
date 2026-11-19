@@ -2,6 +2,7 @@
 import prisma from '@/lib/prisma';
 import ProductListClient from '@/components/product/ProductListClient';
 import { getCategoryNameBySlug, getCategoryValueBySlug } from '@/constants/categories';
+import { FALLBACK_HOME_PRODUCTS } from '@/components/home/HomeProductGrid';
 
 export default async function ProductsPage({
   searchParams,
@@ -25,13 +26,18 @@ export default async function ProductsPage({
       whereClause.category = getCategoryValueBySlug(cat);
     }
 
-    products = await prisma.product.findMany({
-      where: whereClause,
-      orderBy: { createdAt: "desc" }
-    });
+    products = await Promise.race([
+      prisma.product.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" }
+      }),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 1200))
+    ]);
   } catch (error) {
     console.error("ProductsPage database error:", error);
   }
+
+  const displayProducts = (products && products.length > 0) ? products : FALLBACK_HOME_PRODUCTS;
 
   const title = search 
     ? `Arama: ${search}` 
@@ -69,7 +75,7 @@ export default async function ProductsPage({
         </div>
 
         <ProductListClient 
-          initialProducts={JSON.parse(JSON.stringify(products))} 
+          initialProducts={JSON.parse(JSON.stringify(displayProducts))} 
           initialCategory={cat || "all"}
         />
       </div>

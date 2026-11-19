@@ -165,17 +165,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: product.name,
-    image: product.images || [],
-    description: product.description,
-    sku: product.id,
+    name: productData.name,
+    image: productData.images || [],
+    description: productData.description,
+    sku: productData.id,
     offers: {
       '@type': 'Offer',
-      url: `https://qienshome.com/product/${product.id}`,
+      url: `https://qienshome.com/product/${productData.id}`,
       priceCurrency: 'TRY',
-      price: product.price,
+      price: productData.price,
       itemCondition: 'https://schema.org/NewCondition',
-      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      availability: (product?.stock ?? 10) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
         name: 'Qiens Home'

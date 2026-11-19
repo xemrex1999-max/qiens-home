@@ -4,7 +4,7 @@ import ProductCard from '@/components/ui/ProductCard'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-const FALLBACK_HOME_PRODUCTS = [
+export const FALLBACK_HOME_PRODUCTS = [
   {
     id: 'evseren-ayca-yatak',
     name: 'Ayça Yatak Odası Takımı',

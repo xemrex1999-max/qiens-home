@@ -3,36 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Qiens Home | 3D Sanal Showroom & Etkileşimli Mobilya Stüdyosu</title>
+  <title>Qiens Home | 3D Sanal Showroom & Sürükle-Bırak Oda Planlayıcı</title>
   <script type="module" src="./scripts/model-viewer.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: #08080b; color: #f5f5f7; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-    model-viewer { display: block; width: 100%; height: 100%; min-height: 460px; background-color: transparent; outline: none; }
+    model-viewer { display: block; width: 100%; height: 100%; min-height: 440px; background-color: transparent; outline: none; }
     header {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
       padding: 14px 24px; background: rgba(14, 14, 18, 0.96);
       border-bottom: 1px solid rgba(212, 175, 55, 0.3); position: sticky; top: 0; z-index: 50;
     }
-    .brand { font-size: 18px; font-weight: 900; letter-spacing: 0.14em; color: #d4af37; text-decoration: none; }
-    .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .brand { font-size: 17px; font-weight: 900; letter-spacing: 0.14em; color: #d4af37; text-decoration: none; }
+    .nav-links { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .nav-btn {
-      padding: 7px 14px; border-radius: 99px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+      padding: 8px 14px; border-radius: 99px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
       text-transform: uppercase; text-decoration: none; color: #eee; background: rgba(255,255,255,0.06);
       border: 1px solid rgba(212,175,55,0.3); cursor: pointer; transition: 0.2s;
     }
     .nav-btn:hover, .nav-btn.active { background: #d4af37; color: #000; border-color: #d4af37; }
-    .layout { display: grid; grid-template-columns: 300px 1fr 330px; flex: 1; min-height: calc(100vh - 60px); }
+    .layout { display: grid; grid-template-columns: 280px 1fr 310px; flex: 1; min-height: calc(100vh - 60px); }
     @media (max-width: 1100px) {
       .layout { display: flex; flex-direction: column; }
-      .stage { order: 1; min-height: 430px; padding: 8px; }
+      .stage-col { order: 1; padding: 10px; }
       .col-right { order: 2; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
       .col-left { order: 3; border-right: none; border-top: 1px solid rgba(255,255,255,0.08); }
       #productList { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
-      .prod-card { min-width: 220px; margin-bottom: 0; flex-shrink: 0; }
-      model-viewer { min-height: 390px; height: 420px; }
+      .prod-card { min-width: 215px; margin-bottom: 0; flex-shrink: 0; }
+      model-viewer { min-height: 360px; height: 400px; }
     }
-    .col-left, .col-right { background: #101015; padding: 18px; display: flex; flex-direction: column; gap: 14px; border-right: 1px solid rgba(255,255,255,0.07); }
+    .col-left, .col-right { background: #101015; padding: 16px; display: flex; flex-direction: column; gap: 14px; border-right: 1px solid rgba(255,255,255,0.07); }
     .col-right { border-right: none; border-left: 1px solid rgba(255,255,255,0.07); }
     .sec-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #d4af37; font-weight: 800; margin-bottom: 6px; }
     .prod-card {
@@ -41,10 +41,103 @@
     }
     .prod-card.active, .prod-card:hover { border-color: #d4af37; background: rgba(212, 175, 55, 0.12); }
     .prod-cat { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: #999; }
-    .prod-name { font-size: 13.5px; font-weight: 800; color: #fff; margin: 3px 0; }
+    .prod-name { font-size: 13px; font-weight: 800; color: #fff; margin: 3px 0; }
     .prod-price { font-size: 13px; color: #d4af37; font-weight: 700; }
-    .stage { position: relative; background: radial-gradient(circle at 50% 45%, #23232c 0%, #09090d 80%); display: flex; gap: 12px; padding: 14px; }
-    .viewer-box { flex: 1; position: relative; border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; overflow: hidden; background: rgba(0,0,0,0.25); min-height: 480px; }
+
+    .stage-col {
+      background: radial-gradient(circle at 50% 45%, #20202a 0%, #09090d 85%);
+      display: flex; flex-direction: column; gap: 12px; padding: 14px; overflow: hidden;
+    }
+
+    /* Mode Switcher */
+    .mode-bar {
+      display: flex; gap: 8px; background: #121218; border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px; border-radius: 16px;
+    }
+    .mode-btn {
+      flex: 1; padding: 11px 14px; border-radius: 12px; border: none; font-size: 11px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; transition: 0.2s;
+      background: transparent; color: #bbb;
+    }
+    .mode-btn.active { background: #d4af37; color: #000; box-shadow: 0 4px 16px rgba(212,175,55,0.35); }
+
+    /* Top Shelf Drag Bar */
+    .shelf-box {
+      background: rgba(18, 18, 24, 0.96); border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 20px; padding: 12px 14px;
+    }
+    .shelf-header {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+    }
+    .shelf-strip {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+    }
+    .piece-card {
+      min-width: 142px; background: #191923; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px; padding: 10px; cursor: grab; transition: 0.2s; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px; position: relative;
+    }
+    .piece-card:hover { border-color: #d4af37; background: #222230; }
+    .piece-badge {
+      position: absolute; top: 6px; right: 6px; background: #d4af37; color: #000;
+      font-size: 8.5px; font-weight: 900; padding: 2px 6px; border-radius: 99px;
+    }
+    .piece-title { font-size: 11.5px; font-weight: 800; color: #fff; }
+    .piece-dim { font-size: 9.5px; color: #aaa; font-weight: 700; }
+    .piece-add { font-size: 9px; color: #d4af37; font-weight: 900; text-transform: uppercase; margin-top: 2px; }
+
+    /* Room Floor Canvas */
+    .room-wrapper {
+      flex: 1; min-height: 410px; background: linear-gradient(180deg, #15151e 0%, #09090d 100%);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; position: relative;
+      display: flex; align-items: center; justify-content: center; padding: 28px 16px; overflow: hidden;
+    }
+    .room-floor {
+      width: 100%; max-width: 600px; aspect-ratio: 5 / 4; max-height: 360px;
+      background-color: #2a211b;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(212,175,55,0.14) 0%, rgba(0,0,0,0.45) 100%);
+      background-size: 10% 12.5%, 10% 12.5%, 100% 100%;
+      border: 6px solid #3f362e; border-radius: 14px; position: relative;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+      transform: perspective(1000px) rotateX(22deg) scale(0.95);
+      transition: transform 0.35s ease;
+      touch-action: none;
+    }
+    .room-floor.flat { transform: none; }
+    .placed-item {
+      position: absolute; border-radius: 8px; cursor: grab; user-select: none; touch-action: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      box-shadow: 0 10px 0 rgba(24,18,14,0.95), 0 14px 20px rgba(0,0,0,0.65);
+      transition: box-shadow 0.15s;
+    }
+    .placed-item.selected {
+      border: 2px solid #d4af37;
+      box-shadow: 0 10px 0 #b38f22, 0 16px 26px rgba(0,0,0,0.85);
+      z-index: 30;
+    }
+    .placed-label {
+      background: rgba(255,255,255,0.9); color: #111; font-size: 8.5px; font-weight: 900;
+      padding: 2px 5px; border-radius: 4px; text-transform: uppercase; text-align: center;
+      pointer-events: none;
+    }
+    .placed-dims-tag {
+      position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+      background: #d4af37; color: #000; font-size: 8px; font-weight: 900;
+      padding: 2px 6px; border-radius: 99px; white-space: nowrap; pointer-events: none;
+      display: none;
+    }
+    .placed-item.selected .placed-dims-tag { display: block; }
+
+    .ctrl-bar {
+      background: #14141c; border: 1px solid rgba(212,175,55,0.3); border-radius: 16px;
+      padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    }
+
+    .viewer-box { flex: 1; position: relative; border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; overflow: hidden; background: rgba(0,0,0,0.25); min-height: 460px; }
     .hud-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; flex-wrap: wrap; gap: 8px; }
     .pill-group { display: flex; gap: 6px; pointer-events: auto; flex-wrap: wrap; }
     .pill {
@@ -62,16 +155,6 @@
       transition: transform 0.15s;
     }
     .swatch:hover, .swatch.active { transform: scale(1.15); border-color: #d4af37; box-shadow: 0 0 12px rgba(212,175,55,0.6); }
-    .hotspot {
-      width: 22px; height: 22px; border-radius: 50%; background: #d4af37; color: #000; border: 2px solid #fff;
-      font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-      position: relative;
-    }
-    .hotspot-tip {
-      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
-      background: rgba(8,8,12,0.95); color: #fff; border: 1px solid rgba(212,175,55,0.5);
-      padding: 6px 10px; border-radius: 8px; font-size: 10px; white-space: nowrap; pointer-events: none;
-    }
     .cta-btn {
       width: 100%; padding: 14px; border-radius: 14px; background: #d4af37; color: #000;
       font-weight: 900; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
@@ -82,11 +165,10 @@
 </head>
 <body>
   <header>
-    <a href="./" class="brand">🛋️ QIENS HOME // 3D SANAL SHOWROOM</a>
+    <a href="./" class="brand">🛋️ QIENS HOME // 3D SHOWROOM & ODA PLANLAYICI</a>
     <div class="nav-links">
-      <button class="nav-btn active" onclick="switchPiece('./models/GlamVelvetSofa.glb', this)">Kadife Koltuk (3D)</button>
-      <button class="nav-btn" onclick="switchPiece('./models/SheenWoodLeatherSofa.glb', this)">Ahşap & Deri Set (3D)</button>
-      <button class="nav-btn" onclick="switchPiece('./models/SheenChair.glb', this)">Tekli Berjer (3D)</button>
+      <button class="nav-btn active" id="topModePlanner" onclick="setMode('planner')">📐 Sürükle & Odaya Yerleştir</button>
+      <button class="nav-btn" id="topMode3D" onclick="setMode('3d')">🌀 360° 3D Model & AR</button>
       <a href="https://wa.me/905077567887?text=Merhaba,%20Qiens%20Home%203D%20Showroom%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" class="nav-btn" style="border-color:#00ff9d;color:#00ff9d;">💬 WhatsApp Sipariş</a>
     </div>
   </header>
@@ -97,100 +179,106 @@
       <div id="productList"></div>
     </aside>
 
-    <main class="stage" id="stageContainer">
-      <div class="viewer-box">
-        <div class="hud-top">
-          <div class="pill-group" id="pieceButtons">
-            <button class="pill active" onclick="switchPiece('./models/GlamVelvetSofa.glb', this)">Tüm Paket / Koltuk</button>
-            <button class="pill" onclick="switchPiece('./models/SheenWoodLeatherSofa.glb', this)">Yatak & Ahşap Set</button>
-            <button class="pill" onclick="switchPiece('./models/SheenChair.glb', this)">Tekli Berjer</button>
+    <main class="stage-col" id="stageContainer">
+      <!-- Mode Switcher -->
+      <div class="mode-bar">
+        <button class="mode-btn active" id="btnPlanner" onclick="setMode('planner')">📐 Sürükle & Odaya Yerleştir (Kendin Diz)</button>
+        <button class="mode-btn" id="btn3D" onclick="setMode('3d')">🌀 360° 3D Tekli İncele & AR</button>
+      </div>
+
+      <!-- MODE 1: DRAG & DROP ROOM PLANNER -->
+      <div id="plannerSection" style="display:flex;flex-direction:column;gap:10px;flex:1;">
+        <div class="shelf-box">
+          <div class="shelf-header">
+            <span style="font-size:10px;font-weight:900;letter-spacing:0.18em;color:#d4af37;text-transform:uppercase;">
+              ✨ TAKIM PARÇALARI — ÜSTTEN SÜRÜKLE VEYA DOKUNARAK ODAYA KOY
+            </span>
+            <div style="display:flex;gap:6px;">
+              <button class="pill active" onclick="resetAutoRoom()">✨ Hazır Dizilim</button>
+              <button class="pill" onclick="togglePerspective()" id="perspBtn">📐 3D Perspektif</button>
+              <button class="pill" onclick="clearRoom()">🗑️ Boşalt</button>
+            </div>
           </div>
-          <div class="pill-group">
-            <button class="pill" id="dimBtn" onclick="toggleDims()">📏 3D Ölçüler</button>
-            <button class="pill" id="splitBtn" onclick="toggleSplit()">⚖️ İkili Takım Görünümü</button>
-            <button class="pill active" id="rotBtn" onclick="toggleRotate()">🔄 360° Döndür</button>
-            <button class="pill" onclick="goFullscreen()">⛶ Tam Ekran</button>
-          </div>
+          <div class="shelf-strip" id="pieceShelf"></div>
         </div>
 
-        <model-viewer
-          id="mv1"
-          src="./models/GlamVelvetSofa.glb"
-          alt="Qiens Home 3D Mobilya"
-          camera-controls
-          auto-rotate
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          shadow-intensity="1.4"
-          exposure="1.05"
-        >
-          <button slot="hotspot-1" data-position="0m 0.45m 0.1m" data-normal="0m 1m 0m" class="hotspot">
-            +
-            <span class="hotspot-tip">35 DNS HR Konfor Süngeri</span>
-          </button>
-          <button slot="hotspot-2" data-position="0.4m 0.15m -0.2m" data-normal="0m -1m 0m" class="hotspot">
-            +
-            <span class="hotspot-tip">1. Sınıf Fırınlanmış Gürgen İskelet</span>
-          </button>
-        </model-viewer>
+        <div class="room-wrapper">
+          <div class="room-floor" id="roomFloor" ondragover="event.preventDefault()" ondrop="handleFloorDrop(event)"></div>
+        </div>
 
-        <div class="dims-box" id="dimsBox" style="display:none;">
-          <strong style="color:#d4af37;">📐 Gerçek 3D Model Ölçüleri (cm):</strong>
-          <div id="dimsText">Hesaplanıyor...</div>
+        <div class="ctrl-bar" id="activePieceBar">
+          <div id="activePieceInfo" style="font-size:11.5px;font-weight:800;color:#ddd;">
+            💡 Odadaki bir parçaya dokunarak sürükleyin, döndürün veya duvara hizalayın.
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="pill" onclick="rotateSelected(45)">↻ 45° Döndür</button>
+            <button class="pill" onclick="rotateSelected(90)">↻ 90° Döndür</button>
+            <button class="pill" onclick="snapSelected('top')">⬆️ Üst Duvara Yasla</button>
+            <button class="pill" onclick="snapSelected('left')">⬅️ Sol Duvara Yasla</button>
+            <button class="pill" onclick="setMode('3d')" style="border-color:#d4af37;color:#d4af37;">🌀 3D İncele</button>
+            <button class="pill" onclick="deleteSelected()" style="border-color:#ef4444;color:#fca5a5;">🗑️ Kaldır</button>
+          </div>
         </div>
       </div>
 
-      <div class="viewer-box" id="secondBox" style="display:none;">
-        <div class="hud-top">
-          <div class="pill-group">
-            <span class="pill active">⚖️ Tamamlayıcı Parça: Tekli Berjer</span>
+      <!-- MODE 2: 360 3D MODEL VIEWER -->
+      <div id="viewerSection" style="display:none;flex:1;gap:12px;">
+        <div class="viewer-box">
+          <div class="hud-top">
+            <div class="pill-group" id="pieceButtons">
+              <button class="pill active" onclick="switchPiece('./models/SheenWoodLeatherSofa.glb', this)">Gardırop & Yatak</button>
+              <button class="pill" onclick="switchPiece('./models/GlamVelvetSofa.glb', this)">Koltuk / Baza</button>
+              <button class="pill" onclick="switchPiece('./models/SheenChair.glb', this)">Şifonyer / Komodin / Berjer</button>
+            </div>
+            <div class="pill-group">
+              <button class="pill" id="dimBtn" onclick="toggleDims()">📏 3D Ölçüler</button>
+              <button class="pill active" id="rotBtn" onclick="toggleRotate()">🔄 360° Döndür</button>
+              <button class="pill" onclick="goFullscreen()">⛶ Tam Ekran</button>
+            </div>
+          </div>
+
+          <model-viewer
+            id="mv1"
+            src="./models/SheenWoodLeatherSofa.glb"
+            alt="Qiens Home 3D Mobilya"
+            camera-controls
+            auto-rotate
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            shadow-intensity="1.4"
+            exposure="1.05"
+          ></model-viewer>
+
+          <div class="dims-box" id="dimsBox" style="display:none;">
+            <strong style="color:#d4af37;">📐 Gerçek 3D Model Ölçüleri (cm):</strong>
+            <div id="dimsText">Hesaplanıyor...</div>
           </div>
         </div>
-        <model-viewer
-          id="mv2"
-          src="./models/SheenChair.glb"
-          alt="Qiens Home Tekli Berjer"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1.4"
-          exposure="1.05"
-        ></model-viewer>
       </div>
     </main>
 
     <aside class="col-right">
       <div>
         <div class="sec-title">SEÇİLİ KOLEKSİYON</div>
-        <h2 id="selTitle" style="font-size:20px;font-weight:900;margin-bottom:4px;">İmparator Lüks Düğün Paketi</h2>
-        <div id="selPrice" style="font-size:22px;color:#d4af37;font-weight:800;margin-bottom:8px;">145.000 ₺</div>
-        <p id="selDesc" style="font-size:12px;color:#aaa;line-height:1.5;">Koltuk takımı, yatak odası ve yemek odasını tek konseptte buluşturan Qiens Home imza koleksiyonu.</p>
+        <h2 id="selTitle" style="font-size:20px;font-weight:900;margin-bottom:4px;">Ayça Yatak Odası Takımı</h2>
+        <div id="selPrice" style="font-size:22px;color:#d4af37;font-weight:800;margin-bottom:8px;">75.600 ₺</div>
+        <p id="selDesc" style="font-size:12px;color:#aaa;line-height:1.5;">Ayça Serisi - 2026 Model Premium Yatak Odası Takımı. Gardırop, baza, şifonyer ve komodinleri odanıza sürükleyip yerleştirin.</p>
       </div>
 
       <div>
-        <div class="sec-title">CANLI 3D KUMAŞ & RENK SEÇİMİ</div>
+        <div class="sec-title">CANLI 3D KUMAŞ & AHŞAP SEÇİMİ</div>
         <div class="swatches">
-          <div class="swatch active" style="background:#0d4026;" title="Zümrüt Yeşili" onclick="applyColor([0.05, 0.25, 0.15, 1], 'Zümrüt Yeşili', this)"></div>
-          <div class="swatch" style="background:#0d2673;" title="Safir Mavi" onclick="applyColor([0.05, 0.15, 0.45, 1], 'Safir Mavi', this)"></div>
-          <div class="swatch" style="background:#d4af37;" title="Altın Kadife" onclick="applyColor([0.83, 0.68, 0.21, 1], 'Altın Kadife', this)"></div>
-          <div class="swatch" style="background:#b3401f;" title="Kiremit" onclick="applyColor([0.70, 0.25, 0.12, 1], 'Kiremit', this)"></div>
-          <div class="swatch" style="background:#f2e6d1;" title="Krem Boucle" onclick="applyColor([0.95, 0.90, 0.82, 1], 'Krem Boucle', this)"></div>
-          <div class="swatch" style="background:#262626;" title="Antrasit" onclick="applyColor([0.15, 0.15, 0.15, 1], 'Antrasit', this)"></div>
-          <div class="swatch" style="background:#59381f;" title="Doğal Ceviz" onclick="applyColor([0.35, 0.22, 0.12, 1], 'Doğal Ceviz', this)"></div>
+          <div class="swatch active" style="background:#c5a880;" title="Doğal Meşe" onclick="applyColor([0.76, 0.65, 0.52, 1], 'Doğal Meşe', '#c5a880', this)"></div>
+          <div class="swatch" style="background:#5c3a21;" title="Doğal Ceviz" onclick="applyColor([0.35, 0.22, 0.12, 1], 'Doğal Ceviz', '#5c3a21', this)"></div>
+          <div class="swatch" style="background:#f2e6d1;" title="Krem Boucle" onclick="applyColor([0.95, 0.90, 0.82, 1], 'Krem Boucle', '#f2e6d1', this)"></div>
+          <div class="swatch" style="background:#2c3038;" title="Antrasit" onclick="applyColor([0.15, 0.15, 0.15, 1], 'Antrasit', '#2c3038', this)"></div>
+          <div class="swatch" style="background:#0d4026;" title="Zümrüt Yeşili" onclick="applyColor([0.05, 0.25, 0.15, 1], 'Zümrüt Yeşili', '#0d4026', this)"></div>
         </div>
-        <div id="colorLabel" style="font-size:11px;color:#ccc;margin-top:6px;">Seçili Kumaş: <b>Zümrüt Yeşili</b></div>
-      </div>
-
-      <div>
-        <div class="sec-title">STÜDYO IŞIK & ATMOSFER</div>
-        <div class="pill-group">
-          <button class="pill active" onclick="setLight(1.05, '#23232c', this)">☀️ Stüdyo</button>
-          <button class="pill" onclick="setLight(1.3, '#332018', this)">🌅 Gün Batımı</button>
-          <button class="pill" onclick="setLight(0.55, '#0a0e1a', this)">🌙 Gece</button>
-        </div>
+        <div id="colorLabel" style="font-size:11px;color:#ccc;margin-top:6px;">Seçili Renk: <b>Doğal Meşe</b></div>
       </div>
 
       <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;">
-        <button class="cta-btn" onclick="activateAR()">📱 Odamda Gör (AR Kamera)</button>
+        <button class="cta-btn" onclick="setMode('3d');setTimeout(activateAR,300);">📱 Odamda Gör (AR Kamera)</button>
         <a id="waBtn" href="https://wa.me/905077567887?text=Merhaba,%20Qiens%20Home%203D%20Showroom%20%C3%BCr%C3%BCn%C3%BC%20i%C3%A7in%20sipari%C5%9F%20vermek%20istiyorum." target="_blank" class="cta-btn" style="background:#10b981;color:#fff;">🛒 WhatsApp ile Hemen Sipariş</a>
       </div>
     </aside>
@@ -198,35 +286,55 @@
 
   <script>
     const PRODUCTS = [
-      { name: 'Ayça Yatak Odası Takımı', cat: 'Yatak Odası', price: '75.600 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - 2026 Model Premium Yatak Odası Takımı. Masif iskelet, baza ve komodin tasarımı.' },
-      { name: 'Ayça Yemek Odası Takımı', cat: 'Yemek Odası', price: '71.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - Modern ve estetik açılır yemek masası, sandalyeler ve şık konsol ünitesi.' },
-      { name: 'Buğlem Yatak Odası Takımı', cat: 'Yatak Odası', price: '78.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Buğlem Serisi - Zarafetin ve yüksek konforun buluşma noktası. Özel kapitone başlık ve geniş gardırop.' },
+      { name: 'Ayça Yatak Odası Takımı', cat: 'Yatak Odası', price: '75.600 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - 6 Kapaklı Gardırop, Yatak Baza, Şifonyer ve 2 adet Komodin.' },
+      { name: 'Ayça Yemek Odası Takımı', cat: 'Yemek Odası', price: '71.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayça Serisi - Açılır Yemek Masası, Konsol & Ayna, 4 Sandalye ve Vitrin.' },
+      { name: 'Buğlem Yatak Odası Takımı', cat: 'Yatak Odası', price: '78.400 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Buğlem Serisi - Özel kapitone başlık, geniş gardırop, şifonyer ve komodin takımı.' },
       { name: 'Buğlem Yemek Odası Takımı', cat: 'Yemek Odası', price: '72.800 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Buğlem Serisi - Şık tasarımıyla salonunuza estetik katan açılır masa ve konsol ünitesi.' },
-      { name: 'Tokyo Yatak Odası Takımı', cat: 'Yatak Odası', price: '77.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Modern minimalist çizgileri ve fonksiyonel depolama alanlarıyla yeni nesil yatak odası.' },
-      { name: 'Tokyo Yemek Odası Takımı', cat: 'Yemek Odası', price: '60.900 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Sade ve şık tasarımıyla huzurlu yemek alanları için ideal konsept.' },
-      { name: 'İnci Yatak Odası Takımı', cat: 'Yatak Odası', price: '70.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Klasik ve modern tasarımın kusursuz uyumu.' },
-      { name: 'İnci Yemek Odası Takımı', cat: 'Yemek Odası', price: '58.800 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Estetik ve dayanıklılığı bir araya getiren lüks yemek odası takımı.' },
-      { name: 'Aynalı Yatak Odası Takımı', cat: 'Yatak Odası', price: '45.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Boydan aynalı sürgülü kapaklı gardırop, baza ve şifonyer seti.' },
-      { name: 'Aynalı Yemek Odası Takımı', cat: 'Yemek Odası', price: '46.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Ayna desenli konsol kapağı ve modern masa takımı.' },
-      { name: 'Bohem Yatak Odası Takımı', cat: 'Yatak Odası', price: '47.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Bohem stili masif detaylar ve konforlu başlık yapısı.' },
-      { name: 'Bohem Yemek Odası Takımı', cat: 'Yemek Odası', price: '48.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Bohem serisi açılır doğal ahşap masa ve konsol takımı.' }
+      { name: 'Tokyo Yatak Odası Takımı', cat: 'Yatak Odası', price: '77.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Modern minimalist gardırop, yatak baza, şifonyer ve komodinler.' },
+      { name: 'Tokyo Yemek Odası Takımı', cat: 'Yemek Odası', price: '60.900 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'Tokyo Serisi - Sade ve şık tasarımıyla huzurlu yemek alanları için masa ve konsol.' },
+      { name: 'İnci Yatak Odası Takımı', cat: 'Yatak Odası', price: '70.000 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Klasik ve modern tasarımın kusursuz uyumu yatak odası seti.' },
+      { name: 'İnci Yemek Odası Takımı', cat: 'Yemek Odası', price: '58.800 ₺', model: './models/SheenWoodLeatherSofa.glb', desc: 'İnci Serisi - Estetik ve dayanıklılığı bir araya getiren lüks yemek odası takımı.' }
     ];
 
-    const mv1 = document.getElementById('mv1');
-    const mv2 = document.getElementById('mv2');
-    const listEl = document.getElementById('productList');
+    const PIECE_SETS = {
+      'Yatak Odası': [
+        { id: 'gardrop', name: 'Gardırop', w: 240, d: 62, h: 215, x: 15, y: 75, rot: 90 },
+        { id: 'yatak', name: 'Yatak & Baza', w: 175, d: 215, h: 125, x: 175, y: 15, rot: 0 },
+        { id: 'komodin1', name: 'Sol Komodin', w: 55, d: 45, h: 50, x: 112, y: 15, rot: 0 },
+        { id: 'komodin2', name: 'Sağ Komodin', w: 55, d: 45, h: 50, x: 360, y: 15, rot: 0 },
+        { id: 'sifonyer', name: 'Şifonyer & Ayna', w: 125, d: 48, h: 85, x: 330, y: 330, rot: 180 },
+        { id: 'puf', name: 'Ayak Ucu Puf', w: 130, d: 45, h: 46, x: 198, y: 240, rot: 0 }
+      ],
+      'Yemek Odası': [
+        { id: 'konsol', name: 'Konsol & Ayna', w: 210, d: 48, h: 85, x: 145, y: 15, rot: 0 },
+        { id: 'masa', name: 'Yemek Masası', w: 200, d: 100, h: 78, x: 150, y: 155, rot: 0 },
+        { id: 'sand1', name: 'Sandalye 1', w: 52, d: 55, h: 88, x: 175, y: 95, rot: 0 },
+        { id: 'sand2', name: 'Sandalye 2', w: 52, d: 55, h: 88, x: 270, y: 95, rot: 0 },
+        { id: 'sand3', name: 'Sandalye 3', w: 52, d: 55, h: 88, x: 175, y: 262, rot: 180 },
+        { id: 'sand4', name: 'Sandalye 4', w: 52, d: 55, h: 88, x: 270, y: 262, rot: 180 },
+        { id: 'vitrin', name: 'Vitrin / TV', w: 160, d: 45, h: 140, x: 15, y: 130, rot: 90 }
+      ]
+    };
 
-    // Eger /showroom/ alt klasorunden acildiysa ve ./models yoksa ../models yoluna otomatik gec
+    const ROOM_W = 500;
+    const ROOM_D = 400;
+    let currentCat = 'Yatak Odası';
+    let currentColorHex = '#c5a880';
+    let placedItems = [];
+    let selectedInstanceId = null;
+
+    const mv1 = document.getElementById('mv1');
+    const listEl = document.getElementById('productList');
+    const shelfEl = document.getElementById('pieceShelf');
+    const floorEl = document.getElementById('roomFloor');
+
     function resolveAssetPath(relPath) {
       if (window.location.pathname.includes('/showroom')) {
         return relPath.replace(/^\.\//, '../');
       }
       return relPath;
     }
-
-    // Sayfa acilisinda model yolunu dogrula
-    mv1.src = resolveAssetPath('./models/GlamVelvetSofa.glb');
-    mv2.src = resolveAssetPath('./models/SheenChair.glb');
+    mv1.src = resolveAssetPath('./models/SheenWoodLeatherSofa.glb');
 
     PRODUCTS.forEach((p, idx) => {
       const d = document.createElement('div');
@@ -238,11 +346,177 @@
         document.getElementById('selTitle').textContent = p.name;
         document.getElementById('selPrice').textContent = p.price;
         document.getElementById('selDesc').textContent = p.desc;
+        currentCat = p.cat;
         mv1.src = resolveAssetPath(p.model);
-        setTimeout(readDimensions, 600);
+        resetAutoRoom();
       };
       listEl.appendChild(d);
     });
+
+    function setMode(mode) {
+      const isPlanner = mode === 'planner';
+      document.getElementById('plannerSection').style.display = isPlanner ? 'flex' : 'none';
+      document.getElementById('viewerSection').style.display = isPlanner ? 'none' : 'flex';
+      document.getElementById('btnPlanner').classList.toggle('active', isPlanner);
+      document.getElementById('btn3D').classList.toggle('active', !isPlanner);
+      document.getElementById('topModePlanner').classList.toggle('active', isPlanner);
+      document.getElementById('topMode3D').classList.toggle('active', !isPlanner);
+    }
+
+    function renderShelf() {
+      const specs = PIECE_SETS[currentCat] || PIECE_SETS['Yatak Odası'];
+      shelfEl.innerHTML = '';
+      specs.forEach(spec => {
+        const count = placedItems.filter(i => i.id === spec.id).length;
+        const card = document.createElement('div');
+        card.className = 'piece-card';
+        card.draggable = true;
+        card.ondragstart = (ev) => ev.dataTransfer.setData('text/plain', spec.id);
+        card.onclick = () => addPieceInstance(spec);
+        card.innerHTML = `
+          ${count > 0 ? `<span class="piece-badge">${count} Odada</span>` : ''}
+          <div class="piece-title">${spec.name}</div>
+          <div class="piece-dim">${spec.w} × ${spec.d} cm (Y:${spec.h})</div>
+          <div class="piece-add">+ Odaya Koy / Sürükle</div>
+        `;
+        shelfEl.appendChild(card);
+      });
+    }
+
+    function resetAutoRoom() {
+      const specs = PIECE_SETS[currentCat] || PIECE_SETS['Yatak Odası'];
+      placedItems = specs.map((s, i) => ({
+        ...s,
+        instanceId: s.id + '_' + Date.now() + '_' + i
+      }));
+      selectedInstanceId = placedItems[0]?.instanceId || null;
+      renderShelf();
+      renderFloor();
+    }
+
+    function clearRoom() {
+      placedItems = [];
+      selectedInstanceId = null;
+      renderShelf();
+      renderFloor();
+    }
+
+    function addPieceInstance(spec, dropX, dropY) {
+      const item = {
+        ...spec,
+        instanceId: spec.id + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+        x: dropX !== undefined ? Math.max(0, Math.min(dropX - spec.w/2, ROOM_W - spec.w)) : Math.round((ROOM_W - spec.w)/2),
+        y: dropY !== undefined ? Math.max(0, Math.min(dropY - spec.d/2, ROOM_D - spec.d)) : Math.round((ROOM_D - spec.d)/2),
+        rot: 0
+      };
+      placedItems.push(item);
+      selectedInstanceId = item.instanceId;
+      renderShelf();
+      renderFloor();
+    }
+
+    function handleFloorDrop(ev) {
+      ev.preventDefault();
+      const id = ev.dataTransfer.getData('text/plain');
+      const specs = PIECE_SETS[currentCat] || PIECE_SETS['Yatak Odası'];
+      const spec = specs.find(s => s.id === id);
+      if (!spec) return;
+      const rect = floorEl.getBoundingClientRect();
+      const rx = ((ev.clientX - rect.left) / rect.width) * ROOM_W;
+      const ry = ((ev.clientY - rect.top) / rect.height) * ROOM_D;
+      addPieceInstance(spec, Math.round(rx), Math.round(ry));
+    }
+
+    function renderFloor() {
+      floorEl.innerHTML = '';
+      placedItems.forEach(item => {
+        const isRot90 = item.rot % 180 !== 0;
+        const ew = isRot90 ? item.d : item.w;
+        const ed = isRot90 ? item.w : item.d;
+
+        const el = document.createElement('div');
+        el.className = 'placed-item' + (item.instanceId === selectedInstanceId ? ' selected' : '');
+        el.style.left = ((item.x / ROOM_W) * 100) + '%';
+        el.style.top = ((item.y / ROOM_D) * 100) + '%';
+        el.style.width = ((ew / ROOM_W) * 100) + '%';
+        el.style.height = ((ed / ROOM_D) * 100) + '%';
+        el.style.backgroundColor = currentColorHex;
+        el.innerHTML = `
+          <div class="placed-dims-tag">${ew}×${ed} cm (${item.rot}°)</div>
+          <div class="placed-label">${item.name}</div>
+        `;
+
+        // Pointer drag
+        let startX = 0, startY = 0, origX = item.x, origY = item.y, dragging = false;
+        el.onpointerdown = (e) => {
+          e.stopPropagation();
+          selectedInstanceId = item.instanceId;
+          dragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          origX = item.x;
+          origY = item.y;
+          el.setPointerCapture(e.pointerId);
+          renderFloor();
+        };
+        el.onpointermove = (e) => {
+          if (!dragging) return;
+          const rect = floorEl.getBoundingClientRect();
+          const dx = ((e.clientX - startX) / rect.width) * ROOM_W;
+          const dy = ((e.clientY - startY) / rect.height) * ROOM_D;
+          item.x = Math.max(0, Math.min(Math.round((origX + dx)/5)*5, ROOM_W - ew));
+          item.y = Math.max(0, Math.min(Math.round((origY + dy)/5)*5, ROOM_D - ed));
+          el.style.left = ((item.x / ROOM_W) * 100) + '%';
+          el.style.top = ((item.y / ROOM_D) * 100) + '%';
+          updateActiveInfo();
+        };
+        el.onpointerup = (e) => {
+          dragging = false;
+          try { el.releasePointerCapture(e.pointerId); } catch {}
+        };
+
+        floorEl.appendChild(el);
+      });
+      updateActiveInfo();
+    }
+
+    function updateActiveInfo() {
+      const sel = placedItems.find(i => i.instanceId === selectedInstanceId);
+      const infoEl = document.getElementById('activePieceInfo');
+      if (sel) {
+        infoEl.innerHTML = `<span style="color:#d4af37;">${sel.name}</span> (${sel.w}×${sel.d}×${sel.h} cm) • Konum: ${sel.x}cm, ${sel.y}cm • Açı: ${sel.rot}°`;
+      } else {
+        infoEl.innerHTML = '💡 Odadaki bir parçaya dokunarak sürükleyin, döndürün veya duvara hizalayın.';
+      }
+    }
+
+    function rotateSelected(deg) {
+      const sel = placedItems.find(i => i.instanceId === selectedInstanceId);
+      if (!sel) return;
+      sel.rot = (sel.rot + deg) % 360;
+      renderFloor();
+    }
+
+    function snapSelected(wall) {
+      const sel = placedItems.find(i => i.instanceId === selectedInstanceId);
+      if (!sel) return;
+      if (wall === 'top') { sel.y = 5; sel.rot = 0; }
+      if (wall === 'left') { sel.x = 5; sel.rot = 90; }
+      renderFloor();
+    }
+
+    function deleteSelected() {
+      if (!selectedInstanceId) return;
+      placedItems = placedItems.filter(i => i.instanceId !== selectedInstanceId);
+      selectedInstanceId = placedItems[0]?.instanceId || null;
+      renderShelf();
+      renderFloor();
+    }
+
+    function togglePerspective() {
+      floorEl.classList.toggle('flat');
+      document.getElementById('perspBtn').classList.toggle('active', !floorEl.classList.contains('flat'));
+    }
 
     function switchPiece(url, btn) {
       mv1.src = resolveAssetPath(url);
@@ -253,46 +527,28 @@
       setTimeout(readDimensions, 600);
     }
 
-    async function applyColor(rgba, label, el) {
+    async function applyColor(rgba, label, hex, el) {
       document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
       if (el) el.classList.add('active');
-      document.getElementById('colorLabel').innerHTML = `Seçili Kumaş: <b>${label}</b>`;
-      for (const viewer of [mv1, mv2]) {
-        if (viewer && viewer.model && viewer.model.materials) {
-          for (const mat of viewer.model.materials) {
-            const name = (mat.name || '').toLowerCase();
-            if (!name.includes('wood') && !name.includes('metal') && !name.includes('leg')) {
-              try {
-                if (typeof mat.ensureLoaded === 'function') await mat.ensureLoaded();
-                if (mat.pbrMetallicRoughness) mat.pbrMetallicRoughness.setBaseColorFactor(rgba);
-              } catch {}
-            }
+      document.getElementById('colorLabel').innerHTML = `Seçili Renk: <b>${label}</b>`;
+      currentColorHex = hex;
+      renderFloor();
+      if (mv1 && mv1.model && mv1.model.materials) {
+        for (const mat of mv1.model.materials) {
+          const name = (mat.name || '').toLowerCase();
+          if (!name.includes('wood') && !name.includes('metal') && !name.includes('leg')) {
+            try {
+              if (typeof mat.ensureLoaded === 'function') await mat.ensureLoaded();
+              if (mat.pbrMetallicRoughness) mat.pbrMetallicRoughness.setBaseColorFactor(rgba);
+            } catch {}
           }
         }
       }
     }
 
-    function setLight(exp, bg, btn) {
-      mv1.exposure = exp;
-      mv2.exposure = exp;
-      document.getElementById('stageContainer').style.background = `radial-gradient(circle at 50% 45%, ${bg} 0%, #09090d 80%)`;
-      if (btn) {
-        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-    }
-
     function toggleRotate() {
       mv1.autoRotate = !mv1.autoRotate;
-      mv2.autoRotate = mv1.autoRotate;
       document.getElementById('rotBtn').classList.toggle('active', mv1.autoRotate);
-    }
-
-    function toggleSplit() {
-      const box2 = document.getElementById('secondBox');
-      const show = box2.style.display === 'none';
-      box2.style.display = show ? 'block' : 'none';
-      document.getElementById('splitBtn').classList.toggle('active', show);
     }
 
     function readDimensions() {
@@ -301,7 +557,7 @@
           const s = mv1.getDimensions();
           if (s && (s.x > 0 || s.y > 0)) {
             document.getElementById('dimsText').innerHTML =
-              `Genişlik (X): <b>${Math.round(s.x * 100)} cm</b> | Yükseklik (Y): <b>${Math.round(s.y * 100)} cm</b> | Derinlik (Z): <b>${Math.round(s.z * 100)} cm</b>`;
+              `Genişlik: <b>${Math.round(s.x * 100)} cm</b> | Yükseklik: <b>${Math.round(s.y * 100)} cm</b> | Derinlik: <b>${Math.round(s.z * 100)} cm</b>`;
           }
         } catch {}
       }
@@ -327,6 +583,7 @@
     }
 
     mv1.addEventListener('load', readDimensions);
+    resetAutoRoom();
   </script>
 </body>
 </html>

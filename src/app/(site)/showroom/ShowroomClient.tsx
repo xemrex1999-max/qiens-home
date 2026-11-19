@@ -11,6 +11,7 @@ import { useCart } from '@/store/useCart';
 import { useUI } from '@/store/useUI';
 import { formatPrice, cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import ShowroomRoomPlanner from '@/components/showroom/ShowroomRoomPlanner';
 
 interface ShowroomClientProps {
   initialProducts: any[];
@@ -41,23 +42,26 @@ const getPiecesForProduct = (productName: string, defaultUrl: string) => {
       return null;
     }
     return [
-      { name: "Tüm Takım", url: defaultUrl },
       { name: "3'lü Koltuk", url: defaultUrl },
-      { name: "Tekli Berjer", url: "/models/SheenChair.glb" }
+      { name: "2'li Koltuk", url: "/models/SheenWoodLeatherSofa.glb" },
+      { name: "Tekli Berjer", url: "/models/SheenChair.glb" },
+      { name: "Orta Sehpa", url: defaultUrl }
     ];
   }
   if (normalized.includes("yatak") || normalized.includes("bedroom")) {
     return [
-      { name: "Komple Set", url: defaultUrl },
-      { name: "Karyola & Başlık", url: defaultUrl },
-      { name: "Şifonyer / Komodin", url: "/models/SheenChair.glb" }
+      { name: "Gardırop", url: defaultUrl },
+      { name: "Yatak & Baza", url: defaultUrl },
+      { name: "Şifonyer & Ayna", url: "/models/SheenChair.glb" },
+      { name: "Komodinler", url: "/models/SheenChair.glb" }
     ];
   }
   if (normalized.includes("yemek") || normalized.includes("masa")) {
     return [
-      { name: "Komple Takım", url: defaultUrl },
       { name: "Yemek Masası", url: defaultUrl },
-      { name: "Konsol", url: "/models/SheenChair.glb" }
+      { name: "Konsol & Ayna", url: defaultUrl },
+      { name: "Sandalye Seti", url: "/models/SheenChair.glb" },
+      { name: "Vitrin / TV", url: defaultUrl }
     ];
   }
   return null;
@@ -231,6 +235,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
   const [showAnnotations, setShowAnnotations] = useState(true);
   const [showARModal, setShowARModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'specs'>('details');
+  const [studioMode, setStudioMode] = useState<'planner' | '3d'>('planner');
 
   // Custom states for pieces and dimensions
   const pieces = selectedProduct ? getPiecesForProduct(selectedProduct.name, selectedProduct.threeDModelUrl || '/models/GlamVelvetSofa.glb') : null;
@@ -587,8 +592,46 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
         </div>
       </div>
 
-      {/* 2. MIDDLE COLUMN: 3D VIEWPORT STUDIO */}
-      <div className="col-span-1 lg:col-span-6 order-1 lg:order-2 flex flex-col gap-6 relative">
+      {/* 2. MIDDLE COLUMN: 3D VIEWPORT STUDIO & DRAG-DROP ROOM PLANNER */}
+      <div className="col-span-1 lg:col-span-6 order-1 lg:order-2 flex flex-col gap-4 relative">
+        {/* TOP MODE SWITCHER BAR */}
+        <div className="bg-[#111116]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl flex items-center gap-2 shadow-xl">
+          <button
+            type="button"
+            onClick={() => setStudioMode('planner')}
+            className={cn(
+              "flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+              studioMode === 'planner'
+                ? "bg-accent text-black shadow-lg"
+                : "text-neutral-300 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <span>📐 Sürükle & Odaya Yerleştir (Kendin Diz)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStudioMode('3d')}
+            className={cn(
+              "flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer",
+              studioMode === '3d'
+                ? "bg-accent text-black shadow-lg"
+                : "text-neutral-300 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <span>🌀 360° 3D Tekli İncele & AR</span>
+          </button>
+        </div>
+
+        {studioMode === 'planner' ? (
+          <ShowroomRoomPlanner
+            selectedProduct={selectedProduct}
+            selectedColor={selectedColor}
+            onInspect3D={(piece) => {
+              setSelectedPieceUrl(piece.url);
+              setStudioMode('3d');
+            }}
+          />
+        ) : (
         <div className="relative w-full h-[380px] sm:h-[480px] lg:h-[600px] bg-[#0A0A0A] border border-white/5 rounded-[40px] overflow-hidden group shadow-2xl">
           
           <div className={cn(
@@ -929,6 +972,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
           {/* Decorative subtle border shadow inside */}
           <div className="absolute inset-0 border border-white/5 rounded-[40px] pointer-events-none" />
         </div>
+        )}
       </div>
 
       {/* 3. RIGHT COLUMN: CUSTOMIZATION & DETAIL SHEET */}

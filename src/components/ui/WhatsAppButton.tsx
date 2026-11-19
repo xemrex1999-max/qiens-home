@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 
 const WhatsAppButton = () => {
     const pathname = usePathname()
-    if (pathname?.startsWith("/demo") || pathname?.startsWith("/vitrin")) {
+    if (pathname?.startsWith("/demo") || pathname?.startsWith("/vitrin") || pathname?.startsWith("/ajans")) {
         return null
     }
     // Mobilya sektörü için hızlı destek numarası

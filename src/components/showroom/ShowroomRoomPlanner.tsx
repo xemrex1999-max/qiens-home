@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
   RotateCw, Trash2, Plus, Sparkles, Maximize2, Move,
-  Box, Layers, Eye, X, DoorOpen, Sliders
+  Box, Layers, Eye, X, DoorOpen, Sliders, Ruler, MessageCircle, RotateCcw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -93,13 +93,50 @@ const COLOR_HEX_MAP: Record<string, { main: string; accent: string; wood: string
 interface ShowroomRoomPlannerProps {
   selectedProduct: any;
   selectedColor: string;
+  onChangeColor?: (color: string) => void;
   onInspect3D?: (piece: FurniturePieceSpec) => void;
+  brandName?: string;
+}
+
+function getParametricBounds(piece: PlacedPiece, baseSpec?: FurniturePieceSpec) {
+  const bw = baseSpec?.widthCm ?? piece.widthCm;
+  const bd = baseSpec?.depthCm ?? piece.depthCm;
+  const bh = baseSpec?.heightCm ?? piece.heightCm;
+  switch (piece.type) {
+    case 'wardrobe':
+      return { wMin: 160, wMax: 300, dMin: 55, dMax: 75, hMin: 195, hMax: 260 };
+    case 'bed':
+      return { wMin: 140, wMax: 210, dMin: 190, dMax: 225, hMin: 105, hMax: 155 };
+    case 'dresser':
+      return { wMin: 90, wMax: 180, dMin: 42, dMax: 60, hMin: 75, hMax: 110 };
+    case 'nightstand':
+      return { wMin: 40, wMax: 75, dMin: 36, dMax: 55, hMin: 42, hMax: 68 };
+    case 'table':
+      return { wMin: 150, wMax: 260, dMin: 85, dMax: 120, hMin: 74, hMax: 84 };
+    case 'console':
+      return { wMin: 150, wMax: 250, dMin: 42, dMax: 60, hMin: 75, hMax: 100 };
+    case 'sofa3':
+      return { wMin: 200, wMax: 310, dMin: 88, dMax: 115, hMin: 78, hMax: 100 };
+    case 'sofa2':
+      return { wMin: 150, wMax: 230, dMin: 85, dMax: 110, hMin: 78, hMax: 100 };
+    default:
+      return {
+        wMin: Math.max(40, bw - 30),
+        wMax: bw + 50,
+        dMin: Math.max(35, bd - 15),
+        dMax: bd + 30,
+        hMin: Math.max(38, bh - 15),
+        hMax: bh + 35,
+      };
+  }
 }
 
 export default function ShowroomRoomPlanner({
   selectedProduct,
   selectedColor,
-  onInspect3D
+  onChangeColor,
+  onInspect3D,
+  brandName = 'İnegöl Fabrika',
 }: ShowroomRoomPlannerProps) {
   const availablePieces = getDetailedPiecesForProduct(
     selectedProduct?.name || '',
@@ -114,6 +151,16 @@ export default function ShowroomRoomPlanner({
   const [placedPieces, setPlacedPieces] = useState<PlacedPiece[]>([]);
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
   const [showMini3D] = useState<boolean>(true);
+  const [activeColor, setActiveColor] = useState<string>(selectedColor);
+
+  useEffect(() => {
+    setActiveColor(selectedColor);
+  }, [selectedColor]);
+
+  const handleColorUpdate = (c: string) => {
+    setActiveColor(c);
+    onChangeColor?.(c);
+  };
 
   // Synced Full-Screen REAL THREE.JS 3D Room Expansion Modal (shows EXACT user-arranged room!)
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
@@ -127,7 +174,7 @@ export default function ShowroomRoomPlanner({
     origYCm: number;
   } | null>(null);
 
-  const palette = COLOR_HEX_MAP[selectedColor] || COLOR_HEX_MAP['Doğal Meşe'];
+  const palette = COLOR_HEX_MAP[activeColor] || COLOR_HEX_MAP['Doğal Meşe'];
 
   const applyAutoLayout = () => {
     const initial: PlacedPiece[] = availablePieces.map((spec, idx) => ({
@@ -274,7 +321,66 @@ export default function ShowroomRoomPlanner({
     setActiveInstanceId(null);
   };
 
+  const updateActivePieceDim = (field: 'widthCm' | 'depthCm' | 'heightCm', value: number) => {
+    const targetId = activeInstanceId || placedPieces[0]?.instanceId;
+    if (!targetId) return;
+    setPlacedPieces(prev =>
+      prev.map(p => (p.instanceId === targetId ? { ...p, [field]: value } : p))
+    );
+  };
+
+  const resetActivePieceDims = () => {
+    const targetId = activeInstanceId || placedPieces[0]?.instanceId;
+    if (!targetId) return;
+    setPlacedPieces(prev =>
+      prev.map(p => {
+        if (p.instanceId !== targetId) return p;
+        const orig = availablePieces.find(s => s.id === p.id);
+        return orig
+          ? { ...p, widthCm: orig.widthCm, depthCm: orig.depthCm, heightCm: orig.heightCm }
+          : p;
+      })
+    );
+  };
+
   const activePiece = placedPieces.find(p => p.instanceId === activeInstanceId) || placedPieces[0] || null;
+
+  // Tylko-style real-time parametric pricing calculation across all placed pieces
+  const baseProductPrice = Number(selectedProduct?.price) || 68900;
+  const customDeltaDetails = placedPieces.reduce(
+    (acc, item) => {
+      const base = availablePieces.find(s => s.id === item.id);
+      if (!base) return acc;
+      const baseVol = base.widthCm * base.depthCm * base.heightCm;
+      const curVol = item.widthCm * item.depthCm * item.heightCm;
+      const ratioDiff = (curVol - baseVol) / Math.max(1, baseVol);
+      const isModified =
+        item.widthCm !== base.widthCm ||
+        item.depthCm !== base.depthCm ||
+        item.heightCm !== base.heightCm;
+      if (isModified) {
+        acc.modifiedList.push(`${item.shortName}: ${item.widthCm}×${item.depthCm}×${item.heightCm} cm`);
+      }
+      acc.totalRatio += ratioDiff / Math.max(1, placedPieces.length);
+      return acc;
+    },
+    { totalRatio: 0, modifiedList: [] as string[] }
+  );
+
+  const customPriceDelta =
+    customDeltaDetails.modifiedList.length > 0
+      ? Math.round((baseProductPrice * customDeltaDetails.totalRatio * 0.45) / 100) * 100
+      : 0;
+  const liveCustomPrice = Math.max(Math.round(baseProductPrice * 0.78), baseProductPrice + customPriceDelta);
+  const liveCustomEuro = Math.round(liveCustomPrice / 37);
+
+  const sendCustomParametricWhatsApp = () => {
+    const pieceLines = placedPieces
+      .map(p => `• ${p.shortName}: ${p.widthCm}×${p.depthCm}×${p.heightCm} cm`)
+      .join('\n');
+    const msg = `Merhaba ${brandName},\n3D Parametrik Oda Planlayıcı'da özel ölçü hazırladım:\n\nTakım: ${selectedProduct?.name || 'Mobilya Takımı'}\nSeçilen Renk / Kumaş: ${activeColor}\nOda Ölçüsü: ${(roomWidthCm / 100).toFixed(1)}m × ${(roomDepthCm / 100).toFixed(1)}m\n\nParça Ölçüleri:\n${pieceLines}\n\nTahmini Özel Üretim Fiyatı: ${liveCustomPrice.toLocaleString('tr-TR')} ₺ (~€${liveCustomEuro.toLocaleString('de-DE')})\n\nKesin üretim süresi ve sipariş onayı alabilir miyim?`;
+    window.open(`https://wa.me/905077567887?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   const getOpenLabel = (item: PlacedPiece) => {
     if (item.type === 'bed') return item.isOpen ? 'Bazayı Kapat' : 'Bazayı Aç (İçini Gör)';
@@ -725,7 +831,8 @@ export default function ShowroomRoomPlanner({
           placedPieces={placedPieces}
           roomWidthCm={roomWidthCm}
           roomDepthCm={roomDepthCm}
-          selectedColor={selectedColor}
+          selectedColor={activeColor}
+          onChangeColor={handleColorUpdate}
           onTogglePieceOpen={(id) => toggleOpenPiece(id)}
           onToggleAllOpen={toggleOpenAll}
           heightClass="h-[440px] sm:h-[520px]"
@@ -867,6 +974,133 @@ export default function ShowroomRoomPlanner({
               className="flex-1 accent-amber-400 cursor-pointer"
             />
           </div>
+
+          {/* TYLKO-STYLE PARAMETRIC CM SIZING & LIVE CUSTOM FACTORY PRICE ENGINE */}
+          {(() => {
+            const origSpec = availablePieces.find(s => s.id === activePiece.id);
+            const bounds = getParametricBounds(activePiece, origSpec);
+            return (
+              <div className="pt-3 border-t border-amber-400/25 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Ruler size={13} className="text-amber-400" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                      SANTİM SANTİM ÖZEL ÖLÇÜ ÜRETİM (CANLI 3D + ANLIK FİYAT)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetActivePieceDims}
+                    className="text-[9px] font-bold text-neutral-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw size={10} /> Standart Ölçüye Dön
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[10px] font-black mb-1">
+                      <span className="text-neutral-300">GENİŞLİK</span>
+                      <span className="text-amber-400">
+                        {activePiece.widthCm} cm
+                        {activePiece.type === 'wardrobe' && activePiece.widthCm >= 225 ? ' (6 Kapak)' : activePiece.type === 'wardrobe' ? ' (4 Kapak)' : ''}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={bounds.wMin}
+                      max={bounds.wMax}
+                      step={5}
+                      value={activePiece.widthCm}
+                      onChange={(e) => updateActivePieceDim('widthCm', Number(e.target.value))}
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
+                      <span>{bounds.wMin} cm</span>
+                      <span>{bounds.wMax} cm</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[10px] font-black mb-1">
+                      <span className="text-neutral-300">DERİNLİK</span>
+                      <span className="text-amber-400">{activePiece.depthCm} cm</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={bounds.dMin}
+                      max={bounds.dMax}
+                      step={2}
+                      value={activePiece.depthCm}
+                      onChange={(e) => updateActivePieceDim('depthCm', Number(e.target.value))}
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
+                      <span>{bounds.dMin} cm</span>
+                      <span>{bounds.dMax} cm</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[10px] font-black mb-1">
+                      <span className="text-neutral-300">YÜKSEKLİK</span>
+                      <span className="text-amber-400">{activePiece.heightCm} cm</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={bounds.hMin}
+                      max={bounds.hMax}
+                      step={5}
+                      value={activePiece.heightCm}
+                      onChange={(e) => updateActivePieceDim('heightCm', Number(e.target.value))}
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
+                      <span>{bounds.hMin} cm</span>
+                      <span>{bounds.hMax} cm</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Price + WhatsApp Custom Order Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-amber-500/15 via-black/50 to-emerald-500/15 border border-amber-400/30 rounded-xl px-3.5 py-2.5">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div>
+                      <div className="text-[9px] font-black uppercase tracking-widest text-neutral-400">
+                        ANLIK ÖZEL ÜRETİM FİYATI ({activeColor})
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg sm:text-xl font-serif font-black text-amber-300">
+                          {liveCustomPrice.toLocaleString('tr-TR')} ₺
+                        </span>
+                        <span className="text-[11px] font-bold text-neutral-300">
+                          (~€{liveCustomEuro.toLocaleString('de-DE')})
+                        </span>
+                        {customPriceDelta !== 0 ? (
+                          <span className={cn(
+                            "text-[9px] font-black px-2 py-0.5 rounded-full",
+                            customPriceDelta > 0 ? "bg-amber-400/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"
+                          )}>
+                            {customPriceDelta > 0 ? `+${customPriceDelta.toLocaleString('tr-TR')} ₺ Özel Ölçü` : `${customPriceDelta.toLocaleString('tr-TR')} ₺ Tasarruf`}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-emerald-400">Standart Fabrika Ölçüsü</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={sendCustomParametricWhatsApp}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg cursor-pointer transition-all"
+                  >
+                    <MessageCircle size={13} /> Bu Özel Ölçüyü WhatsApp&apos;tan Sipariş Et
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="bg-[#14141c]/60 border border-white/5 rounded-2xl p-3 text-center text-[10px] text-neutral-400 font-bold">
@@ -900,7 +1134,8 @@ export default function ShowroomRoomPlanner({
               placedPieces={placedPieces}
               roomWidthCm={roomWidthCm}
               roomDepthCm={roomDepthCm}
-              selectedColor={selectedColor}
+              selectedColor={activeColor}
+              onChangeColor={handleColorUpdate}
               onTogglePieceOpen={(id) => toggleOpenPiece(id)}
               onToggleAllOpen={toggleOpenAll}
               heightClass="h-[74vh] sm:h-[78vh]"

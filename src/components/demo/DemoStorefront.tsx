@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { DemoThemeConfig, DemoProduct, SHARED_DEMO_PRODUCTS, DEMO_THEME_LIST } from '@/data/demoThemes';
 import ShowroomRoomPlanner from '@/components/showroom/ShowroomRoomPlanner';
+import EuropeExportAndB2B from '@/components/shared/EuropeExportAndB2B';
+import AIRoomVisualizer from '@/components/shared/AIRoomVisualizer';
 import { cn } from '@/lib/utils';
 
 type Lang = 'TR' | 'EN' | 'DE';
@@ -91,7 +93,31 @@ interface CartItem {
   qty: number;
 }
 
-export default function DemoStorefront({ theme }: { theme: DemoThemeConfig }) {
+export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeConfig }) {
+  const [customFirma, setCustomFirma] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const firmaParam = params.get('firma')?.trim();
+      if (firmaParam) {
+        setCustomFirma(firmaParam.slice(0, 48));
+      }
+    }
+  }, []);
+
+  const theme = useMemo<DemoThemeConfig>(() => {
+    if (!customFirma) return baseTheme;
+    return {
+      ...baseTheme,
+      brandName: customFirma.toUpperCase(),
+      brandLogoSub: 'İnegöl 3D Dijital Showroom & İhracat',
+      botName: `${customFirma} AI Asistan`,
+    };
+  }, [baseTheme, customFirma]);
+
+  const isDarkTheme = theme.slug === 'aura-luxe' || theme.slug === 'velvet-co';
+
   const [lang, setLang] = useState<Lang>('TR');
   const [activeCat, setActiveCat] = useState<string>('Tümü');
   const [selectedProductModal, setSelectedProductModal] = useState<DemoProduct | null>(null);
@@ -379,7 +405,9 @@ export default function DemoStorefront({ theme }: { theme: DemoThemeConfig }) {
                   threeDModelUrl: showroomProduct.fullRoomModelUrl,
                 }}
                 selectedColor={showroomColor}
+                onChangeColor={(c) => setShowroomColor(c)}
                 onInspect3D={() => setShowroomMode('full3d')}
+                brandName={theme.brandName}
               />
             </div>
           )}
@@ -719,7 +747,7 @@ export default function DemoStorefront({ theme }: { theme: DemoThemeConfig }) {
           {DEMO_THEME_LIST.map((item, i) => (
             <Link
               key={item.slug}
-              href={`/demo/${item.slug}`}
+              href={customFirma ? `/demo/${item.slug}?firma=${encodeURIComponent(customFirma)}` : `/demo/${item.slug}`}
               className={cn(
                 "px-2.5 py-1 rounded-full font-black uppercase tracking-wider transition-all whitespace-nowrap",
                 item.slug === theme.slug ? "" : "bg-white/10 text-neutral-300 hover:bg-white/20"
@@ -1071,6 +1099,22 @@ export default function DemoStorefront({ theme }: { theme: DemoThemeConfig }) {
           {renderShowroomSection('boho-warm')}
         </>
       )}
+
+      {/* 2B. AI ROOM PHOTO VISUALIZER (IKEA KREATIV STYLE) */}
+      <AIRoomVisualizer
+        brandName={theme.brandName}
+        accentHex={theme.accentHex}
+        isDark={isDarkTheme}
+        whatsappPhone={theme.whatsappPhone}
+      />
+
+      {/* 2C. EUROPE DOOR-TO-DOOR EXPORT & B2B WHOLESALE MODULE */}
+      <EuropeExportAndB2B
+        brandName={theme.brandName}
+        accentHex={theme.accentHex}
+        isDark={isDarkTheme}
+        whatsappPhone={theme.whatsappPhone}
+      />
 
       {/* 3. TRUST & CONVERSION BAR */}
       <section id="trust" className={cn("border-y", theme.borderClass)} style={{ backgroundColor: theme.bgSurface }}>

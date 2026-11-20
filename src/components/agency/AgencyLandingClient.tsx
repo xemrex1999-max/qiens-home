@@ -73,11 +73,12 @@ export default function AgencyLandingClient() {
             </div>
           </a>
 
-          <nav className="hidden md:flex items-center gap-7 text-[11px] font-black uppercase tracking-widest text-neutral-300">
-            <a href="#referanslar" className="hover:text-amber-400 transition-colors">Gerçek Referanslar</a>
-            <a href="#tasarimlar" className="hover:text-amber-400 transition-colors">5 Hazır Konsept</a>
+          <nav className="hidden md:flex items-center gap-6 text-[11px] font-black uppercase tracking-widest text-neutral-300">
+            <a href="#referanslar" className="hover:text-amber-400 transition-colors">Referanslar</a>
+            <a href="#tasarimlar" className="hover:text-amber-400 transition-colors">5 Konsept</a>
+            <Link href="/teklif-uret" className="text-emerald-400 hover:text-emerald-300 transition-colors">İMOSAB Teklif & QR</Link>
+            <Link href="/reels-studyo" className="text-pink-400 hover:text-pink-300 transition-colors">Reels Stüdyo</Link>
             <a href="#paketler" className="hover:text-amber-400 transition-colors">Fiyatlar</a>
-            <a href="#teklif" className="hover:text-amber-400 transition-colors">İletişim</a>
           </nav>
 
           <button

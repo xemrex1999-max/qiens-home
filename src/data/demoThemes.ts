@@ -1,3 +1,11 @@
+export interface ProductReview {
+  author: string;
+  city: string;
+  rating: number;
+  date: string;
+  comment: string;
+}
+
 export interface DemoProduct {
   id: string;
   name: string;
@@ -6,6 +14,8 @@ export interface DemoProduct {
   category: 'Yatak Odası' | 'Yemek Odası' | 'Koltuk Takımı';
   price: number;
   oldPrice?: number;
+  rating: number;
+  reviewCount: number;
   badge?: string;
   image: string;
   hoverImage?: string;
@@ -13,7 +23,39 @@ export interface DemoProduct {
   description: string;
   colors: { name: string; hex: string }[];
   dimensions: { piece: string; size: string }[];
+  reviews: ProductReview[];
 }
+
+export const STORE_REVIEWS: ProductReview[] = [
+  {
+    author: 'Selin & Mert K.',
+    city: 'İstanbul / Kadıköy',
+    rating: 5,
+    date: '2 hafta önce',
+    comment: 'İnegöl fabrikasından direkt aldık. 3D odada ölçüleri kontrol edip sipariş verdik, tam vaktinde gelip tertemiz kurdular.',
+  },
+  {
+    author: 'Hakan Y.',
+    city: 'Almanya / Köln',
+    rating: 5,
+    date: '3 hafta önce',
+    comment: 'Avrupa kapı teslim ile 13 günde evimizin içine kadar hasarsız ulaştı. İşçilik ve ahşap kalitesi gerçekten kusursuz.',
+  },
+  {
+    author: 'Zeynep A.',
+    city: 'Ankara / Çankaya',
+    rating: 5,
+    date: '1 ay önce',
+    comment: 'Düğün paketimizi tek seferde buradan seçtik. Kumaş dokusu ve renk uyumu fotoğraflardan bile daha güzel çıktı.',
+  },
+  {
+    author: 'Emrah D.',
+    city: 'İzmir / Karşıyaka',
+    rating: 5,
+    date: '1 ay önce',
+    comment: 'Gardırop genişliğini odamıza göre özel 250 cm yaptırdık. Kurulum ekibi çok ilgiliydi, herkese gönül rahatlığıyla öneririm.',
+  },
+];
 
 export interface DemoThemeConfig {
   slug: string;
@@ -51,6 +93,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Yatak Odası',
     price: 75600,
     oldPrice: 89000,
+    rating: 4.9,
+    reviewCount: 48,
     badge: '3D TAM TAKIM',
     image: '/images/yatak_odasi.png',
     hoverImage: '/evrensen/Aynalı Yatak Odası/WhatsApp Image 2025-09-01 at 11.43.59 (1).jpeg',
@@ -69,6 +113,10 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: 'Şifonyer & Ayna', size: '125 × 48 × 85 cm' },
       { piece: 'Komodin (2 Adet)', size: '55 × 45 × 50 cm' },
     ],
+    reviews: [
+      { author: 'Büşra T.', city: 'Bursa', rating: 5, date: '10 gün önce', comment: 'Gardırop içi çok geniş, frenli menteşeler sessiz kapanıyor. Baza altı da devasa.' },
+      { author: 'Murat E.', city: 'İstanbul', rating: 5, date: '3 hafta önce', comment: 'Doğal meşe rengini aldık, 1 saatte kurulumu tamamladılar. Çok memnunuz.' },
+    ],
   },
   {
     id: 'ayca-yemek',
@@ -78,6 +126,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Yemek Odası',
     price: 71400,
     oldPrice: 84500,
+    rating: 4.9,
+    reviewCount: 36,
     badge: '3D TAM TAKIM',
     image: '/images/yemek_odasi.png',
     hoverImage: '/evrensen/Aynalı Yemek Odası/WhatsApp Image 2025-09-01 at 11.44.04 (2).jpeg',
@@ -95,6 +145,10 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: 'Konsol & Ayna', size: '210 × 48 × 85 cm' },
       { piece: 'Sandalye (6 Adet)', size: '52 × 55 × 88 cm' },
     ],
+    reviews: [
+      { author: 'Derya S.', city: 'Ankara', rating: 5, date: '2 hafta önce', comment: 'Masa açıldığında 10 kişi çok rahat oturuyor, sandalyelerin sırt desteği harika.' },
+      { author: 'Kerem Ö.', city: 'Almanya / Münih', rating: 5, date: '1 ay önce', comment: 'Münih’e sandıklı paketle sıfır çizikle geldi, konsol aynası salonu çok ferahlattı.' },
+    ],
   },
   {
     id: 'imperator-koltuk',
@@ -104,6 +158,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Koltuk Takımı',
     price: 84900,
     oldPrice: 98000,
+    rating: 5.0,
+    reviewCount: 61,
     badge: '3D TAM TAKIM',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80',
     hoverImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80',
@@ -122,6 +178,10 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: 'Tekli Berjer (2 Adet)', size: '82 × 85 × 92 cm' },
       { piece: 'Orta Sehpa', size: '120 × 70 × 42 cm' },
     ],
+    reviews: [
+      { author: 'Melis G.', city: 'İzmir', rating: 5, date: '1 hafta önce', comment: 'Kumaşı tek bezle siliniyor, kahve döküldü hiç leke kalmadı. Oturumu çok rahat.' },
+      { author: 'Okan B.', city: 'Kocaeli', rating: 5, date: '3 hafta önce', comment: 'Gürgen iskelet olduğu ağırlığından belli, yıllarca eskimeden kullanılacak bir takım.' },
+    ],
   },
   {
     id: 'buglem-yatak',
@@ -131,6 +191,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Yatak Odası',
     price: 78400,
     oldPrice: 92000,
+    rating: 4.8,
+    reviewCount: 29,
     badge: 'YENİ 2026',
     image: '/evrensen/Buğlem Yatak Odası/page1_img17.jpeg',
     hoverImage: '/images/yatak_odasi.png',
@@ -147,6 +209,9 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: 'Yatak & Baza', size: '175 × 215 × 128 cm' },
       { piece: 'Şifonyer', size: '125 × 48 × 85 cm' },
     ],
+    reviews: [
+      { author: 'Esra N.', city: 'Antalya', rating: 5, date: '2 hafta önce', comment: 'Başlık kapitonesi ve krem rengi yatak odasına otel şıklığı kattı.' },
+    ],
   },
   {
     id: 'buglem-yemek',
@@ -156,6 +221,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Yemek Odası',
     price: 72800,
     oldPrice: 86000,
+    rating: 4.9,
+    reviewCount: 24,
     badge: 'İNEGÖL ÖZEL',
     image: '/evrensen/Buğlem Yemek Odası/page1_img18.jpeg',
     hoverImage: '/images/yemek_odasi.png',
@@ -170,6 +237,9 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: 'Yemek Masası', size: '200 × 100 × 78 cm' },
       { piece: 'Konsol', size: '210 × 48 × 85 cm' },
     ],
+    reviews: [
+      { author: 'Tolga V.', city: 'Eskişehir', rating: 5, date: '3 hafta önce', comment: 'Ceviz tonu tam beklediğimiz gibi sıcak ve tok duruyor, paketleme özenliydi.' },
+    ],
   },
   {
     id: 'bohem-koltuk',
@@ -179,6 +249,8 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
     category: 'Koltuk Takımı',
     price: 68500,
     oldPrice: 79900,
+    rating: 4.9,
+    reviewCount: 44,
     badge: 'TREND',
     image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80',
     hoverImage: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80',
@@ -194,6 +266,9 @@ export const SHARED_DEMO_PRODUCTS: DemoProduct[] = [
       { piece: "3'lü Kanepe", size: '230 × 96 × 84 cm' },
       { piece: "2'li Kanepe", size: '190 × 94 × 84 cm' },
       { piece: 'Berjer', size: '80 × 84 × 90 cm' },
+    ],
+    reviews: [
+      { author: 'Ceren K.', city: 'İstanbul / Beşiktaş', rating: 5, date: '5 gün önce', comment: 'Krem bukle dokusu yumuşacık, salonumuz tamamen aydınlandı. Çok şık duruyor.' },
     ],
   },
 ];

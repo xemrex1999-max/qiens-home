@@ -5,9 +5,9 @@ import Link from 'next/link';
 import {
   ShoppingBag, MessageCircle, ShieldCheck, Truck, Wrench, CreditCard,
   X, Plus, Minus, CheckCircle2, Globe, Bot, Send, Box, Layers, ArrowRight,
-  ChevronRight, Phone, MapPin, Menu, Camera
+  ChevronRight, Phone, MapPin, Menu, Camera, Star
 } from 'lucide-react';
-import { DemoThemeConfig, DemoProduct, SHARED_DEMO_PRODUCTS, DEMO_THEME_LIST } from '@/data/demoThemes';
+import { DemoThemeConfig, DemoProduct, SHARED_DEMO_PRODUCTS, DEMO_THEME_LIST, STORE_REVIEWS } from '@/data/demoThemes';
 import ShowroomRoomPlanner from '@/components/showroom/ShowroomRoomPlanner';
 import EuropeExportAndB2B from '@/components/shared/EuropeExportAndB2B';
 import AIRoomVisualizer from '@/components/shared/AIRoomVisualizer';
@@ -625,107 +625,233 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
           </div>
         </div>
 
-        {/* Clean, Balanced Product Grid */}
-        <div
-          className={cn(
-            'grid gap-7',
-            theme.slug === 'aura-luxe' || theme.slug === 'velvet-co'
-              ? 'grid-cols-1 md:grid-cols-2'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-          )}
-        >
-          {filteredProducts.map((p) => (
-            <article
-              key={p.id}
-              className={cn(
-                'group border overflow-hidden flex flex-col justify-between transition-all duration-300',
-                theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-2xl',
-                theme.borderClass,
-                !theme.isDark && 'hover:shadow-lg'
-              )}
-              style={{ backgroundColor: theme.bgCard }}
-            >
-              <div>
-                <div
-                  onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
-                  className="relative aspect-[4/3] overflow-hidden cursor-pointer"
-                  style={{ backgroundColor: theme.bgSurface }}
-                >
-                  <img
-                    src={p.image}
-                    alt={getProductName(p)}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-                  />
-                </div>
+        {/* Uniform-Size, Theme-Shaped 3-Column Product Grid (All 6 Cards Identical Height!) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 items-stretch">
+          {filteredProducts.map((p) => {
+            const cardRadius =
+              theme.slug === 'aura-luxe'
+                ? 'rounded-none'
+                : theme.slug === 'nordika'
+                ? 'rounded-[28px]'
+                : theme.slug === 'velvet-co'
+                ? 'rounded-2xl'
+                : theme.slug === 'sarayli'
+                ? 'rounded-2xl p-2'
+                : 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-xl rounded-bl-xl';
 
-                <div className="p-5 sm:p-6 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] uppercase tracking-wider" style={{ color: theme.textMuted }}>
-                      {p.category}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {p.colors.slice(0, 4).map((c) => (
-                        <span
-                          key={c.name}
-                          title={c.name}
-                          className="w-3 h-3 rounded-full border border-black/15"
-                          style={{ backgroundColor: c.hex }}
-                        />
-                      ))}
+            const imgWrapCls =
+              theme.slug === 'aura-luxe'
+                ? 'rounded-none'
+                : theme.slug === 'nordika'
+                ? 'm-2.5 mb-0 rounded-[22px]'
+                : theme.slug === 'velvet-co'
+                ? 'm-3 mb-0 rounded-t-[84px] rounded-b-xl border'
+                : theme.slug === 'sarayli'
+                ? 'rounded-xl'
+                : 'rounded-tl-[28px] rounded-tr-lg';
+
+            return (
+              <article
+                key={p.id}
+                className={cn(
+                  'group relative border overflow-hidden flex flex-col justify-between transition-all duration-300 h-full',
+                  cardRadius,
+                  theme.borderClass,
+                  !theme.isDark ? 'hover:shadow-xl hover:-translate-y-0.5' : 'hover:border-white/25'
+                )}
+                style={{ backgroundColor: theme.bgCard }}
+              >
+                {/* Aura Luxe signature thin gold top hairline */}
+                {theme.slug === 'aura-luxe' && (
+                  <div className="h-[2px] w-full opacity-55 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: theme.accentHex }} />
+                )}
+
+                <div
+                  className={cn(
+                    'flex flex-col flex-1',
+                    theme.slug === 'sarayli' && 'rounded-xl border border-stone-200/80 overflow-hidden'
+                  )}
+                >
+                  {/* Uniform 4:3 Photo Frame — Theme-Shaped */}
+                  <div
+                    onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
+                    className={cn('relative aspect-[4/3] overflow-hidden cursor-pointer', imgWrapCls)}
+                    style={{
+                      backgroundColor: theme.bgSurface,
+                      borderColor: theme.slug === 'velvet-co' ? `${theme.accentHex}38` : undefined,
+                    }}
+                  >
+                    <img
+                      src={p.image}
+                      alt={getProductName(p)}
+                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700"
+                    />
+                    {/* Crisp Rating Pill */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-medium flex items-center gap-1">
+                      <Star size={10} className="fill-amber-400 text-amber-400" />
+                      <span>{p.rating.toFixed(1)}</span>
+                      <span className="opacity-70">({p.reviewCount})</span>
+                    </div>
+
+                    {/* Theme-specific subtle corner detail */}
+                    {theme.slug === 'sarayli' && (
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/92 text-[10px] font-medium" style={{ color: theme.accentHex }}>
+                        12 Taksit
+                      </div>
+                    )}
+                    {theme.slug === 'nordika' && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); addToCart(p, p.colors[0].name); }}
+                        className="absolute bottom-3 right-3 w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-transform hover:scale-110 cursor-pointer"
+                        style={{ backgroundColor: theme.accentHex, color: theme.accentTextHex }}
+                        title="Hızlı Sepete Ekle"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Uniform Card Body */}
+                  <div className="p-5 flex flex-col justify-between flex-1 gap-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] uppercase tracking-wider" style={{ color: theme.textMuted }}>
+                          {p.category}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {p.colors.slice(0, 4).map((c) => (
+                            <span
+                              key={c.name}
+                              title={c.name}
+                              className="w-3 h-3 rounded-full border border-black/15"
+                              style={{ backgroundColor: c.hex }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <h3
+                        onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
+                        className={cn('text-base font-medium leading-snug min-h-[2.75rem] line-clamp-2 cursor-pointer hover:opacity-75 transition-opacity', theme.fontStyle === 'serif' && 'font-serif text-[17px]')}
+                      >
+                        {getProductName(p)}
+                      </h3>
+
+                      <p className="text-xs leading-relaxed line-clamp-2 min-h-[2.4rem]" style={{ color: theme.textMuted }}>
+                        {p.description}
+                      </p>
+                    </div>
+
+                    {/* Uniform Card Footer */}
+                    <div
+                      className="pt-3.5 border-t flex items-center justify-between gap-2"
+                      style={{ borderColor: theme.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)' }}
+                    >
+                      <div>
+                        <div className="text-base font-semibold" style={{ color: theme.isDark ? theme.accentHex : theme.textPrimary }}>
+                          {formatMoney(p.price)}
+                        </div>
+                        {p.oldPrice && (
+                          <div className="text-[11px] line-through opacity-45">{formatMoney(p.oldPrice)}</div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => jumpToStudio('3d', p)}
+                          className={cn('p-2 border text-xs transition-colors cursor-pointer hover:opacity-75', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full', theme.borderClass)}
+                          title="3D Odada Gör"
+                        >
+                          <Box size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
+                          className={cn('px-3.5 py-2 border text-xs font-medium transition-colors cursor-pointer hover:opacity-75', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full', theme.borderClass)}
+                        >
+                          {t.inspect}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addToCart(p, p.colors[0].name)}
+                          className={cn('px-3.5 py-2 text-xs font-medium transition-opacity hover:opacity-90 cursor-pointer', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full')}
+                          style={{ backgroundColor: theme.accentHex, color: theme.accentTextHex }}
+                        >
+                          {t.addToCart}
+                        </button>
+                      </div>
                     </div>
                   </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
-                  <h3
-                    onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
-                    className={cn('text-lg font-medium cursor-pointer hover:opacity-75 transition-opacity', theme.fontStyle === 'serif' && 'font-serif')}
-                  >
-                    {getProductName(p)}
-                  </h3>
+      {/* ===================================================================== */}
+      {/* 3B. VERIFIED STORE & CUSTOMER REVIEWS SECTION                         */}
+      {/* ===================================================================== */}
+      <section id="reviews" className={cn('border-t py-14 sm:py-16', theme.borderClass)} style={{ backgroundColor: theme.bgCard }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em]" style={{ color: theme.accentHex }}>
+                Onaylı Teslimat Değerlendirmeleri
+              </p>
+              <h2 className={cn('text-2xl sm:text-3xl font-medium tracking-tight', theme.fontStyle === 'serif' && 'font-serif')}>
+                Müşteri &amp; Mağaza Yorumları
+              </h2>
+            </div>
 
-                  <p className="text-xs leading-relaxed line-clamp-2" style={{ color: theme.textMuted }}>
-                    {p.description}
+            <div className={cn('inline-flex items-center gap-3 px-4 py-2.5 rounded-full border text-xs', theme.borderClass)} style={{ backgroundColor: theme.bgSurface }}>
+              <div className="flex items-center gap-0.5 text-amber-400">
+                {[0, 1, 2, 3, 4].map(i => <Star key={i} size={13} className="fill-amber-400" />)}
+              </div>
+              <span className="font-semibold">4.9 / 5.0</span>
+              <span style={{ color: theme.textMuted }}>• 240+ Mutlu Ev</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {STORE_REVIEWS.map((rev, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  'p-5 border flex flex-col justify-between gap-4',
+                  theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-2xl',
+                  theme.borderClass
+                )}
+                style={{ backgroundColor: theme.bgPage }}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-0.5 text-amber-400">
+                      {Array.from({ length: rev.rating }).map((_, s) => (
+                        <Star key={s} size={12} className="fill-amber-400" />
+                      ))}
+                    </div>
+                    <span className="text-[10px]" style={{ color: theme.textMuted }}>{rev.date}</span>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: theme.textPrimary }}>
+                    &ldquo;{rev.comment}&rdquo;
                   </p>
                 </div>
-              </div>
 
-              <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-3 border-t flex items-center justify-between gap-3" style={{ borderColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
-                <div>
-                  <div className="text-base sm:text-lg font-semibold" style={{ color: theme.isDark ? theme.accentHex : theme.textPrimary }}>
-                    {formatMoney(p.price)}
+                <div className="pt-3 border-t flex items-center justify-between text-[11px]" style={{ borderColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+                  <div>
+                    <div className="font-semibold">{rev.author}</div>
+                    <div style={{ color: theme.textMuted }}>{rev.city}</div>
                   </div>
-                  {p.oldPrice && (
-                    <div className="text-[11px] line-through opacity-50">{formatMoney(p.oldPrice)}</div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => jumpToStudio('3d', p)}
-                    className={cn('p-2.5 border text-xs transition-colors cursor-pointer hover:opacity-75', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full', theme.borderClass)}
-                    title="3D İncele"
-                  >
-                    <Box size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedProductModal(p); setModalColor(p.colors[0].name); }}
-                    className={cn('px-4 py-2 border text-xs font-medium transition-colors cursor-pointer hover:opacity-75', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full', theme.borderClass)}
-                  >
-                    {t.inspect}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addToCart(p, p.colors[0].name)}
-                    className={cn('px-4 py-2 text-xs font-medium transition-opacity hover:opacity-90 cursor-pointer', theme.slug === 'aura-luxe' ? 'rounded-none' : 'rounded-full')}
-                    style={{ backgroundColor: theme.accentHex, color: theme.accentTextHex }}
-                  >
-                    {t.addToCart}
-                  </button>
+                  <span className="text-[10px] font-medium text-emerald-500 flex items-center gap-1">
+                    <CheckCircle2 size={11} /> Onaylı
+                  </span>
                 </div>
               </div>
-            </article>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -1043,6 +1169,29 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
                     </div>
                   ))}
                 </div>
+
+                {/* Verified Product Reviews inside Product Detail Modal */}
+                {selectedProductModal.reviews?.length > 0 && (
+                  <div className="space-y-2.5 pt-3 border-t" style={{ borderColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium">Ürün Yorumları ({selectedProductModal.reviewCount})</span>
+                      <span className="flex items-center gap-1 font-semibold">
+                        <Star size={12} className="fill-amber-400 text-amber-400" /> {selectedProductModal.rating.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedProductModal.reviews.map((r, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl text-[11px] space-y-1" style={{ backgroundColor: theme.bgSurface }}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{r.author} <span className="font-normal opacity-70">({r.city})</span></span>
+                            <span className="opacity-60">{r.date}</span>
+                          </div>
+                          <p className="leading-relaxed opacity-90">&ldquo;{r.comment}&rdquo;</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2.5">

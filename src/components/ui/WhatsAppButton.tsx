@@ -12,7 +12,8 @@ const WhatsAppButton = () => {
         pathname?.startsWith("/vitrin") ||
         pathname?.startsWith("/ajans") ||
         pathname?.startsWith("/teklif-uret") ||
-        pathname?.startsWith("/reels-studyo")
+        pathname?.startsWith("/reels-studyo") ||
+        pathname?.startsWith("/embed")
     ) {
         return null
     }

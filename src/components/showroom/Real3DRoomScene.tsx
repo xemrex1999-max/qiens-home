@@ -608,77 +608,77 @@ export default function Real3DRoomScene({
   };
 
   return (
-    <div className="relative w-full rounded-[28px] overflow-hidden border border-amber-400/40 bg-[#0c0d12] shadow-2xl">
+    <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-[#0e0f14] shadow-xl">
       <div ref={mountRef} className={`w-full ${heightClass} cursor-grab active:cursor-grabbing`} />
 
-      {/* Top HUD */}
+      {/* Clean Minimal Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="bg-black/75 backdrop-blur-md border border-amber-400/40 px-3 py-1.5 rounded-full text-[9.5px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-2 pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          GERÇEK 3D ODA • 360° ÇEVİR, MOBİLYAYA TIKLA AÇ!
+        <div className="bg-black/60 backdrop-blur-md border border-white/10 px-3.5 py-1.5 rounded-full text-[11px] font-medium text-neutral-200 flex items-center gap-2 pointer-events-auto">
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span>Fareyle 360° çevirin • Mobilyaya tıklayarak kapak/baza açın</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
-            className="px-3 py-1.5 rounded-full bg-amber-400 hover:bg-white text-black text-[9.5px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Palette size={12} /> Kumaş / Duvar / Parke
+            <Palette size={13} className="text-amber-300" /> Renk &amp; Parke
           </button>
           <button
             type="button"
             onClick={onToggleAllOpen}
-            className="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-[9.5px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <DoorOpen size={12} /> Kapak & Baza Aç/Kapa
+            <DoorOpen size={13} className="text-emerald-400" /> Kapak / Baza Aç-Kapa
           </button>
         </div>
       </div>
 
-      {/* Live 3D Wall / Floor / Fabric Customizer Drawer */}
+      {/* Live 3D Wall / Floor / Fabric Customizer Popover */}
       {showStylePanel && (
-        <div className="absolute top-14 right-3 z-30 w-64 bg-black/90 backdrop-blur-xl border border-amber-400/40 rounded-2xl p-3.5 space-y-3 shadow-2xl text-white">
+        <div className="absolute top-14 right-3 z-30 w-64 bg-[#14141b]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-4 space-y-3.5 shadow-2xl text-white">
           <div>
-            <div className="text-[9px] font-black uppercase tracking-widest text-amber-400 mb-1.5">Mobilya Kumaş / Ahşap</div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Mobilya Rengi ({activeColorName})</div>
+            <div className="flex flex-wrap gap-2">
               {FABRIC_SWATCH_LIST.map((f) => (
                 <button
                   key={f.name}
                   type="button"
                   onClick={() => { setLocalColor(f.name); onChangeColor?.(f.name); }}
                   title={f.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${activeColorName === f.name ? 'border-amber-400 scale-115' : 'border-white/30'}`}
+                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${activeColorName === f.name ? 'border-amber-400 scale-110' : 'border-white/25'}`}
                   style={{ backgroundColor: f.hex }}
                 />
               ))}
             </div>
           </div>
           <div>
-            <div className="text-[9px] font-black uppercase tracking-widest text-amber-400 mb-1.5">Oda Duvar Boyası</div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Duvar Rengi</div>
+            <div className="flex flex-wrap gap-2">
               {WALL_COLOR_OPTIONS.map((w, idx) => (
                 <button
                   key={w.name}
                   type="button"
                   onClick={() => setWallIdx(idx)}
                   title={w.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${wallIdx === idx ? 'border-amber-400 scale-115' : 'border-white/30'}`}
+                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${wallIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
                   style={{ backgroundColor: w.hex }}
                 />
               ))}
             </div>
           </div>
           <div>
-            <div className="text-[9px] font-black uppercase tracking-widest text-amber-400 mb-1.5">Zemin Parke / Mermer</div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Zemin Parke</div>
+            <div className="flex flex-wrap gap-2">
               {FLOOR_TONE_OPTIONS.map((fl, idx) => (
                 <button
                   key={fl.name}
                   type="button"
                   onClick={() => setFloorIdx(idx)}
                   title={fl.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${floorIdx === idx ? 'border-amber-400 scale-115' : 'border-white/30'}`}
+                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${floorIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
                   style={{ backgroundColor: fl.hex }}
                 />
               ))}
@@ -688,30 +688,30 @@ export default function Real3DRoomScene({
       )}
 
       {lastClickedName && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-black/80 border border-emerald-400/50 text-emerald-300 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider pointer-events-none">
-          ✨ {lastClickedName} Kapak / Baza Değiştirildi
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-black/75 border border-white/15 text-neutral-200 px-3.5 py-1 rounded-full text-[11px] font-medium pointer-events-none">
+          {lastClickedName} açıldı / kapatıldı
         </div>
       )}
 
-      {/* Bottom Camera Preset Bar */}
-      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/15 p-1.5 rounded-full pointer-events-auto">
-          <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1.5 rounded-full bg-amber-400 text-black text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer">
-            <Compass size={11} /> 3D Köşe
+      {/* Subtle Bottom Camera Bar */}
+      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto text-[11px] font-medium">
+          <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+            <Compass size={12} /> Köşe
           </button>
-          <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer">
-            <Eye size={11} /> Odanın İçinden
+          <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+            <Eye size={12} /> Oda İçi
           </button>
-          <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer">
-            <RotateCcw size={11} /> Kuşbakışı
+          <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+            <RotateCcw size={12} /> Üstten
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/15 p-1.5 rounded-full pointer-events-auto">
-          <button type="button" onClick={() => adjustZoom(0.82)} className="p-2 rounded-full bg-white/10 hover:bg-amber-400 hover:text-black text-white cursor-pointer" title="Yakınlaş">
+        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto">
+          <button type="button" onClick={() => adjustZoom(0.82)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Yakınlaş">
             <ZoomIn size={14} />
           </button>
-          <button type="button" onClick={() => adjustZoom(1.22)} className="p-2 rounded-full bg-white/10 hover:bg-amber-400 hover:text-black text-white cursor-pointer" title="Uzaklaş">
+          <button type="button" onClick={() => adjustZoom(1.22)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Uzaklaş">
             <ZoomOut size={14} />
           </button>
         </div>

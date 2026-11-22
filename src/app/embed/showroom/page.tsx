@@ -51,94 +51,85 @@ export default function EmbedShowroomPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0e0e12] text-white p-3 sm:p-6 space-y-5">
-      {/* Top White-Label Studio Bar */}
-      <div className="max-w-7xl mx-auto bg-[#16161d] border border-white/10 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen bg-[#0e0f14] text-white p-3 sm:p-5 space-y-3.5">
+      {/* Clean Single-Row Studio Header */}
+      <div className="max-w-7xl mx-auto bg-[#15161e] border border-white/10 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#cbb07a] text-black font-bold text-sm flex items-center justify-center">
-            3D
+          <div className="text-sm font-semibold tracking-wider uppercase text-white">
+            {firma} <span className="text-[#cbb07a] font-normal">• 3D Stüdyo</span>
           </div>
-          <div>
-            <div className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-white">
-              {firma} — 3D Sanal Showroom &amp; Oda Planlayıcı
-            </div>
-            <div className="text-[11px] text-neutral-400">
-              Mobilyaları odanıza yerleştirin, kapak ve bazaları açın veya özel ölçü seçin
-            </div>
+          <div className="hidden md:flex items-center gap-1.5 pl-2 border-l border-white/10">
+            {SHARED_DEMO_PRODUCTS.slice(0, 3).map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer"
+                style={
+                  activeProduct.id === p.id
+                    ? { backgroundColor: '#cbb07a', color: '#111114', fontWeight: 600 }
+                    : { backgroundColor: 'rgba(255,255,255,0.05)', color: '#d4d4d8' }
+                }
+              >
+                {p.category}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           {[
-            { id: 'planner', label: '3D Oda Planla & Özel Ölçü', icon: <Layers size={13} /> },
-            { id: '360', label: '360° & AR Görünüm', icon: <Box size={13} /> },
+            { id: 'planner', label: '3D Oda & Özel Ölçü', icon: <Layers size={13} /> },
+            { id: '360', label: '360° Görünüm', icon: <Box size={13} /> },
             { id: 'ai-room', label: 'Odanın Fotoğrafında Gör', icon: <Camera size={13} /> },
           ].map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setTab(item.id as any)}
-              className="px-3.5 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border"
+              className="px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border"
               style={
                 tab === item.id
-                  ? { backgroundColor: '#cbb07a', color: '#111114', borderColor: '#cbb07a' }
+                  ? { backgroundColor: '#cbb07a', color: '#111114', borderColor: '#cbb07a', fontWeight: 600 }
                   : { backgroundColor: 'rgba(255,255,255,0.04)', color: '#d4d4d8', borderColor: 'rgba(255,255,255,0.1)' }
               }
             >
               {item.icon} {item.label}
             </button>
           ))}
-
-          <button
-            type="button"
-            onClick={() => setShowCode(!showCode)}
-            className="px-3 py-2 rounded-xl text-[11px] font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-amber-300 cursor-pointer"
-          >
-            {showCode ? 'Kodu Gizle' : 'WP Ekleme Kodu'}
-          </button>
         </div>
       </div>
 
-      {/* Optional WordPress Copy-Paste Embed Snippet Drawer */}
-      {showCode && (
-        <div className="max-w-7xl mx-auto bg-[#16161d] border border-amber-400/35 rounded-2xl p-4 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-300">
-              WordPress / WooCommerce Sayfasına Yapıştırılacak Hazır Kod (`Özel HTML` Bloğu)
-            </span>
-            <button
-              type="button"
-              onClick={copyEmbed}
-              className="px-3 py-1.5 rounded-lg bg-amber-400 text-black text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-            >
-              {copied ? <Check size={13} /> : <Copy size={13} />}
-              {copied ? 'Kopyalandı!' : 'Kodu Kopyala'}
-            </button>
-          </div>
-          <pre className="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] text-neutral-200 overflow-x-auto">
-            {embedCode}
-          </pre>
-        </div>
-      )}
-
-      {/* Product Selector Strip */}
-      <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      {/* Mobile Product Switcher */}
+      <div className="md:hidden flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {SHARED_DEMO_PRODUCTS.slice(0, 3).map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
-            className="px-4 py-2 rounded-full text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap"
+            className="px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap"
             style={
               activeProduct.id === p.id
                 ? { backgroundColor: '#cbb07a', color: '#111114', borderColor: '#cbb07a' }
-                : { backgroundColor: '#16161d', color: '#e4e4e7', borderColor: 'rgba(255,255,255,0.1)' }
+                : { backgroundColor: '#15161e', color: '#e4e4e7', borderColor: 'rgba(255,255,255,0.1)' }
             }
           >
-            {p.category}: {p.name}
+            {p.category}
           </button>
         ))}
       </div>
+
+      {showCode && (
+        <div className="max-w-7xl mx-auto bg-[#15161e] border border-amber-400/35 rounded-2xl p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-300">WordPress Özel HTML Kodu</span>
+            <button type="button" onClick={copyEmbed} className="px-3 py-1.5 rounded-lg bg-amber-400 text-black text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Kopyalandı' : 'Kopyala'}
+            </button>
+          </div>
+          <pre className="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] text-neutral-200 overflow-x-auto">{embedCode}</pre>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto">

@@ -146,8 +146,9 @@ export default function ShowroomRoomPlanner({
 
   const [roomWidthCm, setRoomWidthCm] = useState<number>(530);
   const [roomDepthCm, setRoomDepthCm] = useState<number>(400);
-  const [is3DPerspective, setIs3DPerspective] = useState<boolean>(false);
-  const [inlineViewMode, setInlineViewMode] = useState<'plan' | 'real3d'>('plan');
+  const [is3DPerspective] = useState<boolean>(false);
+  const [inlineViewMode, setInlineViewMode] = useState<'plan' | 'real3d'>('real3d');
+  const [showSizingDrawer, setShowSizingDrawer] = useState<boolean>(false);
   const [placedPieces, setPlacedPieces] = useState<PlacedPiece[]>([]);
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
   const [showMini3D] = useState<boolean>(true);
@@ -695,137 +696,86 @@ export default function ShowroomRoomPlanner({
   );
 
   return (
-    <div className="w-full flex flex-col gap-4 select-none">
-      {/* 1. ÜST SIRALI PARÇA RAFI */}
-      <div className="bg-[#111116]/95 border border-amber-400/30 rounded-3xl p-3 sm:p-4 shadow-2xl">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
-              TAKIM PARÇALARI — ÜSTTEN SÜRÜKLE, ÇEVİR VE KAPAK/BAZALARI AÇ
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={toggleOpenAll}
-              className="px-3 py-1.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black border border-emerald-400/40 text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-            >
-              <DoorOpen size={11} /> Tüm Kapak / Baza Aç-Kapa
-            </button>
-            <button
-              type="button"
-              onClick={applyAutoLayout}
-              className="px-3 py-1.5 rounded-full bg-amber-400/15 hover:bg-amber-400 text-amber-300 hover:text-black border border-amber-400/30 text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-            >
-              <Sparkles size={11} /> Hazır Dizilim
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlacedPieces([])}
-              className="px-2.5 py-1.5 rounded-full bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-300 border border-white/10 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-            >
-              Boşalt
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-stretch gap-2.5 overflow-x-auto pb-2 pt-0.5 no-scrollbar">
+    <div className="w-full flex flex-col gap-3 select-none">
+      {/* 1. COMPACT SINGLE-ROW TOP TOOLBAR (PIECES + VIEW SWITCHER) */}
+      <div className="bg-[#14151c] border border-white/10 rounded-2xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[11px] font-medium text-neutral-400 mr-1 whitespace-nowrap">Parçalar:</span>
           {availablePieces.map((spec) => {
-            const countInRoom = placedPieces.filter(p => p.id === spec.id).length;
+            const existing = placedPieces.find(p => p.id === spec.id);
+            const isActive = existing && existing.instanceId === activePiece?.instanceId;
             return (
-              <div
+              <button
                 key={spec.id}
-                draggable
+                type="button"
+                draggable={inlineViewMode === 'plan'}
                 onDragStart={(e) => handleDragStartFromShelf(e, spec)}
-                onClick={() => addPieceToRoom(spec)}
-                className="group relative flex-shrink-0 w-[135px] sm:w-[152px] bg-[#181820] hover:bg-[#22222e] border border-white/10 hover:border-amber-400 rounded-2xl p-2.5 cursor-grab active:cursor-grabbing transition-all flex flex-col justify-between gap-2 shadow-lg"
-              >
-                {countInRoom > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-black text-[8px] font-black px-2 py-0.5 rounded-full shadow">
-                    {countInRoom} Odada
-                  </span>
+                onClick={() => {
+                  if (existing) {
+                    setActiveInstanceId(existing.instanceId);
+                  } else {
+                    addPieceToRoom(spec);
+                  }
+                }}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5',
+                  isActive
+                    ? 'bg-amber-400 text-black border-amber-400 font-semibold'
+                    : existing
+                    ? 'bg-white/5 text-neutral-200 border-white/10 hover:border-white/25'
+                    : 'bg-transparent text-neutral-500 border-dashed border-white/15 hover:text-white'
                 )}
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded-xl border border-white/15 flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: palette.main }}
-                  >
-                    <Box size={14} className="text-black/80" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[10px] font-black text-white truncate group-hover:text-amber-300">
-                      {spec.shortName}
-                    </div>
-                    <div className="text-[8px] font-bold text-neutral-400">
-                      {spec.widthCm}×{spec.depthCm} cm
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                  <span className="text-[8px] text-neutral-400 font-bold">Yük: {spec.heightCm}cm</span>
-                  <span className="text-[8px] font-black uppercase text-amber-400 flex items-center gap-0.5">
-                    <Plus size={10} /> Ekle
-                  </span>
-                </div>
-              </div>
+              >
+                <span>{spec.shortName}</span>
+                {!existing && <Plus size={11} />}
+              </button>
             );
           })}
-        </div>
-      </div>
-
-      {/* 2. ODA ÖLÇÜSÜ & BÜYÜTME KONTROL BARI */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#111116]/90 border border-white/10 px-4 py-2.5 rounded-2xl">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400">ODA:</span>
-          {[
-            { label: '3.5m × 4m', w: 400, d: 350 },
-            { label: '4m × 5m', w: 500, d: 400 },
-            { label: '5m × 6m', w: 600, d: 500 },
-          ].map((preset) => (
-            <button
-              key={preset.label}
-              type="button"
-              onClick={() => { setRoomWidthCm(preset.w); setRoomDepthCm(preset.d); }}
-              className={cn(
-                "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all cursor-pointer border",
-                roomWidthCm === preset.w && roomDepthCm === preset.d
-                  ? "bg-amber-400 text-black border-amber-400"
-                  : "bg-white/5 text-neutral-300 border-white/10 hover:border-white/30"
-              )}
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setInlineViewMode(inlineViewMode === 'plan' ? 'real3d' : 'plan')}
-            className={cn(
-              "px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all flex items-center gap-1.5 cursor-pointer shadow",
-              inlineViewMode === 'real3d'
-                ? "bg-emerald-500 text-black border-emerald-400"
-                : "bg-amber-400/20 text-amber-300 border-amber-400/50 hover:bg-amber-400 hover:text-black"
-            )}
+            onClick={applyAutoLayout}
+            className="px-2.5 py-1.5 rounded-full text-[11px] text-neutral-400 hover:text-white cursor-pointer whitespace-nowrap"
+            title="Dizilimi Sıfırla"
           >
-            <Box size={12} />
-            {inlineViewMode === 'real3d' ? '📐 2D Sürükle-Bırak Planına Dön' : '🧊 Gerçek 3D Odaya Geç'}
+            Sıfırla
           </button>
+        </div>
 
-          {/* SYNCED FULL-SCREEN REAL THREE.JS 3D VIEW OF USER'S EXACT ARRANGED ROOM! */}
+        <div className="flex items-center gap-1.5">
+          <div className="inline-flex rounded-full bg-black/40 border border-white/10 p-0.5 text-[11px] font-medium">
+            <button
+              type="button"
+              onClick={() => setInlineViewMode('real3d')}
+              className={cn(
+                'px-3 py-1 rounded-full transition-colors cursor-pointer',
+                inlineViewMode === 'real3d' ? 'bg-amber-400 text-black font-semibold' : 'text-neutral-300 hover:text-white'
+              )}
+            >
+              3D Oda
+            </button>
+            <button
+              type="button"
+              onClick={() => setInlineViewMode('plan')}
+              className={cn(
+                'px-3 py-1 rounded-full transition-colors cursor-pointer',
+                inlineViewMode === 'plan' ? 'bg-amber-400 text-black font-semibold' : 'text-neutral-300 hover:text-white'
+              )}
+            >
+              2D Yerleşim
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => setExpandedRoomModal(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-white text-black text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg cursor-pointer"
+            className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <Maximize2 size={12} /> Büyüt (Tam Ekran Gerçek 3D Oda)
+            <Maximize2 size={12} /> <span className="hidden sm:inline">Tam Ekran</span>
           </button>
         </div>
       </div>
 
-      {/* 3. SANAL ODA SAHNESİ: 2D SÜRÜKLE-BIRAK PLAN VEYA GERÇEK 3D WEBGL ODA */}
+      {/* 2. MAIN ROOM STAGE (DEFAULT: CLEAN REAL 3D ROOM) */}
       {inlineViewMode === 'real3d' ? (
         <Real3DRoomScene
           placedPieces={placedPieces}
@@ -838,173 +788,137 @@ export default function ShowroomRoomPlanner({
           heightClass="h-[440px] sm:h-[520px]"
         />
       ) : (
-        <div className="relative w-full h-[430px] sm:h-[510px] bg-gradient-to-b from-[#15151e] to-[#09090d] border border-white/10 rounded-[32px] overflow-hidden flex items-center justify-center p-4 sm:p-8 shadow-2xl">
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/75 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[9px] font-black text-neutral-300 tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
-            <Move size={11} className="text-amber-400" />
-            {(roomWidthCm / 100).toFixed(1)}m × {(roomDepthCm / 100).toFixed(1)}m • Sürükle, Çevir, Sonra "Gerçek 3D Odaya Geç" Tıkla
+        <div className="relative w-full h-[430px] sm:h-[500px] bg-[#111218] border border-white/10 rounded-2xl overflow-hidden flex items-center justify-center p-4 sm:p-8">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/65 backdrop-blur-md border border-white/10 px-3.5 py-1 rounded-full text-[11px] font-medium text-neutral-300 flex items-center gap-2 whitespace-nowrap">
+            <Move size={12} className="text-amber-400" />
+            Mobilyaları sürükleyip yerleştirin, ardından &ldquo;3D Oda&rdquo; görünümüne geçin
           </div>
-
           {renderRoomFloorCanvas(false)}
-
-          {/* Mini Live 3D Model-Viewer PIP of Active Piece (Properly Centered Camera Framing) */}
-          {showMini3D && activePiece && (
-            <div className="hidden sm:flex flex-col absolute bottom-4 right-4 z-30 w-44 h-44 bg-[#0b0b10]/95 backdrop-blur-xl border border-amber-400/40 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="px-2.5 py-1.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
-                <span className="text-[8px] font-black uppercase tracking-wider text-amber-300 truncate">
-                  3D: {activePiece.shortName}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setExpandedRoomModal(true)}
-                  className="text-[8px] font-black text-white hover:text-amber-300 underline cursor-pointer"
-                >
-                  3D Odayı Aç
-                </button>
-              </div>
-              <div className="flex-1 relative">
-                <model-viewer
-                  src={activePiece.url}
-                  alt={activePiece.name}
-                  camera-controls
-                  auto-rotate
-                  bounds="tight"
-                  camera-orbit="35deg 72deg 115%"
-                  camera-target="auto auto auto"
-                  style={{ width: '100%', height: '100%', minHeight: '140px', backgroundColor: 'transparent' } as any}
-                />
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* 4. SEÇİLİ PARÇA KONTROL PANELİ (GERÇEK 0°-360° ÇEVİRME + KAPAK/ÇEKMECE/BAZA AÇMA!) */}
-      {activePiece ? (
-        <div className="bg-[#14141c] border border-amber-400/35 rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xl">
+      {/* 3. CLEAN SINGLE-LINE BOTTOM ACTION BAR + OPTIONAL COLLAPSIBLE SIZING DRAWER */}
+      {activePiece && (
+        <div className="bg-[#14151c] border border-white/10 rounded-2xl p-3.5 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-black text-xs">
-                3D
-              </div>
               <div>
-                <div className="text-xs font-black text-white flex items-center gap-2 flex-wrap">
-                  {activePiece.name}
-                  <span className="text-[9px] bg-white/10 text-amber-300 px-2 py-0.5 rounded-full">
-                    {activePiece.widthCm} × {activePiece.depthCm} × {activePiece.heightCm} cm
+                <div className="text-xs sm:text-sm font-semibold text-white flex items-center gap-2 flex-wrap">
+                  <span>{activePiece.name}</span>
+                  <span className="text-[11px] font-normal text-neutral-400">
+                    ({activePiece.widthCm} × {activePiece.depthCm} × {activePiece.heightCm} cm)
                   </span>
                 </div>
-                <div className="text-[10px] text-neutral-400">
-                  Konum: X={activePiece.xCm}cm, Y={activePiece.yCm}cm • Açı: <b className="text-amber-300">{activePiece.rotation}°</b>
+                <div className="text-xs text-amber-300 font-semibold mt-0.5">
+                  Toplam Takım: {liveCustomPrice.toLocaleString('tr-TR')} ₺{' '}
+                  <span className="text-[11px] font-normal text-neutral-400">(~€{liveCustomEuro.toLocaleString('de-DE')})</span>
+                  {customPriceDelta !== 0 && (
+                    <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300">
+                      Özel Ölçü
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
-              {/* Interactive Door/Drawer/Baza Toggle */}
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => toggleOpenPiece(activePiece.instanceId)}
                 className={cn(
-                  "px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer",
+                  'px-3.5 py-2 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer border',
                   activePiece.isOpen
-                    ? "bg-emerald-500 text-black shadow-lg"
-                    : "bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black border border-emerald-400/40"
+                    ? 'bg-emerald-500 text-black border-emerald-500 font-semibold'
+                    : 'bg-white/5 hover:bg-white/10 text-white border-white/15'
                 )}
               >
-                <DoorOpen size={12} /> {getOpenLabel(activePiece)}
+                <DoorOpen size={13} /> {getOpenLabel(activePiece)}
               </button>
 
               <button
                 type="button"
-                onClick={() => rotatePieceById(activePiece.instanceId, -45)}
-                className="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-black text-white text-[9px] font-black uppercase cursor-pointer"
-              >
-                ↺ -45°
-              </button>
-              <button
-                type="button"
-                onClick={() => rotatePieceById(activePiece.instanceId, 45)}
-                className="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-black text-white text-[9px] font-black uppercase cursor-pointer"
-              >
-                ↻ +45°
-              </button>
-              <button
-                type="button"
                 onClick={() => rotatePieceById(activePiece.instanceId, 90)}
-                className="px-2.5 py-2 rounded-xl bg-amber-400 text-black hover:bg-white text-[9px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                className="px-3.5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/15 text-xs font-medium flex items-center gap-1.5 cursor-pointer"
               >
-                <RotateCw size={11} /> 90° Çevir
+                <RotateCw size={13} /> 90° Çevir
               </button>
+
               <button
                 type="button"
-                onClick={() => snapActiveToWall('top')}
-                className="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-300 text-[9px] font-bold uppercase cursor-pointer"
+                onClick={() => setShowSizingDrawer(!showSizingDrawer)}
+                className={cn(
+                  'px-3.5 py-2 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-pointer border transition-colors',
+                  showSizingDrawer
+                    ? 'bg-amber-400 text-black border-amber-400 font-semibold'
+                    : 'bg-white/5 hover:bg-white/10 text-amber-300 border-amber-400/35'
+                )}
               >
-                Üst Duvar
+                <Ruler size={13} /> Özel Ölçü Ayarla
               </button>
+
               <button
                 type="button"
-                onClick={() => snapActiveToWall('left')}
-                className="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-300 text-[9px] font-bold uppercase cursor-pointer"
+                onClick={sendCustomParametricWhatsApp}
+                className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
               >
-                Sol Duvar
-              </button>
-              <button
-                type="button"
-                onClick={removeActivePiece}
-                className="px-2.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white text-[9px] font-black uppercase flex items-center gap-1 cursor-pointer"
-              >
-                <Trash2 size={11} /> Sil
+                <MessageCircle size={13} /> WhatsApp Sipariş
               </button>
             </div>
           </div>
 
-          {/* Smooth 0°-360° Free Rotation Slider */}
-          <div className="flex items-center gap-3 pt-2 border-t border-white/10">
-            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 whitespace-nowrap flex items-center gap-1">
-              <Sliders size={11} /> SERBEST ÇEVİRME ({activePiece.rotation}°):
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={355}
-              step={5}
-              value={activePiece.rotation}
-              onChange={(e) => setActivePieceRotation(Number(e.target.value))}
-              className="flex-1 accent-amber-400 cursor-pointer"
-            />
-          </div>
-
-          {/* TYLKO-STYLE PARAMETRIC CM SIZING & LIVE CUSTOM FACTORY PRICE ENGINE */}
-          {(() => {
+          {/* COLLAPSIBLE CUSTOM SIZING & ROOM DIMENSIONS DRAWER */}
+          {showSizingDrawer && (() => {
             const origSpec = availablePieces.find(s => s.id === activePiece.id);
             const bounds = getParametricBounds(activePiece, origSpec);
             return (
-              <div className="pt-3 border-t border-amber-400/25 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="pt-3 border-t border-white/10 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <Ruler size={13} className="text-amber-400" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
-                      SANTİM SANTİM ÖZEL ÖLÇÜ ÜRETİM (CANLI 3D + ANLIK FİYAT)
-                    </span>
+                    <span className="text-neutral-400">Oda Boyutu:</span>
+                    {[
+                      { label: '3.5×4m', w: 400, d: 350 },
+                      { label: '4×5m', w: 500, d: 400 },
+                      { label: '5×6m', w: 600, d: 500 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => { setRoomWidthCm(preset.w); setRoomDepthCm(preset.d); }}
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-[11px] font-medium cursor-pointer border',
+                          roomWidthCm === preset.w && roomDepthCm === preset.d
+                            ? 'bg-amber-400 text-black border-amber-400'
+                            : 'bg-white/5 text-neutral-300 border-white/10'
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={resetActivePieceDims}
-                    className="text-[9px] font-bold text-neutral-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
-                  >
-                    <RotateCcw size={10} /> Standart Ölçüye Dön
-                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={resetActivePieceDims}
+                      className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw size={11} /> Standart Ölçü
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeActivePiece}
+                      className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 size={11} /> Parçayı Kaldır
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
-                    <div className="flex justify-between text-[10px] font-black mb-1">
-                      <span className="text-neutral-300">GENİŞLİK</span>
-                      <span className="text-amber-400">
-                        {activePiece.widthCm} cm
-                        {activePiece.type === 'wardrobe' && activePiece.widthCm >= 225 ? ' (6 Kapak)' : activePiece.type === 'wardrobe' ? ' (4 Kapak)' : ''}
-                      </span>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div className="bg-black/35 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[11px] font-medium mb-1">
+                      <span className="text-neutral-300">Genişlik</span>
+                      <span className="text-amber-300">{activePiece.widthCm} cm</span>
                     </div>
                     <input
                       type="range"
@@ -1015,16 +929,12 @@ export default function ShowroomRoomPlanner({
                       onChange={(e) => updateActivePieceDim('widthCm', Number(e.target.value))}
                       className="w-full accent-amber-400 cursor-pointer"
                     />
-                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
-                      <span>{bounds.wMin} cm</span>
-                      <span>{bounds.wMax} cm</span>
-                    </div>
                   </div>
 
-                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
-                    <div className="flex justify-between text-[10px] font-black mb-1">
-                      <span className="text-neutral-300">DERİNLİK</span>
-                      <span className="text-amber-400">{activePiece.depthCm} cm</span>
+                  <div className="bg-black/35 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[11px] font-medium mb-1">
+                      <span className="text-neutral-300">Derinlik</span>
+                      <span className="text-amber-300">{activePiece.depthCm} cm</span>
                     </div>
                     <input
                       type="range"
@@ -1035,16 +945,12 @@ export default function ShowroomRoomPlanner({
                       onChange={(e) => updateActivePieceDim('depthCm', Number(e.target.value))}
                       className="w-full accent-amber-400 cursor-pointer"
                     />
-                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
-                      <span>{bounds.dMin} cm</span>
-                      <span>{bounds.dMax} cm</span>
-                    </div>
                   </div>
 
-                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5">
-                    <div className="flex justify-between text-[10px] font-black mb-1">
-                      <span className="text-neutral-300">YÜKSEKLİK</span>
-                      <span className="text-amber-400">{activePiece.heightCm} cm</span>
+                  <div className="bg-black/35 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[11px] font-medium mb-1">
+                      <span className="text-neutral-300">Yükseklik</span>
+                      <span className="text-amber-300">{activePiece.heightCm} cm</span>
                     </div>
                     <input
                       type="range"
@@ -1055,77 +961,43 @@ export default function ShowroomRoomPlanner({
                       onChange={(e) => updateActivePieceDim('heightCm', Number(e.target.value))}
                       className="w-full accent-amber-400 cursor-pointer"
                     />
-                    <div className="flex justify-between text-[8px] text-neutral-500 font-bold">
-                      <span>{bounds.hMin} cm</span>
-                      <span>{bounds.hMax} cm</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live Price + WhatsApp Custom Order Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-amber-500/15 via-black/50 to-emerald-500/15 border border-amber-400/30 rounded-xl px-3.5 py-2.5">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div>
-                      <div className="text-[9px] font-black uppercase tracking-widest text-neutral-400">
-                        ANLIK ÖZEL ÜRETİM FİYATI ({activeColor})
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg sm:text-xl font-serif font-black text-amber-300">
-                          {liveCustomPrice.toLocaleString('tr-TR')} ₺
-                        </span>
-                        <span className="text-[11px] font-bold text-neutral-300">
-                          (~€{liveCustomEuro.toLocaleString('de-DE')})
-                        </span>
-                        {customPriceDelta !== 0 ? (
-                          <span className={cn(
-                            "text-[9px] font-black px-2 py-0.5 rounded-full",
-                            customPriceDelta > 0 ? "bg-amber-400/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"
-                          )}>
-                            {customPriceDelta > 0 ? `+${customPriceDelta.toLocaleString('tr-TR')} ₺ Özel Ölçü` : `${customPriceDelta.toLocaleString('tr-TR')} ₺ Tasarruf`}
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-bold text-emerald-400">Standart Fabrika Ölçüsü</span>
-                        )}
-                      </div>
-                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={sendCustomParametricWhatsApp}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg cursor-pointer transition-all"
-                  >
-                    <MessageCircle size={13} /> Bu Özel Ölçüyü WhatsApp&apos;tan Sipariş Et
-                  </button>
+                  <div className="bg-black/35 border border-white/10 rounded-xl p-2.5">
+                    <div className="flex justify-between text-[11px] font-medium mb-1">
+                      <span className="text-neutral-300">Dönüş Açısı</span>
+                      <span className="text-amber-300">{activePiece.rotation}°</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={355}
+                      step={5}
+                      value={activePiece.rotation}
+                      onChange={(e) => setActivePieceRotation(Number(e.target.value))}
+                      className="w-full accent-amber-400 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
             );
           })()}
         </div>
-      ) : (
-        <div className="bg-[#14141c]/60 border border-white/5 rounded-2xl p-3 text-center text-[10px] text-neutral-400 font-bold">
-          💡 Odadaki herhangi bir mobilyaya dokunarak sürükleyebilir, 360° çevirebilir ve kapak/çekmece/bazalarını açabilirsiniz.
-        </div>
       )}
 
-      {/* 5. FULL-SCREEN SYNCED REAL THREE.JS 3D ROOM MODAL (EXACT USER ARRANGEMENT IN TRUE 3D!) */}
+      {/* 4. FULL-SCREEN 3D MODAL */}
       {expandedRoomModal && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 max-w-7xl w-full mx-auto pb-3">
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400">
-                SENİN DİZDİĞİN ODA • GERÇEK 3D WEBGL TAM EKRAN STÜDYO
-              </div>
-              <div className="text-sm sm:text-lg font-serif font-black text-white">
-                {selectedProduct?.name} — Fareyle 360° Çevir, Mobilyalara Tıklayıp Kapak / Çekmece / Baza Aç!
-              </div>
+          <div className="flex items-center justify-between gap-3 max-w-7xl w-full mx-auto pb-3">
+            <div className="text-sm sm:text-base font-medium text-white">
+              {selectedProduct?.name} — 3D Tam Ekran Oda
             </div>
             <button
               type="button"
               onClick={() => setExpandedRoomModal(false)}
-              className="px-4 py-2 rounded-full bg-white/15 hover:bg-amber-400 hover:text-black text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white text-white hover:text-black text-xs font-medium flex items-center gap-1.5 cursor-pointer"
             >
-              <X size={16} /> Plana Dön
+              <X size={15} /> Kapat
             </button>
           </div>
 
@@ -1138,7 +1010,7 @@ export default function ShowroomRoomPlanner({
               onChangeColor={handleColorUpdate}
               onTogglePieceOpen={(id) => toggleOpenPiece(id)}
               onToggleAllOpen={toggleOpenAll}
-              heightClass="h-[74vh] sm:h-[78vh]"
+              heightClass="h-[76vh]"
             />
           </div>
         </div>

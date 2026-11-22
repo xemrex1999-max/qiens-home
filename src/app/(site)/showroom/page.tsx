@@ -1,8 +1,7 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
 import ShowroomClient from './ShowroomClient';
-import AIRoomVisualizer from '@/components/shared/AIRoomVisualizer';
-import EuropeExportAndB2B from '@/components/shared/EuropeExportAndB2B';
+import QiensExtraToolsTabs from '@/components/shared/QiensExtraToolsTabs';
 import { Metadata } from 'next';
 import os from 'os';
 
@@ -175,8 +174,7 @@ export default async function ShowroomPage() {
     <div className="bg-[#0A0A0A] text-white min-h-screen pt-28 pb-12">
       <ShowroomClient initialProducts={serializedProducts} localIp={localIp} />
       <div className="border-t border-white/10 mt-8">
-        <AIRoomVisualizer brandName="Qiens Home" accentHex="#d4af37" isDark={true} />
-        <EuropeExportAndB2B brandName="Qiens Home" accentHex="#d4af37" isDark={true} />
+        <QiensExtraToolsTabs />
       </div>
     </div>
   );

@@ -87,7 +87,6 @@
     },
   };
 
-  // 1. Cleanly fix homepage text typos ("kadargüvenle" -> "kadar güvenle", "Türkiye`ye" -> "Türkiye'ye")
   function fixExistingPageTypos() {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
     let node;
@@ -100,7 +99,6 @@
     }
   }
 
-  // 2. Insert a native menu item ("3D Showroom") next to existing header/mobile menu links (NO floating bottom buttons!)
   function attachNativeHeaderLink() {
     const allLinks = Array.from(document.querySelectorAll('a'));
     const teslimatLink = allLinks.find(a => (a.textContent || '').trim().toLowerCase() === 'teslimat ve kurulum');
@@ -136,9 +134,42 @@
   }
   setTimeout(() => { fixExistingPageTypos(); attachNativeHeaderLink(); }, 1200);
 
-  // 3. Modal styles ONLY (Zero floating buttons at the bottom of the screen!)
+  // Clean styles: ONLY the compact 3D Showroom button (sitting safely ABOVE mobile bottom bar!) — NO Teslimat/Garanti floating pill!
   const style = document.createElement('style');
   style.textContent = `
+    .lmw-3d-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 22px;
+      z-index: 9990;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: #141414;
+      color: #fff;
+      border: 1.5px solid #c9a341;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.24);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .lmw-3d-btn:hover {
+      background: #c9a341;
+      color: #111;
+      transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+      .lmw-3d-btn {
+        bottom: 76px;
+        left: 14px;
+        padding: 9px 15px;
+        font-size: 11.5px;
+      }
+    }
     .lmw-modal-bg { position: fixed; inset: 0; z-index: 99999; background: rgba(10,10,12,0.75); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .lmw-modal-bg.open { display: flex; }
     .lmw-modal-card { width: 100%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #fff; color: #1b1b1b; border-radius: 20px; padding: 24px; position: relative; box-shadow: 0 28px 80px rgba(0,0,0,0.4); line-height: 1.6; font-size: 13.5px; }
@@ -154,6 +185,10 @@
 
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
+    <button class="lmw-3d-btn" id="lmw-open-3d">
+      <span>🧊 3D Showroom</span>
+    </button>
+
     <div class="lmw-modal-bg" id="lmw-modal-info">
       <div class="lmw-modal-card">
         <button class="lmw-close" id="lmw-close-info">×</button>
@@ -197,6 +232,7 @@
     modal3d.classList.add('open');
   }
 
+  document.getElementById('lmw-open-3d').addEventListener('click', open3DModal);
   document.getElementById('lmw-close-info').addEventListener('click', () => infoModal.classList.remove('open'));
   infoModal.addEventListener('click', e => { if (e.target === infoModal) infoModal.classList.remove('open'); });
 
@@ -207,7 +243,7 @@
   document.getElementById('lmw-close-3d').addEventListener('click', () => modal3d.classList.remove('open'));
   modal3d.addEventListener('click', e => { if (e.target === modal3d) modal3d.classList.remove('open'); });
 
-  // Intercept clicks ONLY on existing header & footer links (Sıkça Sorulan Sorular, Teslimat ve Kurulum, etc.)
+  // Intercept clicks on existing header & footer links (Sıkça Sorulan Sorular, Teslimat ve Kurulum, etc.)
   document.addEventListener('click', function (e) {
     const a = e.target.closest && e.target.closest('a');
     if (!a) return;

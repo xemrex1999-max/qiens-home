@@ -181,9 +181,6 @@ export default function ShowroomRoomPlanner({
   const closeFullScreenModal = () => {
     setExpandedRoomModal(false);
     setIsCameraAR(false);
-    if (placedPieces.length === 0) {
-      applyAutoLayout();
-    }
     if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
     }
@@ -215,9 +212,10 @@ export default function ShowroomRoomPlanner({
     setActiveInstanceId(initial[0]?.instanceId || null);
   };
 
+  // Start EMPTY by default so the user taps each piece one by one (+ Tekli Berjer -> place in corner -> + 1. İkili Koltuk -> place in corner)
   useEffect(() => {
-    applyAutoLayout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPlacedPieces([]);
+    setActiveInstanceId(null);
   }, [selectedProduct?.id]);
 
   // Spawns a piece directly at its natural architectural slot (defaultX, defaultY, defaultRot) so the room always looks harmonious and non-cluttered!

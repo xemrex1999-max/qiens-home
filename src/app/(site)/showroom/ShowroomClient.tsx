@@ -661,7 +661,7 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
                 auto-rotate={autoRotate ? true : undefined}
                 ar
                 ar-modes="webxr scene-viewer quick-look"
-                ar-scale="fixed"
+                ar-scale="auto"
                 ar-placement="floor"
                 interaction-prompt="auto"
                 touch-action="none"

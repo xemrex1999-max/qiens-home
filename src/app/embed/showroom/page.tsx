@@ -253,7 +253,7 @@ export default function EmbedShowroomPage() {
                 auto-rotate
                 ar
                 ar-modes="webxr scene-viewer quick-look"
-                ar-scale="fixed"
+                ar-scale="auto"
                 ar-placement="floor"
                 shadow-intensity="1.1"
                 exposure="1"

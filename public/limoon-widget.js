@@ -237,7 +237,7 @@
     <div class="lmw-modal-bg fullscreen-3d" id="lmw-modal-3d">
       <div class="lmw-modal-card wide">
         <button class="lmw-close" id="lmw-close-3d" style="background:#c9a341;color:#111;z-index:20;top:12px;right:12px;width:36px;height:36px;box-shadow:0 6px 20px rgba(0,0,0,0.4);">×</button>
-        <iframe id="lmw-iframe-3d" style="width:100vw;height:100dvh;border:0;border-radius:0;display:block;" allow="camera; xr-spatial-tracking; fullscreen"></iframe>
+        <iframe id="lmw-iframe-3d" style="width:100vw;height:100dvh;border:0;border-radius:0;display:block;" allow="camera; accelerometer; gyroscope; magnetometer; xr-spatial-tracking; fullscreen"></iframe>
       </div>
     </div>
   `;
@@ -257,7 +257,29 @@
     infoModal.classList.add('open');
   }
 
+  let gyroBridgeAttached = false;
+  function attachParentGyroBridge() {
+    if (gyroBridgeAttached) return;
+    gyroBridgeAttached = true;
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().catch(function () {});
+      }
+    } catch (e) {}
+    window.addEventListener('deviceorientation', function (ev) {
+      if (iframe3d && iframe3d.contentWindow && modal3d.classList.contains('open')) {
+        iframe3d.contentWindow.postMessage({
+          type: 'LIMOON_GYRO',
+          alpha: ev.alpha,
+          beta: ev.beta,
+          gamma: ev.gamma
+        }, '*');
+      }
+    });
+  }
+
   function open3DModal() {
+    attachParentGyroBridge();
     if (!iframe3d.getAttribute('src')) iframe3d.setAttribute('src', EMBED_3D_URL);
     modal3d.classList.add('open');
   }

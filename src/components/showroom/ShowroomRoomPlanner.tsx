@@ -7,7 +7,7 @@ import {
   X, Ruler, MessageCircle, RotateCcw, Camera, Lock, Unlock, Minus, Wand2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors } from './Real3DRoomScene';
+import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors, FloorAimPoint } from './Real3DRoomScene';
 
 const Real3DRoomScene = dynamic(() => import('./Real3DRoomScene'), {
   ssr: false,
@@ -157,6 +157,7 @@ export default function ShowroomRoomPlanner({
   const [activeColor, setActiveColor] = useState<string>(selectedColor);
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
   const [eraserTrigger, setEraserTrigger] = useState<number>(0);
+  const floorAimRef = useRef<FloorAimPoint | null>(null);
 
   useEffect(() => {
     setActiveColor(selectedColor);
@@ -167,7 +168,21 @@ export default function ShowroomRoomPlanner({
     onChangeColor?.(c);
   };
 
+  const requestIMUPermissionsSync = () => {
+    try {
+      const anyDO = typeof DeviceOrientationEvent !== 'undefined' ? (DeviceOrientationEvent as any) : null;
+      if (anyDO && typeof anyDO.requestPermission === 'function') {
+        anyDO.requestPermission().catch(() => {});
+      }
+      const anyDM = typeof DeviceMotionEvent !== 'undefined' ? (DeviceMotionEvent as any) : null;
+      if (anyDM && typeof anyDM.requestPermission === 'function') {
+        anyDM.requestPermission().catch(() => {});
+      }
+    } catch {}
+  };
+
   const openFullScreenCameraAR = () => {
+    requestIMUPermissionsSync();
     setInlineViewMode('real3d');
     setIsCameraAR(true);
     setPlacedPieces([]);
@@ -221,13 +236,30 @@ export default function ShowroomRoomPlanner({
   // Spawns a piece directly at its natural architectural slot (defaultX, defaultY, defaultRot) so the room always looks harmonious and non-cluttered!
   // Keeps pieces unlocked by default so the user can freely play with, drag, resize, or lock/unlock any piece at any time!
   const addPieceToRoom = (spec: FurniturePieceSpec, dropXCm?: number, dropYCm?: number) => {
+    requestIMUPermissionsSync();
     setPlacedPieces((prev) => {
+      // In Camera AR mode, spawn the piece directly at the 3D World Floor Target Reticle where the camera is currently pointing!
+      const aim = isCameraAR ? floorAimRef.current : null;
+      const targetX =
+        dropXCm !== undefined
+          ? dropXCm - Math.round(spec.widthCm / 2)
+          : aim
+          ? aim.xCm - Math.round(spec.widthCm / 2)
+          : spec.defaultX;
+      const targetY =
+        dropYCm !== undefined
+          ? dropYCm - Math.round(spec.depthCm / 2)
+          : aim
+          ? aim.yCm - Math.round(spec.depthCm / 2)
+          : spec.defaultY;
+      const targetRot = aim ? aim.rotDeg : spec.defaultRot || 0;
+
       const newInstance: PlacedPiece = {
         ...spec,
         instanceId: `${spec.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        xCm: dropXCm !== undefined ? dropXCm - Math.round(spec.widthCm / 2) : spec.defaultX,
-        yCm: dropYCm !== undefined ? dropYCm - Math.round(spec.depthCm / 2) : spec.defaultY,
-        rotation: spec.defaultRot || 0,
+        xCm: targetX,
+        yCm: targetY,
+        rotation: targetRot,
         scale: 1.0,
         isLocked: false,
         isOpen: false,
@@ -778,6 +810,9 @@ export default function ShowroomRoomPlanner({
               prev.map((p) => (p.instanceId === id ? { ...p, scale: newScale, rotation: newRotation } : p))
             );
           }}
+          onUpdateFloorAim={(aim) => {
+            floorAimRef.current = aim;
+          }}
           onDropNewPiece3D={(pieceId, dropXCm, dropYCm) => {
             const spec = availablePieces.find((p) => p.id === pieceId);
             if (!spec) return;
@@ -945,6 +980,9 @@ export default function ShowroomRoomPlanner({
               setPlacedPieces((prev) =>
                 prev.map((p) => (p.instanceId === id ? { ...p, scale: newScale, rotation: newRotation } : p))
               );
+            }}
+            onUpdateFloorAim={(aim) => {
+              floorAimRef.current = aim;
             }}
             onDropNewPiece3D={(pieceId, dropXCm, dropYCm) => {
               const spec = availablePieces.find((p) => p.id === pieceId);

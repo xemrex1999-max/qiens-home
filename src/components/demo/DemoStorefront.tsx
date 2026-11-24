@@ -1145,6 +1145,8 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
                       auto-rotate
                       ar
                       ar-modes="webxr scene-viewer quick-look"
+                      ar-scale="fixed"
+                      ar-placement="floor"
                       shadow-intensity="1"
                       exposure="1"
                       style={{ width: '100%', height: '100%', backgroundColor: 'transparent' } as any}

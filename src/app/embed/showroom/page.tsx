@@ -99,8 +99,8 @@ export default function EmbedShowroomPage() {
 
         <div className="flex flex-wrap items-center gap-1.5">
           {[
-            { id: 'planner', label: '3D Oda & Arka Kamerayla Yerleştir', icon: <Layers size={13} /> },
-            { id: '360', label: '360° Tekil Parça İncele', icon: <Box size={13} /> },
+            { id: 'planner', label: '3D Oda & Tek Tek Kamerayla Köşeye Yerleştir', icon: <Layers size={13} /> },
+            { id: '360', label: '360° & 1:1 Sabit Ölçekli Lazer AR', icon: <Box size={13} /> },
           ].map((item) => (
             <button
               key={item.id}
@@ -208,6 +208,9 @@ export default function EmbedShowroomPage() {
             </div>
 
             <div className="relative h-[480px] sm:h-[560px] rounded-3xl bg-[#16161d] border border-white/10 overflow-hidden">
+              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md border border-amber-400/35 px-3.5 py-1.5 rounded-full text-[11px] text-amber-300 font-medium">
+                1:1 Gerçek Santim Ölçek Kilidi Aktif (ar-scale=&quot;fixed&quot; • Telefonda Otomatik Büyümez)
+              </div>
               <model-viewer
                 src={selectedGlbUrl}
                 alt={activeProduct.name}
@@ -215,6 +218,8 @@ export default function EmbedShowroomPage() {
                 auto-rotate
                 ar
                 ar-modes="webxr scene-viewer quick-look"
+                ar-scale="fixed"
+                ar-placement="floor"
                 shadow-intensity="1.1"
                 exposure="1"
                 style={{ width: '100%', height: '100%', backgroundColor: 'transparent' } as any}

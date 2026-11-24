@@ -3,7 +3,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { DoorOpen, Eye, Compass, ZoomIn, ZoomOut, RotateCcw, Palette, Camera, CameraOff, Move } from 'lucide-react';
+import {
+  DoorOpen, Eye, Compass, ZoomIn, ZoomOut, RotateCcw,
+  Palette, Camera, CameraOff, Move, Lock
+} from 'lucide-react';
 import type { PlacedPiece } from './ShowroomRoomPlanner';
 
 export const WALL_COLOR_OPTIONS = [
@@ -46,6 +49,7 @@ interface Real3DRoomSceneProps {
   onSelectPiece3D?: (instanceId: string) => void;
   onMovePiece3D?: (instanceId: string, newXCm: number, newYCm: number) => void;
   onDropNewPiece3D?: (pieceId: string, dropXCm: number, dropYCm: number) => void;
+  arManualScale?: number;
 }
 
 const PALETTES: Record<string, { main: number; wood: number; accent: number }> = {
@@ -161,13 +165,20 @@ export default function Real3DRoomScene({
   onSelectPiece3D,
   onMovePiece3D,
   onDropNewPiece3D,
+  arManualScale = 1,
 }: Real3DRoomSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animTargetsRef = useRef<AnimTarget[]>([]);
+  const pieceGroupsMapRef = useRef<Map<string, THREE.Group>>(new Map());
+  const selectionRingsMapRef = useRef<Map<string, THREE.Mesh>>(new Map());
+  const isDraggingPieceRef = useRef<boolean>(false);
   const openStateMapRef = useRef<Record<string, boolean>>({});
+  const arManualScaleRef = useRef<number>(arManualScale);
+  const isCameraARRef = useRef<boolean>(isCameraAR);
+
   const onToggleRef = useRef(onTogglePieceOpen);
   const onSelectRef = useRef(onSelectPiece3D);
   const onMoveRef = useRef(onMovePiece3D);
@@ -189,6 +200,21 @@ export default function Real3DRoomScene({
   onSelectRef.current = onSelectPiece3D;
   onMoveRef.current = onMovePiece3D;
   onDropNewRef.current = onDropNewPiece3D;
+  arManualScaleRef.current = arManualScale;
+  isCameraARRef.current = isCameraAR;
+
+  // Constant-Visual-Scale Helper for Camera AR Mode:
+  // Compensates for perspective distance so dragging a piece near the bottom or top of the phone screen NEVER auto-enlarges or shrinks it!
+  const applyARLockedScale = (root: THREE.Group, cam: THREE.Camera | null) => {
+    if (!isCameraARRef.current || !cam) {
+      root.scale.set(1, 1, 1);
+      return;
+    }
+    const refDist = 4.35;
+    const dist = cam.position.distanceTo(root.position);
+    const compensated = THREE.MathUtils.clamp((dist / refDist) * arManualScaleRef.current, 0.45, 1.85);
+    root.scale.set(compensated, compensated, compensated);
+  };
 
   // Manage Live Rear Camera Stream when isCameraAR is enabled
   useEffect(() => {
@@ -208,7 +234,7 @@ export default function Real3DRoomScene({
       setCameraError(null);
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setCameraError('Cihaz tarayıcısı kamera erişimini desteklemiyor. Mobilyaları AR zemini üzerinde sürükleyerek yerleştirebilirsiniz.');
+          setCameraError('Tarayıcı kamera erişimini desteklemiyor. Üstteki parçaları seçip sabit ölçekle köşelere yerleştirebilirsiniz.');
           return;
         }
         try {
@@ -225,7 +251,7 @@ export default function Real3DRoomScene({
           setCameraReady(true);
         }
       } catch {
-        setCameraError('Kamera izni verilmedi veya kamera bulunamadı. Mobilyaları yine de parmağınızla / farenizle zeminde sağa-sola yerleştirebilirsiniz.');
+        setCameraError('Kamera izni verilmedi. Üstteki parçalara tıklayıp parmağınızla sabit ölçekte köşelere yerleştirebilirsiniz.');
       }
     };
 
@@ -255,25 +281,50 @@ export default function Real3DRoomScene({
   const activeWall = WALL_COLOR_OPTIONS[wallIdx] || WALL_COLOR_OPTIONS[0];
   const activeFloor = FLOOR_TONE_OPTIONS[floorIdx] || FLOOR_TONE_OPTIONS[0];
 
-  const layoutSignature = JSON.stringify({
+  // CRITICAL FIX: structureSignature ONLY includes piece geometry/dimensions/add/remove!
+  // It DOES NOT include xCm, yCm, rotation, or activeInstanceId!
+  // That way, touching, selecting, dragging, or rotating a piece on mobile NEVER rebuilds the WebGL canvas!
+  const structureSignature = JSON.stringify({
     roomWidthCm,
     roomDepthCm,
     activeColorName,
     wallIdx,
     floorIdx,
     isCameraAR,
-    activeInstanceId,
+    isFullScreen,
     items: placedPieces.map((p) => ({
       id: p.instanceId,
       t: p.type,
-      x: p.xCm,
-      y: p.yCm,
       w: p.widthCm,
       d: p.depthCm,
       h: p.heightCm,
-      r: p.rotation,
     })),
   });
+
+  // In-place fast update of position, rotation, selection ring, and locked AR scale whenever xCm, yCm, rotation, activeInstanceId, or arManualScale change
+  useEffect(() => {
+    if (isDraggingPieceRef.current) return;
+    const W = roomWidthCm / 100;
+    const D = roomDepthCm / 100;
+    const cam = cameraRef.current;
+
+    placedPieces.forEach((item) => {
+      const grp = pieceGroupsMapRef.current.get(item.instanceId);
+      if (grp) {
+        const cx = (item.xCm + item.widthCm / 2) / 100 - W / 2;
+        const cz = (item.yCm + item.depthCm / 2) / 100 - D / 2;
+        grp.position.set(cx, 0, cz);
+        grp.rotation.y = -THREE.MathUtils.degToRad(item.rotation);
+        grp.userData.widthCm = item.widthCm;
+        grp.userData.depthCm = item.depthCm;
+        applyARLockedScale(grp, cam);
+      }
+      const ring = selectionRingsMapRef.current.get(item.instanceId);
+      if (ring) {
+        ring.visible = item.instanceId === activeInstanceId;
+      }
+    });
+  }, [placedPieces, activeInstanceId, roomWidthCm, roomDepthCm, arManualScale, isCameraAR]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -291,13 +342,14 @@ export default function Real3DRoomScene({
       scene.fog = null;
     }
 
-    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 50);
+    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 50);
     const W = roomWidthCm / 100;
     const D = roomDepthCm / 100;
     const H = 2.65;
 
     if (isCameraAR) {
-      camera.position.set(0, 2.25, D * 1.08);
+      // Eye-level room camera angle looking straight into the user's real room floor
+      camera.position.set(0, 2.05, D * 0.98);
     } else {
       camera.position.set(W * 0.85, 3.6, D * 1.15);
     }
@@ -326,7 +378,14 @@ export default function Real3DRoomScene({
     controls.maxPolarAngle = Math.PI / 2 - 0.03;
     controls.minDistance = 1.6;
     controls.maxDistance = 14;
-    controls.target.set(0, isCameraAR ? 0.45 : 0.65, 0);
+    controls.target.set(0, isCameraAR ? 0.35 : 0.65, 0);
+    // CRITICAL MOBILE FIX: In Camera AR mode, LOCK OrbitControls so touching/dragging on phone NEVER zooms or spins the room!
+    if (isCameraAR) {
+      controls.enabled = false;
+      controls.enableZoom = false;
+      controls.enableRotate = false;
+      controls.enablePan = false;
+    }
     controls.update();
     controlsRef.current = controls;
 
@@ -381,9 +440,8 @@ export default function Real3DRoomScene({
     // --- ROOM ARCHITECTURE vs CAMERA AR SHADOW FLOOR ---
     const floorTex = createParquetTexture(activeFloor.rgb);
     if (isCameraAR) {
-      // Transparent shadow-catcher floor + subtle AR placement border so real room camera shows behind!
       const shadowFloor = new THREE.Mesh(
-        new THREE.PlaneGeometry(W * 1.4, D * 1.4),
+        new THREE.PlaneGeometry(W * 1.6, D * 1.6),
         new THREE.ShadowMaterial({ opacity: 0.42 })
       );
       shadowFloor.rotation.x = -Math.PI / 2;
@@ -391,10 +449,10 @@ export default function Real3DRoomScene({
       shadowFloor.receiveShadow = true;
       scene.add(shadowFloor);
 
-      const arGrid = new THREE.GridHelper(Math.max(W, D), 12, 0xd4af37, 0xffffff);
+      const arGrid = new THREE.GridHelper(Math.max(W, D), 10, 0xd4af37, 0xffffff);
       const gridMat = arGrid.material as THREE.Material;
       gridMat.transparent = true;
-      gridMat.opacity = 0.22;
+      gridMat.opacity = 0.18;
       arGrid.position.set(0, 0.002, 0);
       scene.add(arGrid);
     } else {
@@ -445,6 +503,8 @@ export default function Real3DRoomScene({
     // --- FURNITURE BUILDERS ---
     const animTargets: AnimTarget[] = [];
     const clickableRoots: THREE.Group[] = [];
+    const groupsMap = new Map<string, THREE.Group>();
+    const ringsMap = new Map<string, THREE.Mesh>();
 
     const mkBox = (w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0, z = 0) => {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -480,15 +540,15 @@ export default function Real3DRoomScene({
       root.position.set(cx, 0, cz);
       root.rotation.y = -THREE.MathUtils.degToRad(item.rotation);
 
-      // Subtle selection ring on floor under the active piece
-      if (item.instanceId === activeInstanceId) {
-        const ringGeo = new THREE.RingGeometry(Math.max(pw, pd) * 0.52, Math.max(pw, pd) * 0.56, 36);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = -Math.PI / 2;
-        ringMesh.position.set(0, 0.008, 0);
-        root.add(ringMesh);
-      }
+      // Selection ring on floor under the piece (toggled via ring.visible without rebuilding scene!)
+      const ringGeo = new THREE.RingGeometry(Math.max(pw, pd) * 0.52, Math.max(pw, pd) * 0.57, 36);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = -Math.PI / 2;
+      ringMesh.position.set(0, 0.008, 0);
+      ringMesh.visible = item.instanceId === activeInstanceId;
+      root.add(ringMesh);
+      ringsMap.set(item.instanceId, ringMesh);
 
       if (item.type === 'wardrobe') {
         root.add(mkBox(pw, ph - 0.08, 0.04, matWood, 0, (ph + 0.08) / 2, -pd / 2 + 0.02));
@@ -637,27 +697,19 @@ export default function Real3DRoomScene({
           { type: 'table-leaf', object: centerLeaf, instanceId: item.instanceId, basePos: centerLeaf.position.clone(), baseRot: centerLeaf.rotation.clone() }
         );
       } else if (item.type === 'sofa3' || item.type === 'sofa2') {
-        // LIMOON OATMEAL BOUCLE SOFA (3'lü & 2'li):
-        // 1. 5 Warm Walnut Block Legs (4 corners + 1 center support leg)
         for (const sx of [-pw / 2 + 0.14, pw / 2 - 0.14]) {
           for (const sz of [-pd / 2 + 0.12, pd / 2 - 0.12]) {
             root.add(mkBox(0.065, 0.1, 0.065, matWarmLeg, sx, 0.05, sz));
           }
         }
         root.add(mkBox(0.055, 0.1, 0.055, matWarmLeg, 0, 0.05, 0));
-
-        // 2. Dark Walnut Lower Plinth Base Strip
         root.add(mkBox(pw - 0.02, 0.055, pd - 0.02, matWood, 0, 0.125, 0));
 
-        // 3. 2 Deep Rounded Boucle Seat Cushions with Center Seam
         const halfSeatW = pw / 2 - 0.015;
         root.add(mkBox(halfSeatW, 0.25, pd - 0.02, matMain, -halfSeatW / 2 - 0.006, 0.275, 0.01));
         root.add(mkBox(halfSeatW, 0.25, pd - 0.02, matMain, halfSeatW / 2 + 0.006, 0.275, 0.01));
-
-        // 4. Outer Back Shell
         root.add(mkBox(pw - 0.06, 0.44, 0.17, matMain, 0, 0.6, -pd / 2 + 0.1));
 
-        // 5. 2 Plush Dimpled Back Cushions
         const armW = 0.25;
         const innerW = pw - armW * 2;
         const backCushW = innerW / 2 - 0.012;
@@ -666,25 +718,19 @@ export default function Real3DRoomScene({
           const bc = mkBox(backCushW, 0.4, 0.19, matMain, bx, 0.59, -pd / 2 + 0.23);
           bc.rotation.x = -0.08;
           root.add(bc);
-          // Central button dimple
           const tuft = mkCyl(0.014, 0.02, matWood, bx, 0.6, -pd / 2 + 0.33, 14);
           tuft.rotation.x = Math.PI / 2;
           root.add(tuft);
         }
 
-        // 6. Sloped Contour Side Wings + Rounded Front Armrest Bolsters + Oval Wood Capsule Inserts!
         for (const side of [-1, 1]) {
           const ax = side * (pw / 2 - armW / 2 - 0.01);
-          // Rear sloped side wing
           root.add(mkBox(armW - 0.02, 0.36, pd * 0.48, matMain, ax, 0.56, -pd * 0.18));
-          // Front rounded bolster armrest
           root.add(mkBox(armW, 0.21, pd * 0.78, matMain, ax, 0.485, pd * 0.05));
-          // Signature Oval Warm-Wood Capsule Insert on Front Face of Armrest!
           const capsule = mkBox(armW * 0.56, 0.052, 0.035, matArmInsert, ax, 0.48, pd * 0.445);
           root.add(capsule);
         }
 
-        // 7. 2 Geometric Diamond-Patterned Throw Pillows
         for (const side of [-1, 1]) {
           const px = side * (pw / 2 - armW - 0.11);
           const pil = mkBox(0.36, 0.35, 0.11, matGeoPillow, px, 0.56, -pd / 2 + 0.36);
@@ -693,25 +739,19 @@ export default function Real3DRoomScene({
           root.add(pil);
         }
       } else if (item.type === 'armchair') {
-        // LIMOON BOUCLE TEKLI BERJER:
-        // Exposed warm walnut corner legs extending up the base corners
         for (const sx of [-pw / 2 + 0.05, pw / 2 - 0.05]) {
           root.add(mkBox(0.055, 0.26, 0.055, matWarmLeg, sx, 0.13, pd / 2 - 0.07));
           root.add(mkBox(0.055, 0.24, 0.055, matWarmLeg, sx, 0.12, -pd / 2 + 0.07));
         }
-        // Lower wood rail
         root.add(mkBox(pw - 0.08, 0.035, pd - 0.08, matWarmLeg, 0, 0.11, 0));
-        // Lower boucle apron & thick rounded seat cushion
         root.add(mkBox(pw - 0.08, 0.14, pd - 0.08, matMain, 0, 0.2, 0));
         root.add(mkBox(pw - 0.2, 0.22, pd - 0.12, matMain, 0, 0.36, 0.04));
-        // Wrap-around curved tub backrest & sloped arms
         root.add(mkBox(pw - 0.04, 0.54, 0.18, matMain, 0, 0.55, -pd / 2 + 0.11));
         for (const side of [-1, 1]) {
           const arm = mkBox(0.15, 0.44, pd - 0.12, matMain, side * (pw / 2 - 0.085), 0.48, 0.01);
           root.add(arm);
         }
       } else if (item.type === 'coffeetable') {
-        // LIMOON SMOKED GLASS & SLATTED WALNUT COFFEE TABLE:
         const legX = pw * 0.38;
         const legZ = pd * 0.36;
         for (const sx of [-legX, legX]) {
@@ -719,16 +759,13 @@ export default function Real3DRoomScene({
             root.add(mkBox(0.045, ph - 0.02, 0.045, matWarmLeg, sx, (ph - 0.02) / 2, sz));
           }
         }
-        // Top & lower wood support rails
         root.add(mkBox(pw * 0.76, 0.035, 0.035, matWarmLeg, 0, ph - 0.04, -legZ));
         root.add(mkBox(pw * 0.76, 0.035, 0.035, matWarmLeg, 0, ph - 0.04, legZ));
         root.add(mkBox(0.035, 0.035, pd * 0.72, matWarmLeg, -legX, 0.14, 0));
         root.add(mkBox(0.035, 0.035, pd * 0.72, matWarmLeg, legX, 0.14, 0));
-        // 7 Wooden Slats on Lower Magazine Shelf
         for (let si = -3; si <= 3; si++) {
           root.add(mkBox(pw * 0.75, 0.018, 0.042, matWarmLeg, 0, 0.15, si * (pd * 0.1)));
         }
-        // Tempered Smoked Glass Top
         root.add(mkBox(pw, 0.018, pd, matSmokedGlass, 0, ph, 0));
       } else if (item.type === 'chair') {
         root.add(mkBox(pw, 0.08, pd, matMain, 0, 0.46, 0));
@@ -747,13 +784,17 @@ export default function Real3DRoomScene({
         }
       }
 
+      applyARLockedScale(root, camera);
       scene.add(root);
       clickableRoots.push(root);
+      groupsMap.set(item.instanceId, root);
     });
 
     animTargetsRef.current = animTargets;
+    pieceGroupsMapRef.current = groupsMap;
+    selectionRingsMapRef.current = ringsMap;
 
-    // --- DIRECT 3D FINGER / POINTER DRAGGING ACROSS THE FLOOR PLANE ---
+    // --- ROCK-SOLID MOBILE & DESKTOP 1-FINGER DRAG & TAP-TO-CORNER PLACEMENT ---
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -778,10 +819,18 @@ export default function Real3DRoomScene({
       pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     };
 
+    const highlightSelectedRing = (selectedId: string) => {
+      selectionRingsMapRef.current.forEach((ring, id) => {
+        ring.visible = id === selectedId;
+      });
+    };
+
     const handlePointerDown = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       getNormalizedPointer(e.clientX, e.clientY);
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(clickableRoots, true);
+
       if (hits.length > 0) {
         let obj: THREE.Object3D | null = hits[0].object;
         while (obj && !obj.userData?.instanceId) {
@@ -789,16 +838,20 @@ export default function Real3DRoomScene({
         }
         if (obj && obj.userData?.instanceId) {
           const rootGrp = obj as THREE.Group;
-          onSelectRef.current?.(rootGrp.userData.instanceId);
+          const instId = rootGrp.userData.instanceId as string;
+          highlightSelectedRing(instId);
+          onSelectRef.current?.(instId);
+
           let offsetX = 0;
           let offsetZ = 0;
           if (raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
             offsetX = rootGrp.position.x - planeIntersect.x;
             offsetZ = rootGrp.position.z - planeIntersect.z;
           }
+          isDraggingPieceRef.current = true;
           dragState = {
             root: rootGrp,
-            instanceId: rootGrp.userData.instanceId,
+            instanceId: instId,
             name: rootGrp.userData.name || 'Mobilya',
             widthCm: rootGrp.userData.widthCm || 100,
             depthCm: rootGrp.userData.depthCm || 100,
@@ -817,8 +870,8 @@ export default function Real3DRoomScene({
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (!dragState) return;
-      if (!dragState.moved && Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY) > 6) {
+      if (!dragState || !e.isPrimary) return;
+      if (!dragState.moved && Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY) > 5) {
         dragState.moved = true;
       }
       if (!dragState.moved) return;
@@ -826,11 +879,13 @@ export default function Real3DRoomScene({
       getNormalizedPointer(e.clientX, e.clientY);
       raycaster.setFromCamera(pointer, camera);
       if (raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
-        const halfW = W / 2;
-        const halfD = D / 2;
-        const nextX = Math.max(-halfW + 0.15, Math.min(halfW - 0.15, planeIntersect.x + dragState.offsetX));
-        const nextZ = Math.max(-halfD + 0.15, Math.min(halfD - 0.15, planeIntersect.z + dragState.offsetZ));
+        const halfW = W * 0.65;
+        const halfD = D * 0.65;
+        const nextX = Math.max(-halfW, Math.min(halfW, planeIntersect.x + dragState.offsetX));
+        const nextZ = Math.max(-halfD, Math.min(halfD, planeIntersect.z + dragState.offsetZ));
         dragState.root.position.set(nextX, 0, nextZ);
+        // Keep constant locked visual scale so moving to any corner NEVER enlarges or shrinks the furniture!
+        applyARLockedScale(dragState.root, camera);
       }
     };
 
@@ -838,7 +893,10 @@ export default function Real3DRoomScene({
       if (!dragState) return;
       const finished = dragState;
       dragState = null;
-      controls.enabled = true;
+      isDraggingPieceRef.current = false;
+      if (!isCameraARRef.current) {
+        controls.enabled = true;
+      }
       try {
         renderer.domElement.releasePointerCapture(e.pointerId);
       } catch {}
@@ -847,14 +905,13 @@ export default function Real3DRoomScene({
         const newXCm = Math.round((finished.root.position.x + W / 2) * 100 - finished.widthCm / 2);
         const newYCm = Math.round((finished.root.position.z + D / 2) * 100 - finished.depthCm / 2);
         onMoveRef.current?.(finished.instanceId, newXCm, newYCm);
-        setLastClickedName(`${finished.name} yeni konuma yerleştirildi`);
+        setLastClickedName(`${finished.name} köşeye sabitlendi (Sabit Ölçek)`);
       } else {
         onToggleRef.current(finished.instanceId);
-        setLastClickedName(`${finished.name} açıldı / kapatıldı`);
+        setLastClickedName(`${finished.name} seçildi`);
       }
     };
 
-    // Allow dragging a piece pill from the top shelf and dropping it directly onto the 3D/AR floor!
     const handleDragOver3D = (e: DragEvent) => {
       e.preventDefault();
     };
@@ -877,6 +934,7 @@ export default function Real3DRoomScene({
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('pointerup', handlePointerUp);
+    renderer.domElement.addEventListener('pointercancel', handlePointerUp);
     renderer.domElement.addEventListener('dragover', handleDragOver3D);
     renderer.domElement.addEventListener('drop', handleDrop3D);
 
@@ -893,7 +951,9 @@ export default function Real3DRoomScene({
     let frameId = 0;
     const animate = () => {
       frameId = requestAnimationFrame(animate);
-      controls.update();
+      if (!isCameraARRef.current) {
+        controls.update();
+      }
 
       const openMap = openStateMapRef.current;
       for (const target of animTargetsRef.current) {
@@ -925,6 +985,7 @@ export default function Real3DRoomScene({
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+      renderer.domElement.removeEventListener('pointercancel', handlePointerUp);
       renderer.domElement.removeEventListener('dragover', handleDragOver3D);
       renderer.domElement.removeEventListener('drop', handleDrop3D);
       controls.dispose();
@@ -933,7 +994,7 @@ export default function Real3DRoomScene({
       geoPillowTex.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layoutSignature]);
+  }, [structureSignature]);
 
   const setCameraPreset = (preset: 'corner' | 'walk' | 'top') => {
     const cam = cameraRef.current;
@@ -990,6 +1051,23 @@ export default function Real3DRoomScene({
         </div>
       )}
 
+      {/* Step-by-Step Empty Room Onboarding Overlay when user hasn't dropped their first piece yet */}
+      {placedPieces.length === 0 && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 pointer-events-none">
+          <div className="max-w-md bg-black/75 backdrop-blur-xl border border-amber-400/40 rounded-3xl p-5 text-center space-y-2 shadow-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-[11px] font-semibold">
+              <Lock size={12} /> Sabit Ölçek Kilidi Aktif (Otomatik Büyütmez)
+            </div>
+            <h4 className="text-sm sm:text-base font-semibold text-white">
+              Üstteki Parçalardan Birine Dokunup Köşeye Yerleştirin
+            </h4>
+            <p className="text-xs text-neutral-300 leading-relaxed">
+              Önce yukarıdan örneğin <strong>+ Tekli Berjer</strong>&apos;e tıklayın, gelen berjeri parmağınızla odanın köşesine çekin. Sonra yukarıdan <strong>+ 1. İkili Koltuk</strong>&apos;a tıklayıp diğer köşeye yerleştirin.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div ref={mountRef} className={`relative z-10 w-full ${heightClass} cursor-grab active:cursor-grabbing touch-none`} />
 
       {/* Clean Minimal Top HUD (hidden in full-screen where the floating piece tray is shown at top) */}
@@ -999,8 +1077,8 @@ export default function Real3DRoomScene({
             <Move size={13} className="text-amber-400 shrink-0" />
             <span>
               {isCameraAR
-                ? 'Üstteki parçaları kameranın önüne indirin • Parmağınızla sağa-sola köşelere sürükleyin'
-                : 'Mobilyaları parmağınızla / fareyle tutup odada istediğiniz köşeye sürükleyin'}
+                ? 'Sabit Ölçekli AR • Üstten parçaya tıklayın, parmağınızla köşeye sürükleyin'
+                : 'Üstten istediğiniz parçaya tıklayın • Parmağınızla / fareyle köşeye sürükleyin'}
             </span>
           </div>
 
@@ -1016,7 +1094,7 @@ export default function Real3DRoomScene({
                 }`}
               >
                 {isCameraAR ? <CameraOff size={13} /> : <Camera size={13} />}
-                {isCameraAR ? 'Kamerayı Kapat' : 'Odanda Gör (Tam Ekran Kamera)'}
+                {isCameraAR ? 'Kamerayı Kapat' : 'Odanda Gör (Tek Tek Kamera AR)'}
               </button>
             )}
             <button
@@ -1039,37 +1117,21 @@ export default function Real3DRoomScene({
 
       {/* Floating Right Side Quick Tools in Full-Screen Mode */}
       {isFullScreen && (
-        <div className="absolute right-3 top-24 z-30 flex flex-col gap-2 pointer-events-auto">
+        <div className="absolute right-3 top-28 z-30 flex flex-col gap-2 pointer-events-auto">
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
-            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-white/15 shadow-lg cursor-pointer"
+            className="p-2.5 rounded-full bg-black/75 backdrop-blur-md text-amber-300 border border-white/15 shadow-lg cursor-pointer"
             title="Renk & Parke"
           >
             <Palette size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => adjustZoom(0.82)}
-            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15 shadow-lg cursor-pointer"
-            title="Yakınlaş"
-          >
-            <ZoomIn size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => adjustZoom(1.22)}
-            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15 shadow-lg cursor-pointer"
-            title="Uzaklaş"
-          >
-            <ZoomOut size={16} />
           </button>
         </div>
       )}
 
       {/* Live 3D Wall / Floor / Fabric Customizer Popover */}
       {showStylePanel && (
-        <div className="absolute top-14 right-3 z-30 w-64 bg-[#14141b]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-4 space-y-3.5 shadow-2xl text-white">
+        <div className="absolute top-16 right-3 z-30 w-64 bg-[#14141b]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-4 space-y-3.5 shadow-2xl text-white">
           <div>
             <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Mobilya Rengi ({activeColorName})</div>
             <div className="flex flex-wrap gap-2">
@@ -1123,13 +1185,13 @@ export default function Real3DRoomScene({
       )}
 
       {lastClickedName && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 bg-black/75 border border-white/15 text-neutral-200 px-3.5 py-1 rounded-full text-[11px] font-medium pointer-events-none">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-black/75 border border-white/15 text-neutral-200 px-3.5 py-1 rounded-full text-[11px] font-medium pointer-events-none whitespace-nowrap">
           {lastClickedName}
         </div>
       )}
 
-      {/* Subtle Bottom Camera Bar (hidden in full-screen where bottom action bar is shown) */}
-      {!isFullScreen && (
+      {/* Subtle Bottom Camera Bar (hidden in full-screen or Camera AR where OrbitControls is locked) */}
+      {!isFullScreen && !isCameraAR && (
         <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
           <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto text-[11px] font-medium">
             <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">

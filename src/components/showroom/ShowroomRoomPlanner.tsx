@@ -58,9 +58,9 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
 
   if (combined.includes('koltuk') || combined.includes('sofa') || combined.includes('oturma') || combined.includes('kose')) {
     return [
-      { id: 'piece-sofa3', name: "Limoon 1. İkili / Ana Bukle Koltuk", shortName: "1. İkili Koltuk", type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 150, defaultY: 22, defaultRot: 0 },
-      { id: 'piece-sofa2', name: "Limoon 2. İkili Yan Bukle Koltuk", shortName: "2. İkili Koltuk", type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 16, defaultY: 145, defaultRot: 90 },
       { id: 'piece-berjer-1', name: 'Limoon Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 405, defaultY: 155, defaultRot: 250 },
+      { id: 'piece-sofa3', name: 'Limoon 1. İkili / Ana Bukle Koltuk', shortName: '1. İkili Koltuk', type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 150, defaultY: 22, defaultRot: 0 },
+      { id: 'piece-sofa2', name: 'Limoon 2. İkili Yan Bukle Koltuk', shortName: '2. İkili Koltuk', type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 16, defaultY: 145, defaultRot: 90 },
       { id: 'piece-coffee', name: 'Füme Cam & Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 200, defaultY: 165, defaultRot: 0 }
     ];
   }
@@ -165,10 +165,15 @@ export default function ShowroomRoomPlanner({
 
   // Synced Full-Screen REAL THREE.JS 3D / AR Camera Room Expansion Modal (100% Full Screen!)
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
+  const [arManualScale, setArManualScale] = useState<number>(1.0);
 
   const openFullScreenCameraAR = () => {
     setInlineViewMode('real3d');
     setIsCameraAR(true);
+    setArManualScale(1.0);
+    // Start EMPTY so the user taps each piece one by one (e.g. + Tekli Berjer -> place in corner -> + 1. İkili Koltuk -> place in corner)
+    setPlacedPieces([]);
+    setActiveInstanceId(null);
     setExpandedRoomModal(true);
     if (typeof document !== 'undefined' && document.documentElement.requestFullscreen && !document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -178,10 +183,15 @@ export default function ShowroomRoomPlanner({
   const closeFullScreenModal = () => {
     setExpandedRoomModal(false);
     setIsCameraAR(false);
+    if (playedEmptyRef.current && placedPieces.length === 0) {
+      applyAutoLayout();
+    }
     if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
     }
   };
+
+  const playedEmptyRef = useRef<boolean>(true);
 
   const floorRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<{
@@ -829,6 +839,7 @@ export default function ShowroomRoomPlanner({
           onToggleAllOpen={toggleOpenAll}
           heightClass="h-[440px] sm:h-[520px]"
           isCameraAR={isCameraAR}
+          arManualScale={arManualScale}
           onToggleCameraAR={() => {
             if (!isCameraAR) {
               openFullScreenCameraAR();
@@ -1184,6 +1195,7 @@ export default function ShowroomRoomPlanner({
             heightClass="w-screen h-[100dvh]"
             isFullScreen={true}
             isCameraAR={isCameraAR}
+            arManualScale={arManualScale}
             onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
             activeInstanceId={activeInstanceId}
             onSelectPiece3D={(id) => setActiveInstanceId(id)}
@@ -1246,11 +1258,37 @@ export default function ShowroomRoomPlanner({
                   </button>
                   <button
                     type="button"
+                    onClick={() => rotatePieceById(activePiece.instanceId, -45)}
+                    className="px-2.5 py-1 rounded-full bg-white/15 text-white text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw size={11} /> -45°
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => rotatePieceById(activePiece.instanceId, 45)}
                     className="px-2.5 py-1 rounded-full bg-amber-400 text-black text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
                   >
-                    <RotateCw size={11} /> 45° Çevir
+                    <RotateCw size={11} /> +45° Çevir
                   </button>
+                  {isCameraAR && (
+                    <div className="inline-flex items-center gap-1 bg-white/10 border border-white/15 rounded-full px-2 py-0.5 text-[11px] text-neutral-200">
+                      <span>Sabit Ölçek: %{Math.round(arManualScale * 100)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setArManualScale((s) => Math.max(0.65, Number((s - 0.1).toFixed(2))))}
+                        className="px-1.5 rounded bg-black/50 hover:bg-amber-400 hover:text-black font-bold cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setArManualScale((s) => Math.min(1.45, Number((s + 0.1).toFixed(2))))}
+                        className="px-1.5 rounded bg-black/50 hover:bg-amber-400 hover:text-black font-bold cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => toggleOpenPiece(activePiece.instanceId)}

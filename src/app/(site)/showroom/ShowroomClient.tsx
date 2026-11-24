@@ -42,10 +42,11 @@ const getPiecesForProduct = (productName: string, defaultUrl: string) => {
       return null;
     }
     return [
-      { name: "Tam Oturma Grubu", url: "/models/oturma-grubu-tam-takim.glb" },
-      { name: "3'lü Koltuk", url: "/models/GlamVelvetSofa.glb" },
-      { name: "Tekli Berjer", url: "/models/SheenChair.glb" },
-      { name: "Orta Sehpa", url: "/models/orta-sehpa.glb" }
+      { name: "Tekli Berjer", url: "/models/limoon-berjer.glb" },
+      { name: "1. İkili Koltuk", url: "/models/limoon-3lu-koltuk.glb" },
+      { name: "2. İkili Koltuk", url: "/models/limoon-2li-koltuk.glb" },
+      { name: "Orta Sehpa", url: "/models/limoon-orta-sehpa.glb" },
+      { name: "Tam Oturma Grubu", url: "/models/limoon-koltuk-tam-takim.glb" }
     ];
   }
   if (normalized.includes("yatak") || normalized.includes("bedroom")) {
@@ -69,6 +70,17 @@ const getPiecesForProduct = (productName: string, defaultUrl: string) => {
 };
 
 const DEFAULT_SHOWROOM_PRODUCTS = [
+  {
+    id: 'limoon-bukle-koltuk',
+    name: 'Limoon Bohem Bukle Koltuk Takımı',
+    slug: 'limoon-bohem-bukle-koltuk-takimi',
+    price: 84900,
+    category: 'Koltuk Takımı',
+    description: 'Özel kolçak ahşap kapsül detaylı, masif ceviz bazalı, 35 DNS HR sünger ve kolay silinebilir krem bukle kumaşla 2 adet ikili koltuk, 1 adet tekli berjer ve füme camlı orta sehpa.',
+    images: ['/images/limoon-koltuk-takimi.jpg', '/images/limoon-3lu-koltuk.jpg', '/images/limoon-berjer.jpg'],
+    colors: ['Krem Boucle', 'Bej', 'Ceviz', 'Zümrüt Yeşili', 'Antrasit'],
+    threeDModelUrl: '/models/limoon-koltuk-tam-takim.glb',
+  },
   {
     id: 'evseren-ayca-yatak',
     name: 'Ayça Yatak Odası Takımı',
@@ -649,6 +661,8 @@ export default function ShowroomClient({ initialProducts, localIp = 'localhost' 
                 auto-rotate={autoRotate ? true : undefined}
                 ar
                 ar-modes="webxr scene-viewer quick-look"
+                ar-scale="fixed"
+                ar-placement="floor"
                 interaction-prompt="auto"
                 touch-action="none"
                 className="w-full h-full outline-none cursor-grab active:cursor-grabbing"

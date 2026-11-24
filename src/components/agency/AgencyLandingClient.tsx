@@ -11,25 +11,35 @@ import { cn } from '@/lib/utils';
 
 const REAL_REFERENCES = [
   {
-    name: 'EVSEREN MOBİLYA',
+    name: 'LİMOON HOME & LIVING',
     badge: 'CANLI REFERANS #1',
+    url: 'https://qiens-home.vercel.app/embed/showroom?firma=L%C4%B0MOON%20HOME',
+    external: true,
+    image: '/images/limoon-koltuk-takimi.jpg',
+    tag: 'Fotoğraftan 3D Modelleme + Tek Tek Köşeye AR Yerleştirme',
+    summary: 'İnegöl Wobilimoda AVM mağazası için ürün fotoğraflarından birebir 3D modellenen Bohem Bukle Koltuk Takımı. Müşteriler üst menüden önce Tekli Berjeri, sonra İkili Koltukları tek tek seçip sabit ölçekle kendi odalarının köşelerine yerleştiriyor.',
+    highlights: ['Fotoğraftan Birebir 3D (.GLB) Üretim', 'Tek Tek Seç & Köşeye Sabitle Kamera AR', 'Mevcut WordPress Siteye Kırmadan Entegrasyon'],
+  },
+  {
+    name: 'EVSEREN MOBİLYA',
+    badge: 'CANLI REFERANS #2',
     url: 'https://evserenmobilya.com',
     external: true,
     image: '/images/yatak_odasi.png',
-    tag: 'E-Ticaret + Mobil Admin Paneli',
+    tag: 'E-Ticaret + Mobil Admin Paneli + 3D Oda',
     summary: 'İnegöl üreticisi için geliştirilmiş canlı e-ticaret mağazası. Telefondan ürün yönetimi, renk/kumaş kartelası, ölçü tablosu, WhatsApp hızlı sipariş ve AI chatbot aktif.',
     highlights: ['Canlı Domain: evserenmobilya.com', 'Mobil Uyumlu Yönetim Paneli', 'WhatsApp & Kumaş Kartelası'],
   },
   {
     name: 'QIENS HOME 3D',
-    badge: 'CANLI REFERANS #2',
+    badge: 'CANLI REFERANS #3',
     url: '/',
     external: false,
     showroomUrl: '/showroom',
     image: '/images/yemek_odasi.png',
-    tag: '3D Sanal Showroom & Oda Planlayıcı',
-    summary: 'Yeni nesil 3D mobilya e-ticaret platformu. Tam takım 3D modeller, parmakla sürükle-bırak oda planlayıcı, 360° çevirme ve kapak/baza açma deneyimi.',
-    highlights: ['360° Tam Takım 3D Modeller', 'Sürükle-Bırak & Çevir Oda Planlayıcı', 'AR (Odanda Gör) Kamera Desteği'],
+    tag: '3D Sanal Showroom & Parametrik Oda Planlayıcı',
+    summary: 'Yeni nesil 3D mobilya e-ticaret platformu. Tam takım 3D modeller, parmakla tek tek köşeye yerleştirme, 360° çevirme, kapak/baza açma ve Avrupa kapı teslim ihracat modülü.',
+    highlights: ['360° Tam Takım & Tekil Parça 3D Modeller', 'Sabit Ölçekli (Büyümeyen) Kamera AR', 'TR / EN / DE Avrupa Kapı Teslim Hesaplayıcı'],
   },
 ];
 
@@ -73,11 +83,13 @@ export default function AgencyLandingClient() {
             </div>
           </a>
 
-          <nav className="hidden md:flex items-center gap-6 text-[11px] font-black uppercase tracking-widest text-neutral-300">
+          <nav className="hidden md:flex items-center gap-5 text-[11px] font-black uppercase tracking-widest text-neutral-300">
             <a href="#referanslar" className="hover:text-amber-400 transition-colors">Referanslar</a>
+            <a href="#ar-teknolojileri" className="text-amber-300 hover:text-amber-200 transition-colors">2026 AR &amp; 3D</a>
             <a href="#tasarimlar" className="hover:text-amber-400 transition-colors">5 Konsept</a>
-            <Link href="/teklif-uret" className="text-emerald-400 hover:text-emerald-300 transition-colors">İMOSAB Teklif & QR</Link>
+            <Link href="/teklif-uret" className="text-emerald-400 hover:text-emerald-300 transition-colors">İMOSAB Teklif &amp; QR</Link>
             <Link href="/reels-studyo" className="text-pink-400 hover:text-pink-300 transition-colors">Reels Stüdyo</Link>
+            <Link href="/instagram-kiti" className="text-sky-400 hover:text-sky-300 transition-colors">Instagram Kiti</Link>
             <a href="#paketler" className="hover:text-amber-400 transition-colors">Fiyatlar</a>
           </nav>
 
@@ -161,7 +173,7 @@ export default function AgencyLandingClient() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7">
           {REAL_REFERENCES.map((ref) => (
             <div
               key={ref.name}
@@ -224,6 +236,78 @@ export default function AgencyLandingClient() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* 3.5. 2026 DÜNYA STANDARTLARINDA 4 FARKLI 3D & AR TEKNOLOJİMİZ */}
+      <section id="ar-teknolojileri" className="max-w-7xl mx-auto px-4 sm:px-8 pb-16 sm:pb-20 space-y-10">
+        <div className="bg-gradient-to-br from-[#13141f] via-[#10111a] to-[#0b0c12] border border-amber-400/30 rounded-[36px] p-6 sm:p-10 space-y-8 shadow-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div className="space-y-2 max-w-2xl">
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-amber-400 block">
+                2026 DÜNYA STANDARTLARINDA 3D &amp; AR MİMARİSİ
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-serif font-black">
+                Telefonda Büyümeyen, Tek Tek Köşeye Yerleşen 4 Yeni Nesil Sistem
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                IKEA Kreativ, Tylko ve Apple ARKit standartlarını İnegöl mobilya üreticileri için tek çatı altında birleştirdik.
+                Müşteri bütün odayı tek seferde karmaşık şekilde görmek yerine her parçayı yukarıdan tek tek seçip sabit ölçekle odasının köşesine yerleştirir.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              <a
+                href="/embed/showroom?firma=L%C4%B0MOON%20HOME"
+                className="px-5 py-3 rounded-full bg-amber-400 hover:bg-white text-black text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all"
+              >
+                Canlı Kamera AR Stüdyosunu Aç <ArrowUpRight size={15} />
+              </a>
+              <Link
+                href="/instagram-kiti"
+                className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all"
+              >
+                Instagram &amp; İçerik Kiti →
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              {
+                badge: '1. IKEA KREATIV SİSTEMİ',
+                title: 'Tek Tek Seç & Köşeye Sabitle Kamera AR',
+                desc: 'Kamera açıldığında ekran boş başlar. Müşteri üst menüden önce "Tekli Berjer"e tıklar, gelen berjeri parmağıyla sol köşeye yerleştirir. Sonra "1. İkili Koltuk"a tıklayıp diğer köşeye koyar. Sabit ölçek kilidi sayesinde ürün sürüklenirken asla kendi kendine büyümez.',
+              },
+              {
+                badge: '2. APPLE & GOOGLE LAZER AR',
+                title: '1:1 Sabit Santim Ölçekli AR (ar-scale="fixed")',
+                desc: 'iPhone (ARKit Quick Look) ve Android (ARCore Scene Viewer) lazer zemin tarayıcısında ar-scale="fixed" kilidi kullanılır. 225 cm koltuk veya 84 cm berjer gerçek hayatta milimetrik 1:1 ölçüsünde kilitlenir.',
+              },
+              {
+                badge: '3. TYLKO PARAMETRİK 3D',
+                title: 'Kapak / Baza Açılır & Özel Ölçü Hesaplar',
+                desc: 'Gardırop kapakları, çekmeceler, amortisörlü yatak bazası ve açılır yemek masası 3D sahnede tek dokunuşla açılır. Müşteri dolap genişliğini değiştirdiğinde kapak sayısı ve fiyat anında güncellenir.',
+              },
+              {
+                badge: '4. FOTOĞRAFTAN 3D (.GLB)',
+                title: 'Stüdyosuz Fotoğraftan Birebir 3D Modelleme',
+                desc: 'Mobilyaları stüdyoya taşımaya gerek yok. Katalog veya telefon fotoğraflarından arka planı ayıklayıp ahşap, bukle kumaş, mermer ve füme cam dokularıyla yüksek hızlı (<5 MB) 3D .GLB modellere dönüştürüyoruz.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="bg-black/45 border border-white/10 rounded-3xl p-5 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <span className="inline-block px-2.5 py-1 rounded-full bg-amber-400/15 text-amber-300 text-[10px] font-black tracking-wider">
+                    {item.badge}
+                  </span>
+                  <h3 className="text-base font-black text-white leading-snug">{item.title}</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">{item.desc}</p>
+                </div>
+                <div className="pt-2 border-t border-white/10 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 size={13} /> Tüm Paketlerde Hazır
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -351,44 +435,45 @@ export default function AgencyLandingClient() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                name: 'Başlangıç Anahtar Teslim',
+                name: 'Mevcut Site Onarımı + 3D Başlangıç',
                 price: '10.000 ₺',
-                sub: 'Hızlı başlangıç yapan İnegöl mağazaları için',
+                sub: 'Sitesi olup 3D Showroom ve hız eklemek isteyen mağazalar için',
                 highlight: false,
                 features: [
-                  '5 Hazır Tasarımdan Seçtiğiniz 1 Konsept',
-                  'Kendi Logonuz, Renkleriniz & Ürünleriniz',
-                  'Telefondan Yönetim & Hızlı Katalog',
-                  'WhatsApp Sipariş & Renk Kartelası',
-                  '3D Secure / Havale / Kapıda Ödeme Altyapısı',
+                  'Mevcut Web Sitenizin Hız, Mobil & SSL Onarımı',
+                  'Sitenizi Kırmadan "3D Showroom & Kamera AR" Entegrasyonu',
+                  '3 Adet Ana Takımınızın (Koltuk/Yatak/Yemek) 3D Modellenmesi',
+                  'Tek Tek Seç & Köşeye Sabitle (Büyümeyen) Kamera AR',
+                  'Teslimat, Garanti, SSS & WhatsApp Sipariş Modülü',
                   '48 Saatte Canlı Teslim',
                 ],
               },
               {
-                name: '3D Showroom + AI Robot Pro',
-                price: '19.900 ₺',
-                sub: 'En çok tercih edilen yüksek dönüşüm paketi',
+                name: 'Sıfırdan 3D E-Ticaret + 10 Takım 3D',
+                price: '25.000 ₺',
+                sub: 'En çok tercih edilen tam donanımlı mağaza & 3D paketi',
                 highlight: true,
                 features: [
-                  'Başlangıç Paketindeki Her Şey',
-                  'Sürükle-Bırak 3D Oda Planlayıcı & AR',
-                  'Kapak / Çekmece / Baza Açılır 3D Ürünler',
-                  '7/24 Yapay Zeka Müşteri Robotu',
-                  'TR / EN / DE Avrupa Çok Dilli Altyapı',
-                  'Google SEO & Harita Optimizasyonu',
+                  '5 Özgün Tasarımdan Seçtiğiniz Sıfırdan E-Ticaret Sitesi',
+                  '10 Adet Mobilya Takımınızın (40–50 Parça) 3D .GLB Üretimi',
+                  'Tek Tek Köşeye Yerleştirme Kamera AR + 1:1 Sabit Ölçekli AR',
+                  'Kapak / Çekmece / Baza Açılır Parametrik 3D Oda Stüdyosu',
+                  '7/24 Yapay Zeka Satış Robotu & Mobil Yönetim Paneli',
+                  'Google SEO & Kredi Kartı 12 Taksit / Havale Altyapısı',
                 ],
               },
               {
-                name: 'VIP Fabrika & İhracat Özel',
-                price: 'Özel Teklif',
-                sub: 'Büyük üreticiler ve AutoCAD 3D kataloglar için',
+                name: 'Fabrika & Avrupa İhracat VIP',
+                price: '45.000 ₺',
+                sub: 'İhracat yapan fabrikalar ve geniş koleksiyonlar için',
                 highlight: false,
                 features: [
-                  'Firmanıza Özel Sıfırdan Tasarım',
-                  'AutoCAD Çizimlerinizden Özel 3D GLB Üretimi',
-                  'Bayi & Toptan Fiyat Giriş Paneli',
-                  'Avrupa Google & Instagram Reklam Kurulumu',
-                  'Öncelikli Teknik Destek & Bakım',
+                  'Firmanıza Özel VIP Tasarım + TR / EN / DE 3 Dilli Altyapı',
+                  '25 Adet Mobilya Takımınızın Komple 3D .GLB / .USDZ Üretimi',
+                  'Avrupa Kapı Teslim (Almanya, Hollanda, Fransa, Belçika) Modülü',
+                  'B2B Toptan Bayi & 20ft / 40ft HC Konteyner Hesaplayıcı',
+                  '9:16 Instagram Reels 3D Video İçerik Kiti',
+                  '1 Yıl Öncelikli Teknik Destek & Garantili Bakım',
                 ],
               },
             ].map((pkg) => (
@@ -493,9 +578,9 @@ export default function AgencyLandingClient() {
                 onChange={(e) => setSelectedPkg(e.target.value)}
                 className="w-full p-3.5 rounded-xl bg-[#1a1a26] border border-white/10 text-white outline-none focus:border-amber-400"
               >
-                <option>Başlangıç Anahtar Teslim (10.000 ₺)</option>
-                <option>3D Showroom + AI Robot Pro (19.900 ₺)</option>
-                <option>VIP Fabrika & İhracat Özel</option>
+                <option>Mevcut Site Onarımı + 3D Başlangıç (10.000 ₺)</option>
+                <option>Sıfırdan 3D E-Ticaret + 10 Takım 3D (25.000 ₺)</option>
+                <option>Fabrika &amp; Avrupa İhracat VIP (45.000 ₺)</option>
               </select>
             </div>
           </div>

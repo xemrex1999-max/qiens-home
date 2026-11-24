@@ -10,11 +10,10 @@ import {
 import { DemoThemeConfig, DemoProduct, SHARED_DEMO_PRODUCTS, DEMO_THEME_LIST, STORE_REVIEWS } from '@/data/demoThemes';
 import ShowroomRoomPlanner from '@/components/showroom/ShowroomRoomPlanner';
 import EuropeExportAndB2B from '@/components/shared/EuropeExportAndB2B';
-import AIRoomVisualizer from '@/components/shared/AIRoomVisualizer';
 import { cn } from '@/lib/utils';
 
 type Lang = 'TR' | 'EN' | 'DE';
-type StudioTab = '3d' | 'ai-room' | 'export';
+type StudioTab = '3d' | 'export';
 
 const THEME_PRODUCT_ORDER: Record<string, string[]> = {
   'aura-luxe': ['ayca-yatak', 'imperator-koltuk', 'ayca-yemek', 'buglem-yatak', 'buglem-yemek', 'bohem-koltuk'],
@@ -153,8 +152,8 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
 
   const [studioTab, setStudioTab] = useState<StudioTab>('3d');
   const [showroomProduct, setShowroomProduct] = useState<DemoProduct>(orderedProducts[0]);
-  const [showroomMode, setShowroomMode] = useState<'full3d' | 'planner'>('full3d');
-  const [showroomColor, setShowroomColor] = useState<string>('Doğal Meşe');
+  const [showroomMode, setShowroomMode] = useState<'full3d' | 'planner'>('planner');
+  const [showroomColor, setShowroomColor] = useState<string>(orderedProducts[0]?.colors[0]?.name || 'Krem Boucle');
   const [activeReviewIdx, setActiveReviewIdx] = useState<number>(0);
 
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1095,7 +1094,6 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
             <div className={cn('inline-flex flex-wrap gap-1.5 p-1.5 rounded-2xl border', theme.borderClass)} style={{ backgroundColor: theme.bgCard }}>
               {[
                 { id: '3d' as StudioTab, label: t.tab3D, icon: <Box size={14} /> },
-                { id: 'ai-room' as StudioTab, label: t.tabAIRoom, icon: <Camera size={14} /> },
                 { id: 'export' as StudioTab, label: t.tabExport, icon: <Globe size={14} /> },
               ].map((tab) => (
                 <button
@@ -1188,12 +1186,6 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
                   />
                 </div>
               )}
-            </div>
-          )}
-
-          {studioTab === 'ai-room' && (
-            <div className="-mx-4 sm:-mx-8 -my-8">
-              <AIRoomVisualizer brandName={theme.brandName} accentHex={theme.accentHex} isDark={theme.isDark} whatsappPhone={theme.whatsappPhone} />
             </div>
           )}
 

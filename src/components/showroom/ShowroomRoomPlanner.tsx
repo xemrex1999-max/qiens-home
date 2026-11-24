@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
   RotateCw, Trash2, Plus, Sparkles, Maximize2, Move,
-  Box, Layers, Eye, X, DoorOpen, Sliders, Ruler, MessageCircle, RotateCcw
+  Box, Layers, Eye, X, DoorOpen, Sliders, Ruler, MessageCircle, RotateCcw, Camera
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -58,11 +58,11 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
 
   if (combined.includes('koltuk') || combined.includes('sofa') || combined.includes('oturma') || combined.includes('kose')) {
     return [
-      { id: 'piece-sofa3', name: "3'lü Ana Koltuk", shortName: "3'lü Koltuk", type: 'sofa3', widthCm: 235, depthCm: 98, heightCm: 85, url: '/models/GlamVelvetSofa.glb', defaultX: 130, defaultY: 25, defaultRot: 0 },
-      { id: 'piece-sofa2', name: "2'li / 3'lü Yan Koltuk", shortName: "2'li Koltuk", type: 'sofa2', widthCm: 195, depthCm: 95, heightCm: 85, url: '/models/SheenWoodLeatherSofa.glb', defaultX: 20, defaultY: 140, defaultRot: 90 },
-      { id: 'piece-berjer-1', name: 'Tekli Berjer (Sağ)', shortName: 'Berjer 1', type: 'armchair', widthCm: 82, depthCm: 85, heightCm: 92, url: '/models/SheenChair.glb', defaultX: 380, defaultY: 140, defaultRot: 270 },
-      { id: 'piece-berjer-2', name: 'Tekli Berjer (Alt)', shortName: 'Berjer 2', type: 'armchair', widthCm: 82, depthCm: 85, heightCm: 92, url: '/models/SheenChair.glb', defaultX: 360, defaultY: 260, defaultRot: 225 },
-      { id: 'piece-coffee', name: 'Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 120, depthCm: 70, heightCm: 42, url: '/models/orta-sehpa.glb', defaultX: 190, defaultY: 175, defaultRot: 0 }
+      { id: 'piece-sofa3', name: "Limoon 3'lü Bukle Ana Koltuk", shortName: "3'lü Koltuk", type: 'sofa3', widthCm: 235, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 145, defaultY: 22, defaultRot: 0 },
+      { id: 'piece-sofa2', name: "Limoon 2'li Bukle Yan Koltuk", shortName: "2'li Koltuk", type: 'sofa2', widthCm: 185, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 16, defaultY: 145, defaultRot: 90 },
+      { id: 'piece-berjer-1', name: 'Limoon Tekli Bukle Berjer (Sağ)', shortName: 'Tekli Berjer 1', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 410, defaultY: 140, defaultRot: 270 },
+      { id: 'piece-berjer-2', name: 'Limoon Tekli Bukle Berjer (Köşe)', shortName: 'Tekli Berjer 2', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 395, defaultY: 265, defaultRot: 225 },
+      { id: 'piece-coffee', name: 'Füme Cam & Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 200, defaultY: 165, defaultRot: 0 }
     ];
   }
 
@@ -148,6 +148,7 @@ export default function ShowroomRoomPlanner({
   const [roomDepthCm, setRoomDepthCm] = useState<number>(400);
   const [is3DPerspective] = useState<boolean>(false);
   const [inlineViewMode, setInlineViewMode] = useState<'plan' | 'real3d'>('real3d');
+  const [isCameraAR, setIsCameraAR] = useState<boolean>(false);
   const [showSizingDrawer, setShowSizingDrawer] = useState<boolean>(false);
   const [placedPieces, setPlacedPieces] = useState<PlacedPiece[]>([]);
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
@@ -697,10 +698,12 @@ export default function ShowroomRoomPlanner({
 
   return (
     <div className="w-full flex flex-col gap-3 select-none">
-      {/* 1. COMPACT SINGLE-ROW TOP TOOLBAR (PIECES + VIEW SWITCHER) */}
+      {/* 1. COMPACT SINGLE-ROW TOP TOOLBAR (PIECES + CAMERA AR + VIEW SWITCHER) */}
       <div className="bg-[#14151c] border border-white/10 rounded-2xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[11px] font-medium text-neutral-400 mr-1 whitespace-nowrap">Parçalar:</span>
+          <span className="text-[11px] font-medium text-neutral-400 mr-1 whitespace-nowrap">
+            {isCameraAR ? 'Kameraya İndir:' : 'Parçalar:'}
+          </span>
           {availablePieces.map((spec) => {
             const existing = placedPieces.find(p => p.id === spec.id);
             const isActive = existing && existing.instanceId === activePiece?.instanceId;
@@ -708,7 +711,7 @@ export default function ShowroomRoomPlanner({
               <button
                 key={spec.id}
                 type="button"
-                draggable={inlineViewMode === 'plan'}
+                draggable={true}
                 onDragStart={(e) => handleDragStartFromShelf(e, spec)}
                 onClick={() => {
                   if (existing) {
@@ -723,39 +726,65 @@ export default function ShowroomRoomPlanner({
                     ? 'bg-amber-400 text-black border-amber-400 font-semibold'
                     : existing
                     ? 'bg-white/5 text-neutral-200 border-white/10 hover:border-white/25'
-                    : 'bg-transparent text-neutral-500 border-dashed border-white/15 hover:text-white'
+                    : 'bg-emerald-500/15 text-emerald-300 border-dashed border-emerald-400/40 hover:bg-emerald-500 hover:text-black font-semibold'
                 )}
+                title={existing ? 'Seçmek için dokunun (veya sahnede parmağınızla sürükleyin)' : 'Kameranın / Odanın önüne indirmek için dokunun'}
               >
                 <span>{spec.shortName}</span>
-                {!existing && <Plus size={11} />}
+                {!existing && <Plus size={12} />}
               </button>
             );
           })}
           <button
             type="button"
+            onClick={() => { setPlacedPieces([]); setActiveInstanceId(null); }}
+            className="px-2.5 py-1.5 rounded-full text-[11px] text-amber-300 hover:text-white bg-amber-400/10 border border-amber-400/25 cursor-pointer whitespace-nowrap"
+            title="Odayı boşaltıp parçaları üstten tek tek kameranın önüne indirin"
+          >
+            Boşalt (Tek Tek İndir)
+          </button>
+          <button
+            type="button"
             onClick={applyAutoLayout}
             className="px-2.5 py-1.5 rounded-full text-[11px] text-neutral-400 hover:text-white cursor-pointer whitespace-nowrap"
-            title="Dizilimi Sıfırla"
+            title="Tüm Takımı Diz"
           >
-            Sıfırla
+            Tam Takım Diz
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setInlineViewMode('real3d');
+              setIsCameraAR((prev) => !prev);
+            }}
+            className={cn(
+              'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border',
+              isCameraAR
+                ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg'
+                : 'bg-amber-400/15 hover:bg-amber-400 text-amber-300 hover:text-black border-amber-400/40'
+            )}
+          >
+            <Camera size={13} />
+            <span>{isCameraAR ? 'Kamera Açık (AR)' : 'Arka Kamera (Odaya Yerleştir)'}</span>
+          </button>
+
           <div className="inline-flex rounded-full bg-black/40 border border-white/10 p-0.5 text-[11px] font-medium">
             <button
               type="button"
-              onClick={() => setInlineViewMode('real3d')}
+              onClick={() => { setInlineViewMode('real3d'); setIsCameraAR(false); }}
               className={cn(
                 'px-3 py-1 rounded-full transition-colors cursor-pointer',
-                inlineViewMode === 'real3d' ? 'bg-amber-400 text-black font-semibold' : 'text-neutral-300 hover:text-white'
+                inlineViewMode === 'real3d' && !isCameraAR ? 'bg-amber-400 text-black font-semibold' : 'text-neutral-300 hover:text-white'
               )}
             >
               3D Oda
             </button>
             <button
               type="button"
-              onClick={() => setInlineViewMode('plan')}
+              onClick={() => { setInlineViewMode('plan'); setIsCameraAR(false); }}
               className={cn(
                 'px-3 py-1 rounded-full transition-colors cursor-pointer',
                 inlineViewMode === 'plan' ? 'bg-amber-400 text-black font-semibold' : 'text-neutral-300 hover:text-white'
@@ -775,7 +804,7 @@ export default function ShowroomRoomPlanner({
         </div>
       </div>
 
-      {/* 2. MAIN ROOM STAGE (DEFAULT: CLEAN REAL 3D ROOM) */}
+      {/* 2. MAIN ROOM STAGE (DEFAULT: CLEAN REAL 3D ROOM OR LIVE REAR-CAMERA AR) */}
       {inlineViewMode === 'real3d' ? (
         <Real3DRoomScene
           placedPieces={placedPieces}
@@ -786,6 +815,32 @@ export default function ShowroomRoomPlanner({
           onTogglePieceOpen={(id) => toggleOpenPiece(id)}
           onToggleAllOpen={toggleOpenAll}
           heightClass="h-[440px] sm:h-[520px]"
+          isCameraAR={isCameraAR}
+          onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
+          activeInstanceId={activeInstanceId}
+          onSelectPiece3D={(id) => setActiveInstanceId(id)}
+          onMovePiece3D={(id, newXCm, newYCm) => {
+            setPlacedPieces((prev) =>
+              prev.map((p) => (p.instanceId === id ? { ...p, xCm: newXCm, yCm: newYCm } : p))
+            );
+          }}
+          onDropNewPiece3D={(pieceId, dropXCm, dropYCm) => {
+            const spec = availablePieces.find((p) => p.id === pieceId);
+            if (!spec) return;
+            const existing = placedPieces.find((p) => p.id === pieceId);
+            if (existing) {
+              setPlacedPieces((prev) =>
+                prev.map((p) =>
+                  p.instanceId === existing.instanceId
+                    ? { ...p, xCm: dropXCm - Math.round(p.widthCm / 2), yCm: dropYCm - Math.round(p.depthCm / 2) }
+                    : p
+                )
+              );
+              setActiveInstanceId(existing.instanceId);
+            } else {
+              addPieceToRoom(spec, dropXCm, dropYCm);
+            }
+          }}
         />
       ) : (
         <div className="relative w-full h-[430px] sm:h-[500px] bg-[#111218] border border-white/10 rounded-2xl overflow-hidden flex items-center justify-center p-4 sm:p-8">
@@ -822,6 +877,31 @@ export default function ShowroomRoomPlanner({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-1 bg-black/40 border border-white/10 rounded-full px-2 py-1 text-[11px]">
+                <span className="text-neutral-400 px-1">Köşeye Koy:</span>
+                <button
+                  type="button"
+                  onClick={() => snapActiveToWall('left')}
+                  className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-amber-400 hover:text-black text-neutral-200 cursor-pointer"
+                >
+                  Sol
+                </button>
+                <button
+                  type="button"
+                  onClick={() => snapActiveToWall('top')}
+                  className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-amber-400 hover:text-black text-neutral-200 cursor-pointer"
+                >
+                  Karşı
+                </button>
+                <button
+                  type="button"
+                  onClick={() => snapActiveToWall('right')}
+                  className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-amber-400 hover:text-black text-neutral-200 cursor-pointer"
+                >
+                  Sağ
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => toggleOpenPiece(activePiece.instanceId)}
@@ -837,10 +917,19 @@ export default function ShowroomRoomPlanner({
 
               <button
                 type="button"
-                onClick={() => rotatePieceById(activePiece.instanceId, 90)}
+                onClick={() => rotatePieceById(activePiece.instanceId, 45)}
                 className="px-3.5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/15 text-xs font-medium flex items-center gap-1.5 cursor-pointer"
               >
-                <RotateCw size={13} /> 90° Çevir
+                <RotateCw size={13} /> 45° Çevir
+              </button>
+
+              <button
+                type="button"
+                onClick={removeActivePiece}
+                className="px-3 py-2 rounded-full bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/30 text-xs font-medium flex items-center gap-1 cursor-pointer"
+                title="Seçili parçayı odadan kaldır"
+              >
+                <Trash2 size={13} /> Kaldır
               </button>
 
               <button
@@ -1011,6 +1100,15 @@ export default function ShowroomRoomPlanner({
               onTogglePieceOpen={(id) => toggleOpenPiece(id)}
               onToggleAllOpen={toggleOpenAll}
               heightClass="h-[76vh]"
+              isCameraAR={isCameraAR}
+              onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
+              activeInstanceId={activeInstanceId}
+              onSelectPiece3D={(id) => setActiveInstanceId(id)}
+              onMovePiece3D={(id, newXCm, newYCm) => {
+                setPlacedPieces((prev) =>
+                  prev.map((p) => (p.instanceId === id ? { ...p, xCm: newXCm, yCm: newYCm } : p))
+                );
+              }}
             />
           </div>
         </div>

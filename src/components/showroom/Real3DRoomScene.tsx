@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { DoorOpen, Eye, Compass, ZoomIn, ZoomOut, RotateCcw, Palette } from 'lucide-react';
+import { DoorOpen, Eye, Compass, ZoomIn, ZoomOut, RotateCcw, Palette, Camera, CameraOff, Move } from 'lucide-react';
 import type { PlacedPiece } from './ShowroomRoomPlanner';
 
 export const WALL_COLOR_OPTIONS = [
@@ -22,9 +22,9 @@ export const FLOOR_TONE_OPTIONS = [
 ];
 
 export const FABRIC_SWATCH_LIST = [
+  { name: 'Krem Boucle', hex: '#d8cbb8' },
   { name: 'Doğal Meşe', hex: '#c8ad86' },
   { name: 'Ceviz', hex: '#6b4428' },
-  { name: 'Krem Boucle', hex: '#ede5d4' },
   { name: 'Zümrüt Yeşili', hex: '#18523d' },
   { name: 'Antrasit', hex: '#2e333b' },
   { name: 'Safir Mavi', hex: '#1e3f6e' },
@@ -39,20 +39,26 @@ interface Real3DRoomSceneProps {
   onTogglePieceOpen: (instanceId: string) => void;
   onToggleAllOpen: () => void;
   heightClass?: string;
+  isCameraAR?: boolean;
+  onToggleCameraAR?: () => void;
+  activeInstanceId?: string | null;
+  onSelectPiece3D?: (instanceId: string) => void;
+  onMovePiece3D?: (instanceId: string, newXCm: number, newYCm: number) => void;
+  onDropNewPiece3D?: (pieceId: string, dropXCm: number, dropYCm: number) => void;
 }
 
 const PALETTES: Record<string, { main: number; wood: number; accent: number }> = {
-  'Doğal Meşe': { main: 0xc8ad86, wood: 0x7c5c3a, accent: 0xd4af37 },
+  'Doğal Meşe': { main: 0xd6c7b2, wood: 0x7c5c3a, accent: 0x9c5a2d },
   'Ceviz': { main: 0x6b4428, wood: 0x3f2514, accent: 0xd4af37 },
-  'Krem': { main: 0xeae0c8, wood: 0xa68e6e, accent: 0xd4af37 },
-  'Krem Boucle': { main: 0xede5d4, wood: 0xa68e6e, accent: 0xd4af37 },
-  'Antrasit': { main: 0x2e333b, wood: 0x1d2026, accent: 0xd4af37 },
+  'Krem': { main: 0xe2d6c1, wood: 0x5c3d28, accent: 0x9c5a2d },
+  'Krem Boucle': { main: 0xd8cbb8, wood: 0x4d3322, accent: 0x9c5a2d },
+  'Antrasit': { main: 0x2e333b, wood: 0x1d2026, accent: 0x9c5a2d },
   'Zümrüt Yeşili': { main: 0x18523d, wood: 0x3b2718, accent: 0xd4af37 },
   'Safir Mavi': { main: 0x1e3f6e, wood: 0x2a3340, accent: 0xd4af37 },
   'Mat Siyah': { main: 0x222227, wood: 0x141418, accent: 0xd4af37 },
   'Beyaz Mermer': { main: 0xf0efeb, wood: 0x9e9589, accent: 0xd4af37 },
   'Altın Detaylı Beyaz': { main: 0xf5f2ea, wood: 0xc5a059, accent: 0xd4af37 },
-  'Bej': { main: 0xdfd3c3, wood: 0x8f775c, accent: 0xd4af37 },
+  'Bej': { main: 0xd8cbb8, wood: 0x5c3d28, accent: 0x9c5a2d },
 };
 
 function createParquetTexture(baseRgb: [number, number, number]): THREE.CanvasTexture {
@@ -85,6 +91,51 @@ function createParquetTexture(baseRgb: [number, number, number]): THREE.CanvasTe
   return tex;
 }
 
+function createGeometricPillowTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#EAE2D6';
+    ctx.fillRect(0, 0, 256, 256);
+    const step = 64;
+    for (let y = 0; y < 256; y += step) {
+      for (let x = 0; x < 256; x += step) {
+        ctx.fillStyle = '#4B382A';
+        ctx.beginPath();
+        ctx.moveTo(x + step / 2, y + 4);
+        ctx.lineTo(x + step - 4, y + step / 2);
+        ctx.lineTo(x + step / 2, y + step - 4);
+        ctx.lineTo(x + 4, y + step / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#C9B8A3';
+        ctx.beginPath();
+        ctx.moveTo(x + step / 2, y + 16);
+        ctx.lineTo(x + step - 16, y + step / 2);
+        ctx.lineTo(x + step / 2, y + step - 16);
+        ctx.lineTo(x + 16, y + step / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#2B2119';
+        ctx.beginPath();
+        ctx.moveTo(x + step / 2, y + 25);
+        ctx.lineTo(x + step - 25, y + step / 2);
+        ctx.lineTo(x + step / 2, y + step - 25);
+        ctx.lineTo(x + 25, y + step / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 interface AnimTarget {
   type: 'door-left' | 'door-right' | 'drawer' | 'baza' | 'table-left' | 'table-right' | 'table-leaf';
   object: THREE.Object3D;
@@ -102,25 +153,93 @@ export default function Real3DRoomScene({
   onTogglePieceOpen,
   onToggleAllOpen,
   heightClass = 'h-[480px] sm:h-[600px]',
+  isCameraAR = false,
+  onToggleCameraAR,
+  activeInstanceId,
+  onSelectPiece3D,
+  onMovePiece3D,
+  onDropNewPiece3D,
 }: Real3DRoomSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animTargetsRef = useRef<AnimTarget[]>([]);
   const openStateMapRef = useRef<Record<string, boolean>>({});
   const onToggleRef = useRef(onTogglePieceOpen);
+  const onSelectRef = useRef(onSelectPiece3D);
+  const onMoveRef = useRef(onMovePiece3D);
+  const onDropNewRef = useRef(onDropNewPiece3D);
 
   const [lastClickedName, setLastClickedName] = useState<string | null>(null);
   const [wallIdx, setWallIdx] = useState<number>(0);
   const [floorIdx, setFloorIdx] = useState<number>(0);
   const [localColor, setLocalColor] = useState<string>(selectedColor);
   const [showStylePanel, setShowStylePanel] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraReady, setCameraReady] = useState<boolean>(false);
 
   useEffect(() => {
     setLocalColor(selectedColor);
   }, [selectedColor]);
 
   onToggleRef.current = onTogglePieceOpen;
+  onSelectRef.current = onSelectPiece3D;
+  onMoveRef.current = onMovePiece3D;
+  onDropNewRef.current = onDropNewPiece3D;
+
+  // Manage Live Rear Camera Stream when isCameraAR is enabled
+  useEffect(() => {
+    let activeStream: MediaStream | null = null;
+    if (!isCameraAR) {
+      setCameraReady(false);
+      setCameraError(null);
+      if (videoRef.current && videoRef.current.srcObject) {
+        const s = videoRef.current.srcObject as MediaStream;
+        s.getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+      }
+      return;
+    }
+
+    const startRearCamera = async () => {
+      setCameraError(null);
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraError('Cihaz tarayıcısı kamera erişimini desteklemiyor. Mobilyaları AR zemini üzerinde sürükleyerek yerleştirebilirsiniz.');
+          return;
+        }
+        try {
+          activeStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+        } catch {
+          activeStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+        if (videoRef.current && activeStream) {
+          videoRef.current.srcObject = activeStream;
+          await videoRef.current.play().catch(() => {});
+          setCameraReady(true);
+        }
+      } catch {
+        setCameraError('Kamera izni verilmedi veya kamera bulunamadı. Mobilyaları yine de parmağınızla / farenizle zeminde sağa-sola yerleştirebilirsiniz.');
+      }
+    };
+
+    startRearCamera();
+
+    return () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach((t) => t.stop());
+      }
+      if (videoRef.current && videoRef.current.srcObject) {
+        const s = videoRef.current.srcObject as MediaStream;
+        s.getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, [isCameraAR]);
 
   useEffect(() => {
     const map: Record<string, boolean> = {};
@@ -140,6 +259,8 @@ export default function Real3DRoomScene({
     activeColorName,
     wallIdx,
     floorIdx,
+    isCameraAR,
+    activeInstanceId,
     items: placedPieces.map((p) => ({
       id: p.instanceId,
       t: p.type,
@@ -160,42 +281,58 @@ export default function Real3DRoomScene({
     const height = container.clientHeight || 520;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0c0d12);
-    scene.fog = new THREE.FogExp2(0x0c0d12, 0.038);
+    if (!isCameraAR) {
+      scene.background = new THREE.Color(0x0c0d12);
+      scene.fog = new THREE.FogExp2(0x0c0d12, 0.038);
+    } else {
+      scene.background = null;
+      scene.fog = null;
+    }
 
     const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 50);
     const W = roomWidthCm / 100;
     const D = roomDepthCm / 100;
     const H = 2.65;
 
-    camera.position.set(W * 0.85, 3.6, D * 1.15);
+    if (isCameraAR) {
+      camera.position.set(0, 2.25, D * 1.08);
+    } else {
+      camera.position.set(W * 0.85, 3.6, D * 1.15);
+    }
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
+    if (isCameraAR) {
+      renderer.setClearColor(0x000000, 0);
+    }
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.maxPolarAngle = Math.PI / 2 - 0.04;
-    controls.minDistance = 1.8;
+    controls.maxPolarAngle = Math.PI / 2 - 0.03;
+    controls.minDistance = 1.6;
     controls.maxDistance = 14;
-    controls.target.set(0, 0.65, 0);
+    controls.target.set(0, isCameraAR ? 0.45 : 0.65, 0);
     controls.update();
     controlsRef.current = controls;
 
     // --- LIGHTING ---
-    const hemi = new THREE.HemisphereLight(0xfff6e8, 0x26222e, 1.0);
+    const hemi = new THREE.HemisphereLight(0xfff6e8, 0x26222e, isCameraAR ? 1.25 : 1.0);
     scene.add(hemi);
 
-    const sunLight = new THREE.DirectionalLight(0xfff1dc, 1.85);
+    const sunLight = new THREE.DirectionalLight(0xfff1dc, isCameraAR ? 2.1 : 1.85);
     sunLight.position.set(3.8, 6.2, 4.2);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -215,66 +352,97 @@ export default function Real3DRoomScene({
     scene.add(warmFill);
 
     // --- MATERIALS ---
-    const pal = PALETTES[activeColorName] || PALETTES['Doğal Meşe'];
-    const matMain = new THREE.MeshStandardMaterial({ color: pal.main, roughness: 0.62, metalness: 0.04 });
-    const matWood = new THREE.MeshStandardMaterial({ color: pal.wood, roughness: 0.44, metalness: 0.05 });
+    const pal = PALETTES[activeColorName] || PALETTES['Krem Boucle'];
+    const matMain = new THREE.MeshStandardMaterial({ color: pal.main, roughness: 0.78, metalness: 0.02 });
+    const matWood = new THREE.MeshStandardMaterial({ color: pal.wood, roughness: 0.42, metalness: 0.05 });
+    const matWarmLeg = new THREE.MeshStandardMaterial({ color: 0x8d5228, roughness: 0.36, metalness: 0.05 });
+    const matArmInsert = new THREE.MeshStandardMaterial({ color: 0xa45c2c, roughness: 0.3, metalness: 0.06 });
     const matInterior = new THREE.MeshStandardMaterial({ color: 0x3b2c20, roughness: 0.7 });
-    const matGold = new THREE.MeshStandardMaterial({ color: pal.accent, roughness: 0.22, metalness: 0.88 });
+    const matGold = new THREE.MeshStandardMaterial({ color: pal.accent, roughness: 0.25, metalness: 0.82 });
     const matMirror = new THREE.MeshPhysicalMaterial({ color: 0xd6e6f2, roughness: 0.05, metalness: 0.92, clearcoat: 1.0 });
+    const matSmokedGlass = new THREE.MeshPhysicalMaterial({
+      color: 0x22262b,
+      roughness: 0.08,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.62,
+      clearcoat: 1.0,
+    });
     const matMarble = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.16, metalness: 0.05 });
+    const geoPillowTex = createGeometricPillowTexture();
+    const matGeoPillow = new THREE.MeshStandardMaterial({ map: geoPillowTex, roughness: 0.82 });
     const matPillow = new THREE.MeshStandardMaterial({ color: 0xf7f4ee, roughness: 0.85 });
     const matLamp = new THREE.MeshStandardMaterial({ color: 0xffecc2, emissive: 0xffc86b, emissiveIntensity: 0.65, roughness: 0.4 });
     const matWall = new THREE.MeshStandardMaterial({ color: activeWall.num, roughness: 0.88 });
     const matBaseboard = new THREE.MeshStandardMaterial({ color: 0x3b3532, roughness: 0.5 });
 
-    // --- ROOM ARCHITECTURE ---
+    // --- ROOM ARCHITECTURE vs CAMERA AR SHADOW FLOOR ---
     const floorTex = createParquetTexture(activeFloor.rgb);
-    const floorMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(W + 0.24, 0.14, D + 0.24),
-      new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.52, metalness: 0.05 })
-    );
-    floorMesh.position.set(0, -0.07, 0);
-    floorMesh.receiveShadow = true;
-    scene.add(floorMesh);
+    if (isCameraAR) {
+      // Transparent shadow-catcher floor + subtle AR placement border so real room camera shows behind!
+      const shadowFloor = new THREE.Mesh(
+        new THREE.PlaneGeometry(W * 1.4, D * 1.4),
+        new THREE.ShadowMaterial({ opacity: 0.42 })
+      );
+      shadowFloor.rotation.x = -Math.PI / 2;
+      shadowFloor.position.set(0, 0.001, 0);
+      shadowFloor.receiveShadow = true;
+      scene.add(shadowFloor);
 
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(W + 0.24, H, 0.12), matWall);
-    backWall.position.set(0, H / 2, -D / 2 - 0.06);
-    backWall.receiveShadow = true;
-    scene.add(backWall);
+      const arGrid = new THREE.GridHelper(Math.max(W, D), 12, 0xd4af37, 0xffffff);
+      const gridMat = arGrid.material as THREE.Material;
+      gridMat.transparent = true;
+      gridMat.opacity = 0.22;
+      arGrid.position.set(0, 0.002, 0);
+      scene.add(arGrid);
+    } else {
+      const floorMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(W + 0.24, 0.14, D + 0.24),
+        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.52, metalness: 0.05 })
+      );
+      floorMesh.position.set(0, -0.07, 0);
+      floorMesh.receiveShadow = true;
+      scene.add(floorMesh);
 
-    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, D + 0.12), matWall);
-    leftWall.position.set(-W / 2 - 0.06, H / 2, 0);
-    leftWall.receiveShadow = true;
-    scene.add(leftWall);
+      const backWall = new THREE.Mesh(new THREE.BoxGeometry(W + 0.24, H, 0.12), matWall);
+      backWall.position.set(0, H / 2, -D / 2 - 0.06);
+      backWall.receiveShadow = true;
+      scene.add(backWall);
 
-    const bbBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.11, 0.025), matBaseboard);
-    bbBack.position.set(0, 0.055, -D / 2 + 0.012);
-    scene.add(bbBack);
-    const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.11, D), matBaseboard);
-    bbLeft.position.set(-W / 2 + 0.012, 0.055, 0);
-    scene.add(bbLeft);
+      const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, D + 0.12), matWall);
+      leftWall.position.set(-W / 2 - 0.06, H / 2, 0);
+      leftWall.receiveShadow = true;
+      scene.add(leftWall);
 
-    const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.35, 1.55), matBaseboard);
-    winFrame.position.set(-W / 2 + 0.02, 1.48, 0);
-    scene.add(winFrame);
-    const winGlass = new THREE.Mesh(
-      new THREE.BoxGeometry(0.06, 1.22, 1.42),
-      new THREE.MeshStandardMaterial({ color: 0xaad8ff, emissive: 0x7cbfff, emissiveIntensity: 0.55, roughness: 0.1 })
-    );
-    winGlass.position.set(-W / 2 + 0.025, 1.48, 0);
-    scene.add(winGlass);
+      const bbBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.11, 0.025), matBaseboard);
+      bbBack.position.set(0, 0.055, -D / 2 + 0.012);
+      scene.add(bbBack);
+      const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.11, D), matBaseboard);
+      bbLeft.position.set(-W / 2 + 0.012, 0.055, 0);
+      scene.add(bbLeft);
 
-    const rug = new THREE.Mesh(
-      new THREE.BoxGeometry(W * 0.56, 0.014, D * 0.54),
-      new THREE.MeshStandardMaterial({ color: 0x3b352d, roughness: 0.96 })
-    );
-    rug.position.set(0, 0.007, D * 0.05);
-    rug.receiveShadow = true;
-    scene.add(rug);
+      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.35, 1.55), matBaseboard);
+      winFrame.position.set(-W / 2 + 0.02, 1.48, 0);
+      scene.add(winFrame);
+      const winGlass = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 1.22, 1.42),
+        new THREE.MeshStandardMaterial({ color: 0xaad8ff, emissive: 0x7cbfff, emissiveIntensity: 0.55, roughness: 0.1 })
+      );
+      winGlass.position.set(-W / 2 + 0.025, 1.48, 0);
+      scene.add(winGlass);
+
+      const rug = new THREE.Mesh(
+        new THREE.BoxGeometry(W * 0.62, 0.014, D * 0.58),
+        new THREE.MeshStandardMaterial({ color: 0xe5dccd, roughness: 0.96 })
+      );
+      rug.position.set(0, 0.007, D * 0.04);
+      rug.receiveShadow = true;
+      scene.add(rug);
+    }
 
     // --- FURNITURE BUILDERS ---
     const animTargets: AnimTarget[] = [];
-    const clickableRoots: THREE.Object3D[] = [];
+    const clickableRoots: THREE.Group[] = [];
 
     const mkBox = (w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0, z = 0) => {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -294,7 +462,12 @@ export default function Real3DRoomScene({
 
     placedPieces.forEach((item) => {
       const root = new THREE.Group();
-      root.userData = { instanceId: item.instanceId, name: item.name };
+      root.userData = {
+        instanceId: item.instanceId,
+        name: item.name,
+        widthCm: item.widthCm,
+        depthCm: item.depthCm,
+      };
 
       const pw = item.widthCm / 100;
       const pd = item.depthCm / 100;
@@ -304,6 +477,16 @@ export default function Real3DRoomScene({
       const cz = (item.yCm + item.depthCm / 2) / 100 - D / 2;
       root.position.set(cx, 0, cz);
       root.rotation.y = -THREE.MathUtils.degToRad(item.rotation);
+
+      // Subtle selection ring on floor under the active piece
+      if (item.instanceId === activeInstanceId) {
+        const ringGeo = new THREE.RingGeometry(Math.max(pw, pd) * 0.52, Math.max(pw, pd) * 0.56, 36);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = -Math.PI / 2;
+        ringMesh.position.set(0, 0.008, 0);
+        root.add(ringMesh);
+      }
 
       if (item.type === 'wardrobe') {
         root.add(mkBox(pw, ph - 0.08, 0.04, matWood, 0, (ph + 0.08) / 2, -pd / 2 + 0.02));
@@ -323,7 +506,6 @@ export default function Real3DRoomScene({
         for (let ci = -2; ci <= 2; ci++) {
           root.add(mkBox(0.06, Math.min(0.72, ph * 0.35), Math.min(0.36, pd * 0.6), ci % 2 === 0 ? matMain : matPillow, ci * Math.min(0.11, pw * 0.05), ph - 0.72, -0.02));
         }
-        // Parametric Door Count based on Width! (4 doors under 220cm, 6 doors 220cm+)
         const doorCount = pw >= 2.25 ? 6 : 4;
         const doorW = (pw - 0.06) / doorCount;
         for (let di = 0; di < doorCount; di++) {
@@ -452,24 +634,100 @@ export default function Real3DRoomScene({
           { type: 'table-right', object: rightHalf, instanceId: item.instanceId, basePos: rightHalf.position.clone(), baseRot: rightHalf.rotation.clone() },
           { type: 'table-leaf', object: centerLeaf, instanceId: item.instanceId, basePos: centerLeaf.position.clone(), baseRot: centerLeaf.rotation.clone() }
         );
-      } else if (item.type === 'sofa3' || item.type === 'sofa2' || item.type === 'armchair') {
-        root.add(mkBox(pw, 0.16, pd, matWood, 0, 0.2, 0));
-        root.add(mkBox(pw, ph * 0.72, 0.22, matMain, 0, 0.28 + ph * 0.34, -pd / 2 + 0.11));
-        root.add(mkBox(0.2, 0.44, pd, matMain, -pw / 2 + 0.1, 0.42, 0));
-        root.add(mkBox(0.2, 0.44, pd, matMain, pw / 2 - 0.1, 0.42, 0));
-        root.add(mkBox(pw - 0.42, 0.18, pd - 0.2, matMain, 0, 0.36, 0.08));
-        const pCount = item.type === 'sofa3' ? 3 : item.type === 'sofa2' ? 2 : 1;
-        for (let pi = 0; pi < pCount; pi++) {
-          const px = pCount === 1 ? 0 : -pw * 0.28 + pi * ((pw * 0.56) / (pCount - 1));
-          const tp = mkBox(0.34, 0.32, 0.12, matPillow, px, 0.58, -pd / 2 + 0.28);
-          tp.rotation.x = 0.2;
-          root.add(tp);
-        }
-        for (const sx of [-pw / 2 + 0.12, pw / 2 - 0.12]) {
+      } else if (item.type === 'sofa3' || item.type === 'sofa2') {
+        // LIMOON OATMEAL BOUCLE SOFA (3'lü & 2'li):
+        // 1. 5 Warm Walnut Block Legs (4 corners + 1 center support leg)
+        for (const sx of [-pw / 2 + 0.14, pw / 2 - 0.14]) {
           for (const sz of [-pd / 2 + 0.12, pd / 2 - 0.12]) {
-            root.add(mkCyl(0.02, 0.14, matGold, sx, 0.07, sz));
+            root.add(mkBox(0.065, 0.1, 0.065, matWarmLeg, sx, 0.05, sz));
           }
         }
+        root.add(mkBox(0.055, 0.1, 0.055, matWarmLeg, 0, 0.05, 0));
+
+        // 2. Dark Walnut Lower Plinth Base Strip
+        root.add(mkBox(pw - 0.02, 0.055, pd - 0.02, matWood, 0, 0.125, 0));
+
+        // 3. 2 Deep Rounded Boucle Seat Cushions with Center Seam
+        const halfSeatW = pw / 2 - 0.015;
+        root.add(mkBox(halfSeatW, 0.25, pd - 0.02, matMain, -halfSeatW / 2 - 0.006, 0.275, 0.01));
+        root.add(mkBox(halfSeatW, 0.25, pd - 0.02, matMain, halfSeatW / 2 + 0.006, 0.275, 0.01));
+
+        // 4. Outer Back Shell
+        root.add(mkBox(pw - 0.06, 0.44, 0.17, matMain, 0, 0.6, -pd / 2 + 0.1));
+
+        // 5. 2 Plush Dimpled Back Cushions
+        const armW = 0.25;
+        const innerW = pw - armW * 2;
+        const backCushW = innerW / 2 - 0.012;
+        for (const side of [-1, 1]) {
+          const bx = side * (backCushW / 2 + 0.006);
+          const bc = mkBox(backCushW, 0.4, 0.19, matMain, bx, 0.59, -pd / 2 + 0.23);
+          bc.rotation.x = -0.08;
+          root.add(bc);
+          // Central button dimple
+          const tuft = mkCyl(0.014, 0.02, matWood, bx, 0.6, -pd / 2 + 0.33, 14);
+          tuft.rotation.x = Math.PI / 2;
+          root.add(tuft);
+        }
+
+        // 6. Sloped Contour Side Wings + Rounded Front Armrest Bolsters + Oval Wood Capsule Inserts!
+        for (const side of [-1, 1]) {
+          const ax = side * (pw / 2 - armW / 2 - 0.01);
+          // Rear sloped side wing
+          root.add(mkBox(armW - 0.02, 0.36, pd * 0.48, matMain, ax, 0.56, -pd * 0.18));
+          // Front rounded bolster armrest
+          root.add(mkBox(armW, 0.21, pd * 0.78, matMain, ax, 0.485, pd * 0.05));
+          // Signature Oval Warm-Wood Capsule Insert on Front Face of Armrest!
+          const capsule = mkBox(armW * 0.56, 0.052, 0.035, matArmInsert, ax, 0.48, pd * 0.445);
+          root.add(capsule);
+        }
+
+        // 7. 2 Geometric Diamond-Patterned Throw Pillows
+        for (const side of [-1, 1]) {
+          const px = side * (pw / 2 - armW - 0.11);
+          const pil = mkBox(0.36, 0.35, 0.11, matGeoPillow, px, 0.56, -pd / 2 + 0.36);
+          pil.rotation.y = -side * 0.38;
+          pil.rotation.x = 0.15;
+          root.add(pil);
+        }
+      } else if (item.type === 'armchair') {
+        // LIMOON BOUCLE TEKLI BERJER:
+        // Exposed warm walnut corner legs extending up the base corners
+        for (const sx of [-pw / 2 + 0.05, pw / 2 - 0.05]) {
+          root.add(mkBox(0.055, 0.26, 0.055, matWarmLeg, sx, 0.13, pd / 2 - 0.07));
+          root.add(mkBox(0.055, 0.24, 0.055, matWarmLeg, sx, 0.12, -pd / 2 + 0.07));
+        }
+        // Lower wood rail
+        root.add(mkBox(pw - 0.08, 0.035, pd - 0.08, matWarmLeg, 0, 0.11, 0));
+        // Lower boucle apron & thick rounded seat cushion
+        root.add(mkBox(pw - 0.08, 0.14, pd - 0.08, matMain, 0, 0.2, 0));
+        root.add(mkBox(pw - 0.2, 0.22, pd - 0.12, matMain, 0, 0.36, 0.04));
+        // Wrap-around curved tub backrest & sloped arms
+        root.add(mkBox(pw - 0.04, 0.54, 0.18, matMain, 0, 0.55, -pd / 2 + 0.11));
+        for (const side of [-1, 1]) {
+          const arm = mkBox(0.15, 0.44, pd - 0.12, matMain, side * (pw / 2 - 0.085), 0.48, 0.01);
+          root.add(arm);
+        }
+      } else if (item.type === 'coffeetable') {
+        // LIMOON SMOKED GLASS & SLATTED WALNUT COFFEE TABLE:
+        const legX = pw * 0.38;
+        const legZ = pd * 0.36;
+        for (const sx of [-legX, legX]) {
+          for (const sz of [-legZ, legZ]) {
+            root.add(mkBox(0.045, ph - 0.02, 0.045, matWarmLeg, sx, (ph - 0.02) / 2, sz));
+          }
+        }
+        // Top & lower wood support rails
+        root.add(mkBox(pw * 0.76, 0.035, 0.035, matWarmLeg, 0, ph - 0.04, -legZ));
+        root.add(mkBox(pw * 0.76, 0.035, 0.035, matWarmLeg, 0, ph - 0.04, legZ));
+        root.add(mkBox(0.035, 0.035, pd * 0.72, matWarmLeg, -legX, 0.14, 0));
+        root.add(mkBox(0.035, 0.035, pd * 0.72, matWarmLeg, legX, 0.14, 0));
+        // 7 Wooden Slats on Lower Magazine Shelf
+        for (let si = -3; si <= 3; si++) {
+          root.add(mkBox(pw * 0.75, 0.018, 0.042, matWarmLeg, 0, 0.15, si * (pd * 0.1)));
+        }
+        // Tempered Smoked Glass Top
+        root.add(mkBox(pw, 0.018, pd, matSmokedGlass, 0, ph, 0));
       } else if (item.type === 'chair') {
         root.add(mkBox(pw, 0.08, pd, matMain, 0, 0.46, 0));
         root.add(mkBox(pw, 0.44, 0.08, matMain, 0, 0.7, -pd / 2 + 0.04));
@@ -479,7 +737,7 @@ export default function Real3DRoomScene({
           }
         }
       } else {
-        root.add(mkBox(pw, ph * 0.55, pd, item.type === 'coffeetable' ? matMarble : matMain, 0, ph * 0.72, 0));
+        root.add(mkBox(pw, ph * 0.55, pd, matMain, 0, ph * 0.72, 0));
         for (const sx of [-pw / 2 + 0.08, pw / 2 - 0.08]) {
           for (const sz of [-pd / 2 + 0.08, pd / 2 - 0.08]) {
             root.add(mkCyl(0.016, ph * 0.5, matGold, sx, ph * 0.25, sz));
@@ -493,21 +751,33 @@ export default function Real3DRoomScene({
 
     animTargetsRef.current = animTargets;
 
+    // --- DIRECT 3D FINGER / POINTER DRAGGING ACROSS THE FLOOR PLANE ---
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
-    let downX = 0;
-    let downY = 0;
+    const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const planeIntersect = new THREE.Vector3();
 
-    const handlePointerDown = (e: PointerEvent) => {
-      downX = e.clientX;
-      downY = e.clientY;
+    let dragState: {
+      root: THREE.Group;
+      instanceId: string;
+      name: string;
+      widthCm: number;
+      depthCm: number;
+      startX: number;
+      startY: number;
+      offsetX: number;
+      offsetZ: number;
+      moved: boolean;
+    } | null = null;
+
+    const getNormalizedPointer = (clientX: number, clientY: number) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     };
 
-    const handlePointerUp = (e: PointerEvent) => {
-      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 7) return;
-      const rect = renderer.domElement.getBoundingClientRect();
-      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    const handlePointerDown = (e: PointerEvent) => {
+      getNormalizedPointer(e.clientX, e.clientY);
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(clickableRoots, true);
       if (hits.length > 0) {
@@ -515,15 +785,98 @@ export default function Real3DRoomScene({
         while (obj && !obj.userData?.instanceId) {
           obj = obj.parent;
         }
-        if (obj?.userData?.instanceId) {
-          onToggleRef.current(obj.userData.instanceId);
-          setLastClickedName(obj.userData.name || 'Mobilya');
+        if (obj && obj.userData?.instanceId) {
+          const rootGrp = obj as THREE.Group;
+          onSelectRef.current?.(rootGrp.userData.instanceId);
+          let offsetX = 0;
+          let offsetZ = 0;
+          if (raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
+            offsetX = rootGrp.position.x - planeIntersect.x;
+            offsetZ = rootGrp.position.z - planeIntersect.z;
+          }
+          dragState = {
+            root: rootGrp,
+            instanceId: rootGrp.userData.instanceId,
+            name: rootGrp.userData.name || 'Mobilya',
+            widthCm: rootGrp.userData.widthCm || 100,
+            depthCm: rootGrp.userData.depthCm || 100,
+            startX: e.clientX,
+            startY: e.clientY,
+            offsetX,
+            offsetZ,
+            moved: false,
+          };
+          controls.enabled = false;
+          try {
+            renderer.domElement.setPointerCapture(e.pointerId);
+          } catch {}
         }
       }
     };
 
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!dragState) return;
+      if (!dragState.moved && Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY) > 6) {
+        dragState.moved = true;
+      }
+      if (!dragState.moved) return;
+
+      getNormalizedPointer(e.clientX, e.clientY);
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
+        const halfW = W / 2;
+        const halfD = D / 2;
+        const nextX = Math.max(-halfW + 0.15, Math.min(halfW - 0.15, planeIntersect.x + dragState.offsetX));
+        const nextZ = Math.max(-halfD + 0.15, Math.min(halfD - 0.15, planeIntersect.z + dragState.offsetZ));
+        dragState.root.position.set(nextX, 0, nextZ);
+      }
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (!dragState) return;
+      const finished = dragState;
+      dragState = null;
+      controls.enabled = true;
+      try {
+        renderer.domElement.releasePointerCapture(e.pointerId);
+      } catch {}
+
+      if (finished.moved) {
+        const newXCm = Math.round((finished.root.position.x + W / 2) * 100 - finished.widthCm / 2);
+        const newYCm = Math.round((finished.root.position.z + D / 2) * 100 - finished.depthCm / 2);
+        onMoveRef.current?.(finished.instanceId, newXCm, newYCm);
+        setLastClickedName(`${finished.name} yeni konuma yerleştirildi`);
+      } else {
+        onToggleRef.current(finished.instanceId);
+        setLastClickedName(`${finished.name} açıldı / kapatıldı`);
+      }
+    };
+
+    // Allow dragging a piece pill from the top shelf and dropping it directly onto the 3D/AR floor!
+    const handleDragOver3D = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    const handleDrop3D = (e: DragEvent) => {
+      e.preventDefault();
+      const pieceId = e.dataTransfer?.getData('application/qiens-piece-id');
+      if (!pieceId) return;
+      getNormalizedPointer(e.clientX, e.clientY);
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
+        const dropXCm = Math.round((planeIntersect.x + W / 2) * 100);
+        const dropYCm = Math.round((planeIntersect.z + D / 2) * 100);
+        onDropNewRef.current?.(pieceId, dropXCm, dropYCm);
+      } else {
+        onDropNewRef.current?.(pieceId, Math.round(roomWidthCm / 2), Math.round(roomDepthCm / 2));
+      }
+    };
+
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+    renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('pointerup', handlePointerUp);
+    renderer.domElement.addEventListener('dragover', handleDragOver3D);
+    renderer.domElement.addEventListener('drop', handleDrop3D);
 
     const handleResize = () => {
       if (!container) return;
@@ -568,10 +921,14 @@ export default function Real3DRoomScene({
       cancelAnimationFrame(frameId);
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
+      renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+      renderer.domElement.removeEventListener('dragover', handleDragOver3D);
+      renderer.domElement.removeEventListener('drop', handleDrop3D);
       controls.dispose();
       renderer.dispose();
       floorTex.dispose();
+      geoPillowTex.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutSignature]);
@@ -601,7 +958,7 @@ export default function Real3DRoomScene({
     if (!cam || !ctrl) return;
     const dir = new THREE.Vector3().subVectors(cam.position, ctrl.target);
     dir.multiplyScalar(factor);
-    if (dir.length() >= 1.8 && dir.length() <= 14) {
+    if (dir.length() >= 1.6 && dir.length() <= 14) {
       cam.position.copy(ctrl.target).add(dir);
       ctrl.update();
     }
@@ -609,16 +966,52 @@ export default function Real3DRoomScene({
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-[#0e0f14] shadow-xl">
-      <div ref={mountRef} className={`w-full ${heightClass} cursor-grab active:cursor-grabbing`} />
+      {/* Live Rear Camera Feed Background when Camera AR Mode is Active */}
+      {isCameraAR && (
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#1c1917] via-[#292524] to-[#1c1917]">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
+          {!cameraReady && cameraError && (
+            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 max-w-md w-[92%] bg-black/80 backdrop-blur-md border border-amber-400/40 text-amber-200 px-3.5 py-2 rounded-xl text-[11px] text-center">
+              {cameraError}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div ref={mountRef} className={`relative z-10 w-full ${heightClass} cursor-grab active:cursor-grabbing touch-none`} />
 
       {/* Clean Minimal Top HUD */}
-      <div className="absolute top-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="bg-black/60 backdrop-blur-md border border-white/10 px-3.5 py-1.5 rounded-full text-[11px] font-medium text-neutral-200 flex items-center gap-2 pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>Fareyle 360° çevirin • Mobilyaya tıklayarak kapak/baza açın</span>
+      <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div className="bg-black/65 backdrop-blur-md border border-white/15 px-3.5 py-1.5 rounded-full text-[11px] font-medium text-neutral-100 flex items-center gap-2 pointer-events-auto">
+          <Move size={13} className="text-amber-400 shrink-0" />
+          <span>
+            {isCameraAR
+              ? 'Üstteki parçaları kameranın önüne indirin • Parmağınızla sağa-sola köşelere sürükleyin'
+              : 'Mobilyaları parmağınızla / fareyle tutup odada istediğiniz köşeye sürükleyin'}
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+          {onToggleCameraAR && (
+            <button
+              type="button"
+              onClick={onToggleCameraAR}
+              className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border ${
+                isCameraAR
+                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg'
+                  : 'bg-amber-400 hover:bg-amber-300 text-black border-amber-400'
+              }`}
+            >
+              {isCameraAR ? <CameraOff size={13} /> : <Camera size={13} />}
+              {isCameraAR ? 'Kamerayı Kapat (3D Oda)' : 'Arka Kamerayla Odaya Yerleştir'}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
@@ -654,53 +1047,57 @@ export default function Real3DRoomScene({
               ))}
             </div>
           </div>
-          <div>
-            <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Duvar Rengi</div>
-            <div className="flex flex-wrap gap-2">
-              {WALL_COLOR_OPTIONS.map((w, idx) => (
-                <button
-                  key={w.name}
-                  type="button"
-                  onClick={() => setWallIdx(idx)}
-                  title={w.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${wallIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
-                  style={{ backgroundColor: w.hex }}
-                />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Zemin Parke</div>
-            <div className="flex flex-wrap gap-2">
-              {FLOOR_TONE_OPTIONS.map((fl, idx) => (
-                <button
-                  key={fl.name}
-                  type="button"
-                  onClick={() => setFloorIdx(idx)}
-                  title={fl.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${floorIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
-                  style={{ backgroundColor: fl.hex }}
-                />
-              ))}
-            </div>
-          </div>
+          {!isCameraAR && (
+            <>
+              <div>
+                <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Duvar Rengi</div>
+                <div className="flex flex-wrap gap-2">
+                  {WALL_COLOR_OPTIONS.map((w, idx) => (
+                    <button
+                      key={w.name}
+                      type="button"
+                      onClick={() => setWallIdx(idx)}
+                      title={w.name}
+                      className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${wallIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
+                      style={{ backgroundColor: w.hex }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-medium text-neutral-300 mb-1.5">Zemin Parke</div>
+                <div className="flex flex-wrap gap-2">
+                  {FLOOR_TONE_OPTIONS.map((fl, idx) => (
+                    <button
+                      key={fl.name}
+                      type="button"
+                      onClick={() => setFloorIdx(idx)}
+                      title={fl.name}
+                      className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${floorIdx === idx ? 'border-amber-400 scale-110' : 'border-white/25'}`}
+                      style={{ backgroundColor: fl.hex }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {lastClickedName && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-black/75 border border-white/15 text-neutral-200 px-3.5 py-1 rounded-full text-[11px] font-medium pointer-events-none">
-          {lastClickedName} açıldı / kapatıldı
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 bg-black/75 border border-white/15 text-neutral-200 px-3.5 py-1 rounded-full text-[11px] font-medium pointer-events-none">
+          {lastClickedName}
         </div>
       )}
 
       {/* Subtle Bottom Camera Bar */}
-      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+      <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
         <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto text-[11px] font-medium">
           <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
             <Compass size={12} /> Köşe
           </button>
           <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
-            <Eye size={12} /> Oda İçi
+            <Eye size={12} /> Göz Hizası
           </button>
           <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
             <RotateCcw size={12} /> Üstten

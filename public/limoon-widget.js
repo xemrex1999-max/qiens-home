@@ -172,8 +172,9 @@
     }
     .lmw-modal-bg { position: fixed; inset: 0; z-index: 99999; background: rgba(10,10,12,0.75); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .lmw-modal-bg.open { display: flex; }
+    .lmw-modal-bg.fullscreen-3d { padding: 0; background: #0e0f14; }
     .lmw-modal-card { width: 100%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #fff; color: #1b1b1b; border-radius: 20px; padding: 24px; position: relative; box-shadow: 0 28px 80px rgba(0,0,0,0.4); line-height: 1.6; font-size: 13.5px; }
-    .lmw-modal-card.wide { max-width: 1220px; padding: 10px; background: #0e0f14; color: #fff; }
+    .lmw-modal-card.wide { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; padding: 0; border-radius: 0; background: #0e0f14; color: #fff; overflow: hidden; }
     .lmw-modal-card h3 { margin: 0 0 14px; font-size: 20px; color: #141414; border-bottom: 1px solid #eee7d7; padding-bottom: 10px; padding-right: 36px; }
     .lmw-modal-card h4 { margin: 14px 0 5px; font-size: 14px; color: #9c7a23; }
     .lmw-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; border: none; background: #f2efe9; color: #111; font-size: 18px; font-weight: 700; cursor: pointer; }
@@ -204,10 +205,10 @@
       </div>
     </div>
 
-    <div class="lmw-modal-bg" id="lmw-modal-3d">
+    <div class="lmw-modal-bg fullscreen-3d" id="lmw-modal-3d">
       <div class="lmw-modal-card wide">
-        <button class="lmw-close" id="lmw-close-3d" style="background:#c9a341;color:#111;z-index:20;">×</button>
-        <iframe id="lmw-iframe-3d" style="width:100%;height:80vh;border:0;border-radius:14px;" allow="camera; xr-spatial-tracking; fullscreen"></iframe>
+        <button class="lmw-close" id="lmw-close-3d" style="background:#c9a341;color:#111;z-index:20;top:12px;right:12px;width:36px;height:36px;box-shadow:0 6px 20px rgba(0,0,0,0.4);">×</button>
+        <iframe id="lmw-iframe-3d" style="width:100vw;height:100dvh;border:0;border-radius:0;display:block;" allow="camera; xr-spatial-tracking; fullscreen"></iframe>
       </div>
     </div>
   `;

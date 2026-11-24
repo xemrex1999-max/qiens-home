@@ -39,6 +39,7 @@ interface Real3DRoomSceneProps {
   onTogglePieceOpen: (instanceId: string) => void;
   onToggleAllOpen: () => void;
   heightClass?: string;
+  isFullScreen?: boolean;
   isCameraAR?: boolean;
   onToggleCameraAR?: () => void;
   activeInstanceId?: string | null;
@@ -153,6 +154,7 @@ export default function Real3DRoomScene({
   onTogglePieceOpen,
   onToggleAllOpen,
   heightClass = 'h-[480px] sm:h-[600px]',
+  isFullScreen = false,
   isCameraAR = false,
   onToggleCameraAR,
   activeInstanceId,
@@ -965,7 +967,11 @@ export default function Real3DRoomScene({
   };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-[#0e0f14] shadow-xl">
+    <div
+      className={`relative w-full overflow-hidden bg-[#0e0f14] ${
+        isFullScreen ? 'w-screen h-[100dvh] rounded-none border-0' : 'rounded-2xl border border-white/10 shadow-xl'
+      }`}
+    >
       {/* Live Rear Camera Feed Background when Camera AR Mode is Active */}
       {isCameraAR && (
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#1c1917] via-[#292524] to-[#1c1917]">
@@ -977,7 +983,7 @@ export default function Real3DRoomScene({
             className="w-full h-full object-cover"
           />
           {!cameraReady && cameraError && (
-            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 max-w-md w-[92%] bg-black/80 backdrop-blur-md border border-amber-400/40 text-amber-200 px-3.5 py-2 rounded-xl text-[11px] text-center">
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 max-w-md w-[92%] bg-black/80 backdrop-blur-md border border-amber-400/40 text-amber-200 px-3.5 py-2 rounded-xl text-[11px] text-center">
               {cameraError}
             </div>
           )}
@@ -986,48 +992,80 @@ export default function Real3DRoomScene({
 
       <div ref={mountRef} className={`relative z-10 w-full ${heightClass} cursor-grab active:cursor-grabbing touch-none`} />
 
-      {/* Clean Minimal Top HUD */}
-      <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="bg-black/65 backdrop-blur-md border border-white/15 px-3.5 py-1.5 rounded-full text-[11px] font-medium text-neutral-100 flex items-center gap-2 pointer-events-auto">
-          <Move size={13} className="text-amber-400 shrink-0" />
-          <span>
-            {isCameraAR
-              ? 'Üstteki parçaları kameranın önüne indirin • Parmağınızla sağa-sola köşelere sürükleyin'
-              : 'Mobilyaları parmağınızla / fareyle tutup odada istediğiniz köşeye sürükleyin'}
-          </span>
-        </div>
+      {/* Clean Minimal Top HUD (hidden in full-screen where the floating piece tray is shown at top) */}
+      {!isFullScreen && (
+        <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+          <div className="bg-black/65 backdrop-blur-md border border-white/15 px-3.5 py-1.5 rounded-full text-[11px] font-medium text-neutral-100 flex items-center gap-2 pointer-events-auto">
+            <Move size={13} className="text-amber-400 shrink-0" />
+            <span>
+              {isCameraAR
+                ? 'Üstteki parçaları kameranın önüne indirin • Parmağınızla sağa-sola köşelere sürükleyin'
+                : 'Mobilyaları parmağınızla / fareyle tutup odada istediğiniz köşeye sürükleyin'}
+            </span>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          {onToggleCameraAR && (
+          <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+            {onToggleCameraAR && (
+              <button
+                type="button"
+                onClick={onToggleCameraAR}
+                className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border ${
+                  isCameraAR
+                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg'
+                    : 'bg-amber-400 hover:bg-amber-300 text-black border-amber-400'
+                }`}
+              >
+                {isCameraAR ? <CameraOff size={13} /> : <Camera size={13} />}
+                {isCameraAR ? 'Kamerayı Kapat' : 'Odanda Gör (Tam Ekran Kamera)'}
+              </button>
+            )}
             <button
               type="button"
-              onClick={onToggleCameraAR}
-              className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border ${
-                isCameraAR
-                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg'
-                  : 'bg-amber-400 hover:bg-amber-300 text-black border-amber-400'
-              }`}
+              onClick={() => setShowStylePanel(!showStylePanel)}
+              className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              {isCameraAR ? <CameraOff size={13} /> : <Camera size={13} />}
-              {isCameraAR ? 'Kamerayı Kapat (3D Oda)' : 'Arka Kamerayla Odaya Yerleştir'}
+              <Palette size={13} className="text-amber-300" /> Renk &amp; Parke
             </button>
-          )}
+            <button
+              type="button"
+              onClick={onToggleAllOpen}
+              className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <DoorOpen size={13} className="text-emerald-400" /> Kapak / Baza Aç-Kapa
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Right Side Quick Tools in Full-Screen Mode */}
+      {isFullScreen && (
+        <div className="absolute right-3 top-24 z-30 flex flex-col gap-2 pointer-events-auto">
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
-            className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-white/15 shadow-lg cursor-pointer"
+            title="Renk & Parke"
           >
-            <Palette size={13} className="text-amber-300" /> Renk &amp; Parke
+            <Palette size={16} />
           </button>
           <button
             type="button"
-            onClick={onToggleAllOpen}
-            className="px-3.5 py-1.5 rounded-full bg-black/65 hover:bg-white hover:text-black text-white border border-white/15 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+            onClick={() => adjustZoom(0.82)}
+            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15 shadow-lg cursor-pointer"
+            title="Yakınlaş"
           >
-            <DoorOpen size={13} className="text-emerald-400" /> Kapak / Baza Aç-Kapa
+            <ZoomIn size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => adjustZoom(1.22)}
+            className="p-2.5 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15 shadow-lg cursor-pointer"
+            title="Uzaklaş"
+          >
+            <ZoomOut size={16} />
           </button>
         </div>
-      </div>
+      )}
 
       {/* Live 3D Wall / Floor / Fabric Customizer Popover */}
       {showStylePanel && (
@@ -1090,29 +1128,31 @@ export default function Real3DRoomScene({
         </div>
       )}
 
-      {/* Subtle Bottom Camera Bar */}
-      <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
-        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto text-[11px] font-medium">
-          <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
-            <Compass size={12} /> Köşe
-          </button>
-          <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
-            <Eye size={12} /> Göz Hizası
-          </button>
-          <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
-            <RotateCcw size={12} /> Üstten
-          </button>
-        </div>
+      {/* Subtle Bottom Camera Bar (hidden in full-screen where bottom action bar is shown) */}
+      {!isFullScreen && (
+        <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
+          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto text-[11px] font-medium">
+            <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+              <Compass size={12} /> Köşe
+            </button>
+            <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+              <Eye size={12} /> Göz Hizası
+            </button>
+            <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1 rounded-full text-white hover:bg-white/15 flex items-center gap-1 cursor-pointer">
+              <RotateCcw size={12} /> Üstten
+            </button>
+          </div>
 
-        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto">
-          <button type="button" onClick={() => adjustZoom(0.82)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Yakınlaş">
-            <ZoomIn size={14} />
-          </button>
-          <button type="button" onClick={() => adjustZoom(1.22)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Uzaklaş">
-            <ZoomOut size={14} />
-          </button>
+          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto">
+            <button type="button" onClick={() => adjustZoom(0.82)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Yakınlaş">
+              <ZoomIn size={14} />
+            </button>
+            <button type="button" onClick={() => adjustZoom(1.22)} className="p-1.5 rounded-full hover:bg-white/15 text-white cursor-pointer" title="Uzaklaş">
+              <ZoomOut size={14} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

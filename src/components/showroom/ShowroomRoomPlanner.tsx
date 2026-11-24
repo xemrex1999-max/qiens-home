@@ -58,10 +58,9 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
 
   if (combined.includes('koltuk') || combined.includes('sofa') || combined.includes('oturma') || combined.includes('kose')) {
     return [
-      { id: 'piece-sofa3', name: "Limoon 3'lü Bukle Ana Koltuk", shortName: "3'lü Koltuk", type: 'sofa3', widthCm: 235, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 145, defaultY: 22, defaultRot: 0 },
-      { id: 'piece-sofa2', name: "Limoon 2'li Bukle Yan Koltuk", shortName: "2'li Koltuk", type: 'sofa2', widthCm: 185, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 16, defaultY: 145, defaultRot: 90 },
-      { id: 'piece-berjer-1', name: 'Limoon Tekli Bukle Berjer (Sağ)', shortName: 'Tekli Berjer 1', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 410, defaultY: 140, defaultRot: 270 },
-      { id: 'piece-berjer-2', name: 'Limoon Tekli Bukle Berjer (Köşe)', shortName: 'Tekli Berjer 2', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 395, defaultY: 265, defaultRot: 225 },
+      { id: 'piece-sofa3', name: "Limoon 1. İkili / Ana Bukle Koltuk", shortName: "1. İkili Koltuk", type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 150, defaultY: 22, defaultRot: 0 },
+      { id: 'piece-sofa2', name: "Limoon 2. İkili Yan Bukle Koltuk", shortName: "2. İkili Koltuk", type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 16, defaultY: 145, defaultRot: 90 },
+      { id: 'piece-berjer-1', name: 'Limoon Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 405, defaultY: 155, defaultRot: 250 },
       { id: 'piece-coffee', name: 'Füme Cam & Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 200, defaultY: 165, defaultRot: 0 }
     ];
   }
@@ -164,8 +163,25 @@ export default function ShowroomRoomPlanner({
     onChangeColor?.(c);
   };
 
-  // Synced Full-Screen REAL THREE.JS 3D Room Expansion Modal (shows EXACT user-arranged room!)
+  // Synced Full-Screen REAL THREE.JS 3D / AR Camera Room Expansion Modal (100% Full Screen!)
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
+
+  const openFullScreenCameraAR = () => {
+    setInlineViewMode('real3d');
+    setIsCameraAR(true);
+    setExpandedRoomModal(true);
+    if (typeof document !== 'undefined' && document.documentElement.requestFullscreen && !document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const closeFullScreenModal = () => {
+    setExpandedRoomModal(false);
+    setIsCameraAR(false);
+    if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
 
   const floorRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<{
@@ -756,19 +772,16 @@ export default function ShowroomRoomPlanner({
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
-            onClick={() => {
-              setInlineViewMode('real3d');
-              setIsCameraAR((prev) => !prev);
-            }}
+            onClick={openFullScreenCameraAR}
             className={cn(
               'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border',
               isCameraAR
                 ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg'
-                : 'bg-amber-400/15 hover:bg-amber-400 text-amber-300 hover:text-black border-amber-400/40'
+                : 'bg-amber-400 hover:bg-amber-300 text-black border-amber-400 shadow-md'
             )}
           >
             <Camera size={13} />
-            <span>{isCameraAR ? 'Kamera Açık (AR)' : 'Arka Kamera (Odaya Yerleştir)'}</span>
+            <span>Odanda Gör (Tam Ekran Kamera)</span>
           </button>
 
           <div className="inline-flex rounded-full bg-black/40 border border-white/10 p-0.5 text-[11px] font-medium">
@@ -816,7 +829,13 @@ export default function ShowroomRoomPlanner({
           onToggleAllOpen={toggleOpenAll}
           heightClass="h-[440px] sm:h-[520px]"
           isCameraAR={isCameraAR}
-          onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
+          onToggleCameraAR={() => {
+            if (!isCameraAR) {
+              openFullScreenCameraAR();
+            } else {
+              setIsCameraAR(false);
+            }
+          }}
           activeInstanceId={activeInstanceId}
           onSelectPiece3D={(id) => setActiveInstanceId(id)}
           onMovePiece3D={(id, newXCm, newYCm) => {
@@ -1074,42 +1093,192 @@ export default function ShowroomRoomPlanner({
         </div>
       )}
 
-      {/* 4. FULL-SCREEN 3D MODAL */}
+      {/* 4. 100% EDGE-TO-EDGE FULL-SCREEN 3D & LIVE REAR-CAMERA AR MODAL */}
       {expandedRoomModal && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6">
-          <div className="flex items-center justify-between gap-3 max-w-7xl w-full mx-auto pb-3">
-            <div className="text-sm sm:text-base font-medium text-white">
-              {selectedProduct?.name} — 3D Tam Ekran Oda
+        <div className="fixed inset-0 z-[150] w-screen h-[100dvh] bg-black overflow-hidden select-none">
+          {/* FLOATING TOP PIECE TRAY & CAMERA BAR OVER FULL-SCREEN CAMERA */}
+          <div className="absolute top-3 left-3 right-3 z-40 bg-black/75 backdrop-blur-xl border border-white/15 rounded-2xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+              <span className="text-[11px] font-semibold text-amber-300 mr-1 whitespace-nowrap">
+                {isCameraAR ? 'Kameraya İndir:' : 'Parçalar:'}
+              </span>
+              {availablePieces.map((spec) => {
+                const existing = placedPieces.find((p) => p.id === spec.id);
+                const isActive = existing && existing.instanceId === activePiece?.instanceId;
+                return (
+                  <button
+                    key={spec.id}
+                    type="button"
+                    draggable={true}
+                    onDragStart={(e) => handleDragStartFromShelf(e, spec)}
+                    onClick={() => {
+                      if (existing) {
+                        setActiveInstanceId(existing.instanceId);
+                      } else {
+                        addPieceToRoom(spec);
+                      }
+                    }}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1',
+                      isActive
+                        ? 'bg-amber-400 text-black border-amber-400 font-semibold'
+                        : existing
+                        ? 'bg-white/10 text-white border-white/20'
+                        : 'bg-emerald-500/25 text-emerald-300 border-dashed border-emerald-400/60 hover:bg-emerald-500 hover:text-black font-semibold'
+                    )}
+                  >
+                    <span>{spec.shortName}</span>
+                    {!existing && <Plus size={12} />}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => { setPlacedPieces([]); setActiveInstanceId(null); }}
+                className="px-2.5 py-1.5 rounded-full text-[11px] text-amber-300 bg-amber-400/15 border border-amber-400/30 cursor-pointer whitespace-nowrap"
+              >
+                Boşalt (Tek Tek İndir)
+              </button>
+              <button
+                type="button"
+                onClick={applyAutoLayout}
+                className="px-2.5 py-1.5 rounded-full text-[11px] text-neutral-300 hover:text-white bg-white/5 cursor-pointer whitespace-nowrap"
+              >
+                Tam Takım
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setExpandedRoomModal(false)}
-              className="px-4 py-2 rounded-full bg-white/15 hover:bg-white text-white hover:text-black text-xs font-medium flex items-center gap-1.5 cursor-pointer"
-            >
-              <X size={15} /> Kapat
-            </button>
+
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                type="button"
+                onClick={() => setIsCameraAR((prev) => !prev)}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer border',
+                  isCameraAR
+                    ? 'bg-emerald-500 text-black border-emerald-400'
+                    : 'bg-amber-400 text-black border-amber-400'
+                )}
+              >
+                <Camera size={13} />
+                <span>{isCameraAR ? 'Kamera Açık' : 'Kamerayı Aç'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={closeFullScreenModal}
+                className="px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white text-white hover:text-black text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                <X size={14} /> Çık
+              </button>
+            </div>
           </div>
 
-          <div className="max-w-7xl w-full mx-auto flex-1 flex items-center">
-            <Real3DRoomScene
-              placedPieces={placedPieces}
-              roomWidthCm={roomWidthCm}
-              roomDepthCm={roomDepthCm}
-              selectedColor={activeColor}
-              onChangeColor={handleColorUpdate}
-              onTogglePieceOpen={(id) => toggleOpenPiece(id)}
-              onToggleAllOpen={toggleOpenAll}
-              heightClass="h-[76vh]"
-              isCameraAR={isCameraAR}
-              onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
-              activeInstanceId={activeInstanceId}
-              onSelectPiece3D={(id) => setActiveInstanceId(id)}
-              onMovePiece3D={(id, newXCm, newYCm) => {
+          {/* 100% EDGE-TO-EDGE FULL-SCREEN 3D / AR CAMERA CANVAS */}
+          <Real3DRoomScene
+            placedPieces={placedPieces}
+            roomWidthCm={roomWidthCm}
+            roomDepthCm={roomDepthCm}
+            selectedColor={activeColor}
+            onChangeColor={handleColorUpdate}
+            onTogglePieceOpen={(id) => toggleOpenPiece(id)}
+            onToggleAllOpen={toggleOpenAll}
+            heightClass="w-screen h-[100dvh]"
+            isFullScreen={true}
+            isCameraAR={isCameraAR}
+            onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
+            activeInstanceId={activeInstanceId}
+            onSelectPiece3D={(id) => setActiveInstanceId(id)}
+            onMovePiece3D={(id, newXCm, newYCm) => {
+              setPlacedPieces((prev) =>
+                prev.map((p) => (p.instanceId === id ? { ...p, xCm: newXCm, yCm: newYCm } : p))
+              );
+            }}
+            onDropNewPiece3D={(pieceId, dropXCm, dropYCm) => {
+              const spec = availablePieces.find((p) => p.id === pieceId);
+              if (!spec) return;
+              const existing = placedPieces.find((p) => p.id === pieceId);
+              if (existing) {
                 setPlacedPieces((prev) =>
-                  prev.map((p) => (p.instanceId === id ? { ...p, xCm: newXCm, yCm: newYCm } : p))
+                  prev.map((p) =>
+                    p.instanceId === existing.instanceId
+                      ? { ...p, xCm: dropXCm - Math.round(p.widthCm / 2), yCm: dropYCm - Math.round(p.depthCm / 2) }
+                      : p
+                  )
                 );
-              }}
-            />
+                setActiveInstanceId(existing.instanceId);
+              } else {
+                addPieceToRoom(spec, dropXCm, dropYCm);
+              }
+            }}
+          />
+
+          {/* FLOATING BOTTOM ACTIVE PIECE BAR OVER FULL-SCREEN CAMERA */}
+          <div className="absolute bottom-3 left-3 right-3 z-40 bg-black/75 backdrop-blur-xl border border-white/15 rounded-2xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
+            {activePiece ? (
+              <>
+                <div className="text-xs font-semibold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>{activePiece.shortName}</span>
+                  <span className="text-[11px] font-normal text-neutral-300">
+                    ({activePiece.widthCm}×{activePiece.depthCm} cm)
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => snapActiveToWall('left')}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-400 hover:text-black text-white text-[11px] font-medium cursor-pointer"
+                  >
+                    Sol Köşe
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => snapActiveToWall('top')}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-400 hover:text-black text-white text-[11px] font-medium cursor-pointer"
+                  >
+                    Karşı
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => snapActiveToWall('right')}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-400 hover:text-black text-white text-[11px] font-medium cursor-pointer"
+                  >
+                    Sağ Köşe
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => rotatePieceById(activePiece.instanceId, 45)}
+                    className="px-2.5 py-1 rounded-full bg-amber-400 text-black text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCw size={11} /> 45° Çevir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleOpenPiece(activePiece.instanceId)}
+                    className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                  >
+                    <DoorOpen size={11} /> Aç/Kapa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={removeActivePiece}
+                    className="px-2.5 py-1 rounded-full bg-red-500/25 text-red-200 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 size={11} /> Kaldır
+                  </button>
+                  <button
+                    type="button"
+                    onClick={sendCustomParametricWhatsApp}
+                    className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <MessageCircle size={11} /> Sipariş
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="w-full text-center text-xs text-amber-300 font-medium">
+                Üstteki parçalardan birine dokunarak kameranın önüne indirin ve parmağınızla istediğiniz köşeye sürükleyin.
+              </div>
+            )}
           </div>
         </div>
       )}

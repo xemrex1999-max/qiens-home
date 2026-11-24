@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Box, Layers, Copy, Check } from 'lucide-react';
+import { Box, Layers, Copy, Check, Download } from 'lucide-react';
 import { SHARED_DEMO_PRODUCTS, DemoProduct } from '@/data/demoThemes';
 import ShowroomRoomPlanner, { getDetailedPiecesForProduct } from '@/components/showroom/ShowroomRoomPlanner';
 
@@ -167,34 +167,44 @@ export default function EmbedShowroomPage() {
 
         {tab === '360' && (
           <div className="space-y-3">
-            {/* Individual Piece Selector for 360° & Native Mobile AR */}
-            <div className="bg-[#15161e] border border-white/10 rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-neutral-400 mr-1">360° Model Seçin:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedGlbUrl(activeProduct.fullRoomModelUrl)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
-                  selectedGlbUrl === activeProduct.fullRoomModelUrl
-                    ? 'bg-[#cbb07a] text-black border-[#cbb07a] font-semibold'
-                    : 'bg-white/5 text-neutral-200 border-white/10'
-                }`}
-              >
-                Tam Takım
-              </button>
-              {pieceModels.map((pm) => (
+            {/* Individual Piece Selector + Direct Free .GLB Download Button */}
+            <div className="bg-[#15161e] border border-white/10 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-neutral-400 mr-1">360° Model Seçin:</span>
                 <button
-                  key={pm.id}
                   type="button"
-                  onClick={() => setSelectedGlbUrl(pm.url)}
+                  onClick={() => setSelectedGlbUrl(activeProduct.fullRoomModelUrl)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
-                    selectedGlbUrl === pm.url
+                    selectedGlbUrl === activeProduct.fullRoomModelUrl
                       ? 'bg-[#cbb07a] text-black border-[#cbb07a] font-semibold'
                       : 'bg-white/5 text-neutral-200 border-white/10'
                   }`}
                 >
-                  {pm.shortName} ({pm.widthCm}×{pm.depthCm} cm)
+                  Tam Takım
                 </button>
-              ))}
+                {pieceModels.map((pm) => (
+                  <button
+                    key={pm.id}
+                    type="button"
+                    onClick={() => setSelectedGlbUrl(pm.url)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
+                      selectedGlbUrl === pm.url
+                        ? 'bg-[#cbb07a] text-black border-[#cbb07a] font-semibold'
+                        : 'bg-white/5 text-neutral-200 border-white/10'
+                    }`}
+                  >
+                    {pm.shortName} ({pm.widthCm}×{pm.depthCm} cm)
+                  </button>
+                ))}
+              </div>
+
+              <a
+                href={selectedGlbUrl}
+                download
+                className="px-3.5 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Download size={13} /> .GLB 3D Dosyasını İndir (Ücretsiz)
+              </a>
             </div>
 
             <div className="relative h-[480px] sm:h-[560px] rounded-3xl bg-[#16161d] border border-white/10 overflow-hidden">

@@ -134,7 +134,36 @@
   }
   setTimeout(() => { fixExistingPageTypos(); attachNativeHeaderLink(); }, 1200);
 
-  // Clean styles: ONLY the compact 3D Showroom button (sitting safely ABOVE mobile bottom bar!) — NO Teslimat/Garanti floating pill!
+  // Detect host website background color so the 3D Showroom button and modal match the site's theme (never harsh black on light sites!)
+  function detectHostTheme() {
+    let bg = '#FAF7F2';
+    let text = '#261E19';
+    let accent = '#B5893A';
+    let border = '#DFD5C5';
+    try {
+      const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+      const m = bodyBg && bodyBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (m) {
+        const r = Number(m[1]);
+        const g = Number(m[2]);
+        const b = Number(m[3]);
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        if (lum < 0.35 && !(r === 0 && g === 0 && b === 0 && bodyBg.includes('0)'))) {
+          bg = `rgb(${r}, ${g}, ${b})`;
+          text = '#F5F2EB';
+          border = 'rgba(201,163,65,0.45)';
+        } else if (lum >= 0.35) {
+          bg = r > 245 && g > 245 && b > 245 ? '#FAF7F2' : `rgb(${r}, ${g}, ${b})`;
+          text = '#261E19';
+          border = '#D8CBB8';
+        }
+      }
+    } catch (e) {}
+    return { bg, text, accent, border };
+  }
+
+  const hostTheme = detectHostTheme();
+
   const style = document.createElement('style');
   style.textContent = `
     .lmw-3d-btn {
@@ -147,10 +176,10 @@
       gap: 8px;
       padding: 11px 18px;
       border-radius: 999px;
-      background: #141414;
-      color: #fff;
-      border: 1.5px solid #c9a341;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.24);
+      background: ${hostTheme.bg};
+      color: ${hostTheme.text};
+      border: 1.5px solid ${hostTheme.accent};
+      box-shadow: 0 10px 28px rgba(38,30,25,0.16);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 12.5px;
       font-weight: 700;
@@ -158,8 +187,8 @@
       transition: all .2s;
     }
     .lmw-3d-btn:hover {
-      background: #c9a341;
-      color: #111;
+      background: ${hostTheme.accent};
+      color: #fff;
       transform: translateY(-2px);
     }
     @media (max-width: 768px) {
@@ -170,11 +199,11 @@
         font-size: 11.5px;
       }
     }
-    .lmw-modal-bg { position: fixed; inset: 0; z-index: 99999; background: rgba(10,10,12,0.75); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .lmw-modal-bg { position: fixed; inset: 0; z-index: 99999; background: rgba(38,30,25,0.45); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .lmw-modal-bg.open { display: flex; }
-    .lmw-modal-bg.fullscreen-3d { padding: 0; background: #0e0f14; }
-    .lmw-modal-card { width: 100%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #fff; color: #1b1b1b; border-radius: 20px; padding: 24px; position: relative; box-shadow: 0 28px 80px rgba(0,0,0,0.4); line-height: 1.6; font-size: 13.5px; }
-    .lmw-modal-card.wide { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; padding: 0; border-radius: 0; background: #0e0f14; color: #fff; overflow: hidden; }
+    .lmw-modal-bg.fullscreen-3d { padding: 0; background: ${hostTheme.bg}; }
+    .lmw-modal-card { width: 100%; max-width: 760px; max-height: 85vh; overflow-y: auto; background: #FAF7F2; color: #261E19; border-radius: 20px; padding: 24px; position: relative; box-shadow: 0 28px 80px rgba(0,0,0,0.22); line-height: 1.6; font-size: 13.5px; }
+    .lmw-modal-card.wide { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; padding: 0; border-radius: 0; background: ${hostTheme.bg}; color: ${hostTheme.text}; overflow: hidden; }
     .lmw-modal-card h3 { margin: 0 0 14px; font-size: 20px; color: #141414; border-bottom: 1px solid #eee7d7; padding-bottom: 10px; padding-right: 36px; }
     .lmw-modal-card h4 { margin: 14px 0 5px; font-size: 14px; color: #9c7a23; }
     .lmw-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; border: none; background: #f2efe9; color: #111; font-size: 18px; font-weight: 700; cursor: pointer; }

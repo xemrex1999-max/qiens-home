@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Layers, Copy, Check, Download } from 'lucide-react';
 import { SHARED_DEMO_PRODUCTS, DemoProduct } from '@/data/demoThemes';
 import ShowroomRoomPlanner, { getDetailedPiecesForProduct } from '@/components/showroom/ShowroomRoomPlanner';
+import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors } from '@/components/showroom/Real3DRoomScene';
 
 export default function EmbedShowroomPage() {
   const defaultSofaProduct =
@@ -16,6 +17,7 @@ export default function EmbedShowroomPage() {
   const [selectedGlbUrl, setSelectedGlbUrl] = useState<string>(defaultSofaProduct.fullRoomModelUrl);
   const [showCode, setShowCode] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [studioTheme, setStudioTheme] = useState<StudioThemeColors>(DEFAULT_LIGHT_STUDIO_THEME);
 
   useEffect(() => {
     setSelectedGlbUrl(activeProduct.fullRoomModelUrl);
@@ -28,6 +30,17 @@ export default function EmbedShowroomPage() {
       if (f) setFirma(f.slice(0, 48).toUpperCase());
       if (params.get('helper') === '1' || params.get('kod') === '1') {
         setShowCode(true);
+      }
+      if (params.get('theme') === 'dark') {
+        setStudioTheme({
+          bgPage: '#121318',
+          bgCard: '#1A1B22',
+          textPrimary: '#F5F3EF',
+          textMuted: '#A6A29A',
+          accentHex: '#CBB07A',
+          borderHex: '#2C2E38',
+          sceneBgHex: 0x16171d,
+        });
       }
       if (!window.customElements?.get('model-viewer')) {
         const existing = document.querySelector('script[src*="model-viewer"]');
@@ -48,7 +61,7 @@ export default function EmbedShowroomPage() {
   );
 
   const embedCode = `<!-- ${firma} 3D Sanal Showroom & Arka Kamera (AR) Oda Planlayıcı -->
-<div style="width:100%;max-width:1280px;margin:24px auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+<div style="width:100%;max-width:1280px;margin:24px auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12);">
   <iframe
     src="https://qiens-home.vercel.app/embed/showroom?firma=${encodeURIComponent(firma)}"
     style="width:100%;height:780px;border:0;"
@@ -63,7 +76,6 @@ export default function EmbedShowroomPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Show Koltuk Takımı first, then Yatak Odası, then Yemek Odası
   const orderedCategories = [
     SHARED_DEMO_PRODUCTS.find((p) => p.category === 'Koltuk Takımı'),
     SHARED_DEMO_PRODUCTS.find((p) => p.category === 'Yatak Odası'),
@@ -71,24 +83,30 @@ export default function EmbedShowroomPage() {
   ].filter(Boolean) as DemoProduct[];
 
   return (
-    <div className="min-h-screen bg-[#0e0f14] text-white p-3 sm:p-5 space-y-3.5">
-      {/* Clean Single-Row Studio Header */}
-      <div className="max-w-7xl mx-auto bg-[#15161e] border border-white/10 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div
+      className="min-h-screen p-3 sm:p-5 space-y-3"
+      style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary }}
+    >
+      {/* Clean Single-Row Studio Header Matching Website Background */}
+      <div
+        className="max-w-7xl mx-auto rounded-2xl px-4 py-2.5 border shadow-2xs flex flex-wrap items-center justify-between gap-3"
+        style={{ backgroundColor: studioTheme.bgCard, borderColor: studioTheme.borderHex }}
+      >
         <div className="flex items-center gap-3">
-          <div className="text-sm font-semibold tracking-wider uppercase text-white">
-            {firma} <span className="text-[#cbb07a] font-normal">• 3D &amp; Kamera Stüdyo</span>
+          <div className="text-sm font-bold tracking-wider uppercase">
+            {firma} <span style={{ color: studioTheme.accentHex }} className="font-medium">• 3D Showroom</span>
           </div>
-          <div className="hidden md:flex items-center gap-1.5 pl-2 border-l border-white/10">
+          <div className="hidden md:flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: studioTheme.borderHex }}>
             {orderedCategories.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
-                className="px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer"
+                className="px-3.5 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer border"
                 style={
                   activeProduct.id === p.id
-                    ? { backgroundColor: '#cbb07a', color: '#111114', fontWeight: 600 }
-                    : { backgroundColor: 'rgba(255,255,255,0.05)', color: '#d4d4d8' }
+                    ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                    : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
                 }
               >
                 {p.category}
@@ -99,18 +117,18 @@ export default function EmbedShowroomPage() {
 
         <div className="flex flex-wrap items-center gap-1.5">
           {[
-            { id: 'planner', label: '3D Oda & Tek Tek Kamerayla Köşeye Yerleştir', icon: <Layers size={13} /> },
-            { id: '360', label: '360° & 1:1 Sabit Ölçekli Lazer AR', icon: <Box size={13} /> },
+            { id: 'planner', label: '3D Oda & Kamerayla Yerleştir', icon: <Layers size={13} /> },
+            { id: '360', label: '360° & 1:1 Lazer AR', icon: <Box size={13} /> },
           ].map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setTab(item.id as 'planner' | '360')}
-              className="px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border"
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border"
               style={
                 tab === item.id
-                  ? { backgroundColor: '#cbb07a', color: '#111114', borderColor: '#cbb07a', fontWeight: 600 }
-                  : { backgroundColor: 'rgba(255,255,255,0.04)', color: '#d4d4d8', borderColor: 'rgba(255,255,255,0.1)' }
+                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                  : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
               }
             >
               {item.icon} {item.label}
@@ -119,18 +137,18 @@ export default function EmbedShowroomPage() {
         </div>
       </div>
 
-      {/* Mobile Product Switcher */}
-      <div className="md:hidden flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      {/* Mobile Category Switcher */}
+      <div className="md:hidden flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
         {orderedCategories.map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
-            className="px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer whitespace-nowrap"
             style={
               activeProduct.id === p.id
-                ? { backgroundColor: '#cbb07a', color: '#111114', borderColor: '#cbb07a' }
-                : { backgroundColor: '#15161e', color: '#e4e4e7', borderColor: 'rgba(255,255,255,0.1)' }
+                ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                : { backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
             }
           >
             {p.category}
@@ -139,14 +157,27 @@ export default function EmbedShowroomPage() {
       </div>
 
       {showCode && (
-        <div className="max-w-7xl mx-auto bg-[#15161e] border border-amber-400/35 rounded-2xl p-4 space-y-2.5">
+        <div
+          className="max-w-7xl mx-auto rounded-2xl p-4 space-y-2.5 border"
+          style={{ backgroundColor: studioTheme.bgCard, borderColor: studioTheme.accentHex }}
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-300">WordPress Özel HTML Kodu</span>
-            <button type="button" onClick={copyEmbed} className="px-3 py-1.5 rounded-lg bg-amber-400 text-black text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+            <span className="text-xs font-bold" style={{ color: studioTheme.accentHex }}>WordPress Özel HTML Kodu</span>
+            <button
+              type="button"
+              onClick={copyEmbed}
+              className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              style={{ backgroundColor: studioTheme.accentHex }}
+            >
               {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? 'Kopyalandı' : 'Kopyala'}
             </button>
           </div>
-          <pre className="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] text-neutral-200 overflow-x-auto">{embedCode}</pre>
+          <pre
+            className="p-3 rounded-xl border text-[11px] overflow-x-auto"
+            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+          >
+            {embedCode}
+          </pre>
         </div>
       )}
 
@@ -162,55 +193,59 @@ export default function EmbedShowroomPage() {
             onChangeColor={(c) => setActiveColor(c)}
             onInspect3D={() => setTab('360')}
             brandName={firma}
+            studioTheme={studioTheme}
           />
         )}
 
         {tab === '360' && (
           <div className="space-y-3">
-            {/* Individual Piece Selector + Direct Free .GLB Download Button */}
-            <div className="bg-[#15161e] border border-white/10 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-neutral-400 mr-1">360° Model Seçin:</span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedGlbUrl(activeProduct.fullRoomModelUrl)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
-                    selectedGlbUrl === activeProduct.fullRoomModelUrl
-                      ? 'bg-[#cbb07a] text-black border-[#cbb07a] font-semibold'
-                      : 'bg-white/5 text-neutral-200 border-white/10'
-                  }`}
-                >
-                  Tam Takım
-                </button>
+            <div
+              className="rounded-2xl px-4 py-2.5 border flex flex-wrap items-center justify-between gap-2"
+              style={{ backgroundColor: studioTheme.bgCard, borderColor: studioTheme.borderHex }}
+            >
+              <div className="flex flex-wrap items-center gap-1.5">
                 {pieceModels.map((pm) => (
                   <button
                     key={pm.id}
                     type="button"
                     onClick={() => setSelectedGlbUrl(pm.url)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer border"
+                    style={
                       selectedGlbUrl === pm.url
-                        ? 'bg-[#cbb07a] text-black border-[#cbb07a] font-semibold'
-                        : 'bg-white/5 text-neutral-200 border-white/10'
-                    }`}
+                        ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                        : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                    }
                   >
-                    {pm.shortName} ({pm.widthCm}×{pm.depthCm} cm)
+                    {pm.shortName}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setSelectedGlbUrl(activeProduct.fullRoomModelUrl)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer border"
+                  style={
+                    selectedGlbUrl === activeProduct.fullRoomModelUrl
+                      ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                      : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                  }
+                >
+                  Tam Takım
+                </button>
               </div>
 
               <a
                 href={selectedGlbUrl}
                 download
-                className="px-3.5 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
-                <Download size={13} /> .GLB 3D Dosyasını İndir (Ücretsiz)
+                <Download size={13} /> .GLB İndir
               </a>
             </div>
 
-            <div className="relative h-[480px] sm:h-[560px] rounded-3xl bg-[#16161d] border border-white/10 overflow-hidden">
-              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md border border-amber-400/35 px-3.5 py-1.5 rounded-full text-[11px] text-amber-300 font-medium">
-                1:1 Gerçek Santim Ölçek Kilidi Aktif (ar-scale=&quot;fixed&quot; • Telefonda Otomatik Büyümez)
-              </div>
+            <div
+              className="relative h-[480px] sm:h-[560px] rounded-3xl border overflow-hidden"
+              style={{ backgroundColor: studioTheme.bgCard, borderColor: studioTheme.borderHex }}
+            >
               <model-viewer
                 src={selectedGlbUrl}
                 alt={activeProduct.name}

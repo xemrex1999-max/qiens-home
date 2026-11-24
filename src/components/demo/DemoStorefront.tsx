@@ -1178,13 +1178,22 @@ export default function DemoStorefront({ theme: baseTheme }: { theme: DemoThemeC
                   </div>
                 </div>
               ) : (
-                <div className="text-white">
+                <div>
                   <ShowroomRoomPlanner
                     selectedProduct={{ ...showroomProduct, threeDModelUrl: showroomProduct.fullRoomModelUrl }}
                     selectedColor={showroomColor}
                     onChangeColor={(c) => setShowroomColor(c)}
                     onInspect3D={() => setShowroomMode('full3d')}
                     brandName={theme.brandName}
+                    studioTheme={{
+                      bgPage: theme.bgPage,
+                      bgCard: theme.bgCard,
+                      textPrimary: theme.textPrimary,
+                      textMuted: theme.textMuted,
+                      accentHex: theme.accentHex,
+                      borderHex: theme.isDark ? '#2B2D36' : '#E2DBD0',
+                      sceneBgHex: parseInt(theme.bgPage.replace('#', ''), 16) || 0xf2ede4,
+                    }}
                   />
                 </div>
               )}

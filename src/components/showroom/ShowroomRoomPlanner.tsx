@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors, FloorAimPoint } from './Real3DRoomScene';
+import WebXRMultiPieceAR, { useWebXRARSupport } from './WebXRMultiPieceAR';
 
 const Real3DRoomScene = dynamic(() => import('./Real3DRoomScene'), {
   ssr: false,
@@ -159,6 +160,8 @@ export default function ShowroomRoomPlanner({
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
   const [eraserTrigger, setEraserTrigger] = useState<number>(0);
   const floorAimRef = useRef<FloorAimPoint | null>(null);
+  const webXRSupported = useWebXRARSupport();
+  const [showWebXRAR, setShowWebXRAR] = useState<boolean>(false);
 
   useEffect(() => {
     setActiveColor(selectedColor);
@@ -183,6 +186,11 @@ export default function ShowroomRoomPlanner({
   };
 
   const openFullScreenCameraAR = () => {
+    // On ARCore phones (Android Chrome) use real hardware-anchored WebXR AR: pieces never drift or spin with the phone
+    if (webXRSupported) {
+      setShowWebXRAR(true);
+      return;
+    }
     requestIMUPermissionsSync();
     setInlineViewMode('real3d');
     setIsCameraAR(true);
@@ -727,6 +735,14 @@ export default function ShowroomRoomPlanner({
 
   return (
     <div className="w-full flex flex-col gap-3 select-none">
+      {showWebXRAR && (
+        <WebXRMultiPieceAR
+          availablePieces={availablePieces}
+          placedPieces={placedPieces}
+          studioTheme={studioTheme}
+          onClose={() => setShowWebXRAR(false)}
+        />
+      )}
       {/* 1. COMPACT CENTERED TOP BAR */}
       <div
         className="rounded-2xl px-3.5 py-2 border shadow-2xs flex flex-wrap items-center justify-between gap-2"

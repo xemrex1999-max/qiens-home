@@ -10,6 +10,7 @@ import {
   Palette, Check, Box
 } from 'lucide-react';
 import type { PlacedPiece, FurniturePieceSpec } from './ShowroomRoomPlanner';
+import WebXRMultiPieceAR, { useWebXRARSupport } from './WebXRMultiPieceAR';
 
 export const WALL_COLOR_OPTIONS = [
   { name: 'Sıcak Krem', hex: '#eae3d5', num: 0xeae3d5 },
@@ -224,6 +225,8 @@ export default function Real3DRoomScene({
   const [arExportBlobUrl, setArExportBlobUrl] = useState<string>('/models/limoon-berjer.glb');
   const [isExportingAR, setIsExportingAR] = useState<boolean>(false);
   const [showSingleArPicker, setShowSingleArPicker] = useState<boolean>(false);
+  const webXRSupported = useWebXRARSupport();
+  const [showWebXRAR, setShowWebXRAR] = useState<boolean>(false);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const furnitureContainerRef = useRef<THREE.Group | null>(null);
@@ -1739,6 +1742,14 @@ export default function Real3DRoomScene({
       />
 
       {/* Hidden Qiens-Style Native Hardware Floor AR Bridge (<model-viewer> with ARCore / ARKit Quick Look & auto resize/walk-around!) */}
+      {showWebXRAR && (
+        <WebXRMultiPieceAR
+          availablePieces={availablePieces}
+          placedPieces={placedPieces}
+          studioTheme={studioTheme}
+          onClose={() => setShowWebXRAR(false)}
+        />
+      )}
       <div className="sr-only pointer-events-none overflow-hidden w-0 h-0">
         <model-viewer
           ref={arModelViewerRef}
@@ -1757,17 +1768,19 @@ export default function Real3DRoomScene({
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
-            onClick={() => launchNativeHardwareFloorAR('single')}
+            onClick={() => (webXRSupported ? setShowWebXRAR(true) : launchNativeHardwareFloorAR('single'))}
             className="px-3.5 py-2 rounded-full text-xs font-bold shadow-lg border flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 text-white"
             style={{
               backgroundColor: '#10b981',
               borderColor: '#059669',
             }}
-            title="Sadece seçili parçayı ayarladığınız santim ölçüsüyle gerçek halı/zemine oturtun ve etrafında 360° yürüyün"
+            title="Her parçayı gerçek zemine ayrı ayrı oturtun, çevirin ve boyutlandırın"
           >
             <Box size={14} />
             <span>
-              {isExportingAR
+              {webXRSupported
+                ? 'Canlı AR: Parça Parça Yerleştir & Çevir'
+                : isExportingAR
                 ? 'Zemine Hazırlanıyor...'
                 : activePieceObj
                 ? `${activePieceObj.shortName} (${Math.round(
@@ -1779,7 +1792,7 @@ export default function Real3DRoomScene({
             </span>
           </button>
 
-          {placedPieces.length > 1 && (
+          {placedPieces.length > 1 && !webXRSupported && (
             <button
               type="button"
               onClick={() => launchNativeHardwareFloorAR('all')}

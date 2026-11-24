@@ -38,6 +38,7 @@ export interface PlacedPiece extends FurniturePieceSpec {
   yCm: number;
   rotation: number;
   scale?: number;
+  floorOffsetCm?: number;
   isLocked?: boolean;
   isOpen?: boolean;
 }
@@ -291,6 +292,13 @@ export default function ShowroomRoomPlanner({
     );
   };
 
+  const updatePieceFloorOffset = (instanceId: string, nextOffsetCm: number) => {
+    const clamped = Math.max(-45, Math.min(45, Math.round(nextOffsetCm)));
+    setPlacedPieces((prev) =>
+      prev.map((p) => (p.instanceId === instanceId ? { ...p, floorOffsetCm: clamped } : p))
+    );
+  };
+
   const handleDragStartFromShelf = (e: React.DragEvent, spec: FurniturePieceSpec) => {
     e.dataTransfer.setData('application/qiens-piece-id', spec.id);
     e.dataTransfer.effectAllowed = 'copy';
@@ -514,17 +522,18 @@ export default function ShowroomRoomPlanner({
     </div>
   );
 
-  // Compact Centered Bottom Dock with Live Centimeter Readout + Lock/Unlock Playable Anchor + Rotate + Scale
+  // Compact Centered Bottom Dock with Live Centimeter Readout + Floor Height Calibration + Lock/Unlock + Rotate + Scale
   const renderCenteredBottomDock = (piece: PlacedPiece) => {
     const s = piece.scale ?? 1.0;
     const curScalePct = Math.round(s * 100);
     const liveW = Math.round(piece.widthCm * s);
     const liveD = Math.round(piece.depthCm * s);
     const liveH = Math.round(piece.heightCm * s);
+    const curFloorOffset = piece.floorOffsetCm ?? 0;
 
     return (
       <div
-        className="max-w-3xl mx-auto rounded-2xl px-3.5 py-2.5 border shadow-lg flex flex-wrap items-center justify-between gap-2.5"
+        className="max-w-4xl mx-auto rounded-2xl px-3.5 py-2.5 border shadow-lg flex flex-wrap items-center justify-between gap-2.5"
         style={{
           backgroundColor: `${studioTheme.bgCard}F5`,
           color: studioTheme.textPrimary,
@@ -556,7 +565,7 @@ export default function ShowroomRoomPlanner({
           </div>
         </div>
 
-        {/* Center: Boyut (with live cm & %) + 360° Çevir */}
+        {/* Center: Boyut (with live cm & %) + Zemin Hizası (cm) + 360° Çevir */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Scale Slider with Live Centimeter Display */}
           <div
@@ -580,7 +589,7 @@ export default function ShowroomRoomPlanner({
               step={5}
               value={curScalePct}
               onChange={(e) => updatePieceScale(piece.instanceId, Number(e.target.value) / 100)}
-              className="w-16 sm:w-20 cursor-pointer"
+              className="w-14 sm:w-20 cursor-pointer"
               style={{ accentColor: studioTheme.accentHex }}
             />
             <button
@@ -593,8 +602,54 @@ export default function ShowroomRoomPlanner({
               <Plus size={10} />
             </button>
             <span className="text-[10px] font-bold whitespace-nowrap">
-              {liveW}×{liveD}cm (%{curScalePct})
+              {liveW}×{liveD}cm
             </span>
+          </div>
+
+          {/* Floor Height / Contact Calibration (Zemin Mesafesi İnce Ayarı) */}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
+            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+            title="Koltuğun halı/zemin ile dikey oturma hizasını ayarlayın"
+          >
+            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Zemin:</span>
+            <button
+              type="button"
+              onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset - 3)}
+              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
+              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              title="Zemine Daha Aşağı Oturt"
+            >
+              <Minus size={10} />
+            </button>
+            <input
+              type="range"
+              min={-35}
+              max={35}
+              step={1}
+              value={curFloorOffset}
+              onChange={(e) => updatePieceFloorOffset(piece.instanceId, Number(e.target.value))}
+              className="w-12 sm:w-16 cursor-pointer"
+              style={{ accentColor: '#10b981' }}
+            />
+            <button
+              type="button"
+              onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset + 3)}
+              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
+              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              title="Zeminden Yukarı Kaldır"
+            >
+              <Plus size={10} />
+            </button>
+            <button
+              type="button"
+              onClick={() => updatePieceFloorOffset(piece.instanceId, 0)}
+              className="text-[10px] font-bold whitespace-nowrap cursor-pointer underline"
+              style={{ color: curFloorOffset === 0 ? studioTheme.textPrimary : '#10b981' }}
+              title="Sıfır Noktasına Oturt"
+            >
+              {curFloorOffset > 0 ? `+${curFloorOffset}cm` : `${curFloorOffset}cm`}
+            </button>
           </div>
 
           {/* 360° Rotation Slider */}
@@ -618,7 +673,7 @@ export default function ShowroomRoomPlanner({
               step={5}
               value={piece.rotation}
               onChange={(e) => setPieceRotation(piece.instanceId, Number(e.target.value))}
-              className="w-16 sm:w-20 cursor-pointer"
+              className="w-14 sm:w-18 cursor-pointer"
               style={{ accentColor: studioTheme.accentHex }}
             />
             <button
@@ -781,6 +836,8 @@ export default function ShowroomRoomPlanner({
       {inlineViewMode === 'real3d' ? (
         <Real3DRoomScene
           placedPieces={placedPieces}
+          availablePieces={availablePieces}
+          onSpawnPieceFromAR={(spec) => selectOrSpawnPiece(spec)}
           roomWidthCm={roomWidthCm}
           roomDepthCm={roomDepthCm}
           selectedColor={activeColor}
@@ -957,6 +1014,8 @@ export default function ShowroomRoomPlanner({
           {/* 100% EDGE-TO-EDGE FULL-SCREEN 3D / AR CAMERA CANVAS */}
           <Real3DRoomScene
             placedPieces={placedPieces}
+            availablePieces={availablePieces}
+            onSpawnPieceFromAR={(spec) => selectOrSpawnPiece(spec)}
             roomWidthCm={roomWidthCm}
             roomDepthCm={roomDepthCm}
             selectedColor={activeColor}

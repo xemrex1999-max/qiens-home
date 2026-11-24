@@ -14,13 +14,26 @@ export default function EmbedShowroomPage() {
   const [activeProduct, setActiveProduct] = useState<DemoProduct>(defaultSofaProduct);
   const [activeColor, setActiveColor] = useState<string>(defaultSofaProduct.colors[0]?.name || 'Krem Boucle');
   const [tab, setTab] = useState<'planner' | '360'>('planner');
-  const [selectedGlbUrl, setSelectedGlbUrl] = useState<string>(defaultSofaProduct.fullRoomModelUrl);
+  const pieceModels = getDetailedPiecesForProduct(
+    activeProduct.name,
+    activeProduct.category,
+    activeProduct.fullRoomModelUrl
+  );
+
+  const [selectedGlbUrl, setSelectedGlbUrl] = useState<string>(
+    pieceModels[0]?.url || '/models/limoon-berjer.glb'
+  );
   const [showCode, setShowCode] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [studioTheme, setStudioTheme] = useState<StudioThemeColors>(DEFAULT_LIGHT_STUDIO_THEME);
 
   useEffect(() => {
-    setSelectedGlbUrl(activeProduct.fullRoomModelUrl);
+    const pieces = getDetailedPiecesForProduct(
+      activeProduct.name,
+      activeProduct.category,
+      activeProduct.fullRoomModelUrl
+    );
+    setSelectedGlbUrl(pieces[0]?.url || activeProduct.fullRoomModelUrl);
   }, [activeProduct]);
 
   useEffect(() => {
@@ -53,12 +66,6 @@ export default function EmbedShowroomPage() {
       }
     }
   }, []);
-
-  const pieceModels = getDetailedPiecesForProduct(
-    activeProduct.name,
-    activeProduct.category,
-    activeProduct.fullRoomModelUrl
-  );
 
   const embedCode = `<!-- ${firma} 3D Sanal Showroom & Arka Kamera (AR) Oda Planlayıcı -->
 <div style="width:100%;max-width:1280px;margin:24px auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12);">

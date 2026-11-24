@@ -9,7 +9,7 @@ import {
   DoorOpen, Eye, Compass, ZoomIn, ZoomOut, RotateCcw,
   Palette, Check, Box
 } from 'lucide-react';
-import type { PlacedPiece } from './ShowroomRoomPlanner';
+import type { PlacedPiece, FurniturePieceSpec } from './ShowroomRoomPlanner';
 
 export const WALL_COLOR_OPTIONS = [
   { name: 'Sıcak Krem', hex: '#eae3d5', num: 0xeae3d5 },
@@ -63,6 +63,8 @@ export interface FloorAimPoint {
 
 interface Real3DRoomSceneProps {
   placedPieces: PlacedPiece[];
+  availablePieces?: FurniturePieceSpec[];
+  onSpawnPieceFromAR?: (spec: FurniturePieceSpec) => void;
   roomWidthCm: number;
   roomDepthCm: number;
   selectedColor: string;
@@ -194,6 +196,8 @@ interface AnimTarget {
 
 export default function Real3DRoomScene({
   placedPieces,
+  availablePieces = [],
+  onSpawnPieceFromAR,
   roomWidthCm,
   roomDepthCm,
   selectedColor,
@@ -219,6 +223,7 @@ export default function Real3DRoomScene({
   const arModelViewerRef = useRef<any>(null);
   const [arExportBlobUrl, setArExportBlobUrl] = useState<string>('/models/limoon-berjer.glb');
   const [isExportingAR, setIsExportingAR] = useState<boolean>(false);
+  const [showSingleArPicker, setShowSingleArPicker] = useState<boolean>(false);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const furnitureContainerRef = useRef<THREE.Group | null>(null);
@@ -590,6 +595,7 @@ export default function Real3DRoomScene({
 
     const root = new THREE.Group();
     const s = item.scale ?? 1.0;
+    const floorOffsetM = (item.floorOffsetCm || 0) / 100;
     const pw = item.widthCm / 100;
     const pd = item.depthCm / 100;
     const ph = item.heightCm / 100;
@@ -603,15 +609,16 @@ export default function Real3DRoomScene({
       type: item.type,
       colorName: activeColorName,
       scale: s,
+      floorOffsetCm: item.floorOffsetCm || 0,
       rotation: item.rotation,
       isLocked: !!item.isLocked,
     };
 
     const cx = (item.xCm + item.widthCm / 2) / 100 - W / 2;
     const cz = (item.yCm + item.depthCm / 2) / 100 - D / 2;
-    // Start with a subtle vertical drop height (0.36m -> 0m) so the user sees it physically settle onto the floor plane!
-    dropAnimMapRef.current.set(item.instanceId, 0.36);
-    root.position.set(cx, 0.36, cz);
+    // Start with a subtle vertical drop height (0.28m -> floorOffsetM) so the user sees it physically settle onto the floor plane!
+    dropAnimMapRef.current.set(item.instanceId, 0.28);
+    root.position.set(cx, floorOffsetM + 0.28, cz);
     root.rotation.y = -THREE.MathUtils.degToRad(item.rotation);
     root.scale.set(s, s, s);
 
@@ -848,12 +855,17 @@ export default function Real3DRoomScene({
       } else if (!isInteractingRef.current) {
         const cx = (item.xCm + item.widthCm / 2) / 100 - W / 2;
         const cz = (item.yCm + item.depthCm / 2) / 100 - D / 2;
+        const floorOffsetM = (item.floorOffsetCm || 0) / 100;
         grp.position.x = cx;
         grp.position.z = cz;
+        if (!dropAnimMapRef.current.has(item.instanceId)) {
+          grp.position.y = floorOffsetM;
+        }
         grp.rotation.y = -THREE.MathUtils.degToRad(item.rotation);
         const s = item.scale ?? 1.0;
         grp.scale.set(s, s, s);
         grp.userData.scale = s;
+        grp.userData.floorOffsetCm = item.floorOffsetCm || 0;
         grp.userData.rotation = item.rotation;
         grp.userData.isLocked = !!item.isLocked;
       }
@@ -897,7 +909,7 @@ export default function Real3DRoomScene({
     const H = 2.65;
 
     if (isCameraAR) {
-      camera.position.set(0, 1.65, D * 0.92);
+      camera.position.set(0, 1.45, D * 0.68);
     } else {
       camera.position.set(W * 0.82, 3.45, D * 1.12);
     }
@@ -1223,12 +1235,13 @@ export default function Real3DRoomScene({
 
         getNormalizedPointer(e.clientX, e.clientY);
         raycaster.setFromCamera(pointer, camera);
-        // True 3D World-Floor Raycast: places the piece at the exact 3D world floor point (x, 0, z) under the user's finger!
-        if (raycaster.ray.direction.y < -0.03 && raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
+        // True 3D World-Floor Raycast: places the piece at the exact 3D world floor point (x, floorOffsetM, z) under the user's finger!
+        if (raycaster.ray.direction.y < -0.02 && raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
           const maxR = isCameraARRef.current ? 6.5 : Math.max(W, D) * 0.9;
           const nextX = THREE.MathUtils.clamp(planeIntersect.x + dragState.offsetX, -maxR, maxR);
           const nextZ = THREE.MathUtils.clamp(planeIntersect.z + dragState.offsetZ, -maxR, maxR);
-          dragState.root.position.set(nextX, 0, nextZ);
+          const floorY = (dragState.root.userData.floorOffsetCm || 0) / 100;
+          dragState.root.position.set(nextX, floorY, nextZ);
         }
         return;
       }
@@ -1258,11 +1271,37 @@ export default function Real3DRoomScene({
         return;
       }
 
+      if (cameraPanState) {
+        const panMoveDist = Math.hypot(e.clientX - cameraPanState.startX, e.clientY - cameraPanState.startY);
+        cameraPanState = null;
+        // Quick tap on empty carpet in Camera AR moves the currently selected unlocked piece directly to that floor point!
+        if (panMoveDist < 7 && isCameraARRef.current && activeIdRef.current) {
+          const activeGrp = pieceGroupsMapRef.current.get(activeIdRef.current);
+          if (activeGrp && !activeGrp.userData?.isLocked) {
+            getNormalizedPointer(e.clientX, e.clientY);
+            raycaster.setFromCamera(pointer, camera);
+            if (raycaster.ray.direction.y < -0.02 && raycaster.ray.intersectPlane(floorPlane, planeIntersect)) {
+              const nextX = THREE.MathUtils.clamp(planeIntersect.x, -4.5, 4.5);
+              const nextZ = THREE.MathUtils.clamp(planeIntersect.z, -4.5, 4.5);
+              const floorY = (activeGrp.userData.floorOffsetCm || 0) / 100;
+              activeGrp.position.set(nextX, floorY, nextZ);
+              dropAnimMapRef.current.set(activeIdRef.current, 0.14);
+              const newXCm = Math.round((nextX + W / 2) * 100 - (activeGrp.userData.widthCm || 100) / 2);
+              const newYCm = Math.round((nextZ + D / 2) * 100 - (activeGrp.userData.depthCm || 100) / 2);
+              onMoveRef.current?.(activeIdRef.current, newXCm, newYCm);
+              triggerFloorSnapFeedback(`✓ ${activeGrp.userData.name} dokunduğunuz zemine oturdu`);
+            }
+          }
+        }
+      }
+
       if (!dragState) return;
       const finished = dragState;
       dragState = null;
       isInteractingRef.current = false;
-      controls.enabled = true;
+      if (!isCameraARRef.current || !imuStateRef.current.hasSensor) {
+        controls.enabled = true;
+      }
       try {
         renderer.domElement.releasePointerCapture(e.pointerId);
       } catch {}
@@ -1329,8 +1368,10 @@ export default function Real3DRoomScene({
       frameTick++;
 
       if (isCameraARRef.current) {
-        if (imuStateRef.current.hasSensor && !isInteractingRef.current) {
-          camera.position.set(0, 1.45, 0);
+        if (imuStateRef.current.hasSensor) {
+          // Keep camera position steady at (0, 1.45, D * 0.68) and disable OrbitControls so touching a piece NEVER teleports or tilts the camera!
+          controls.enabled = false;
+          camera.position.set(0, 1.45, D * 0.68);
           const st = imuStateRef.current;
           const totalAlphaRad = THREE.MathUtils.degToRad(st.alphaDeg + st.manualYawDeg);
           const totalBetaRad = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(st.betaDeg + st.manualPitchDeg, 25, 85));
@@ -1347,7 +1388,7 @@ export default function Real3DRoomScene({
             THREE.MathUtils.degToRad(screenOrientDeg)
           );
           camera.quaternion.slerp(targetCameraQuat, 0.35);
-        } else {
+        } else if (!isInteractingRef.current) {
           controls.update();
         }
 
@@ -1374,19 +1415,20 @@ export default function Real3DRoomScene({
         }
       }
 
-      // 3. Auto-Ground Gravity Drop Spring Animation (settles newly spawned or dropped furniture smoothly onto y = 0 floor!)
+      // 3. Auto-Ground Gravity Drop Spring Animation (settles newly spawned or dropped furniture smoothly onto floorOffsetM!)
       dropAnimMapRef.current.forEach((dropY, instId) => {
         const grp = pieceGroupsMapRef.current.get(instId);
         if (!grp) {
           dropAnimMapRef.current.delete(instId);
           return;
         }
-        const nextY = dropY * 0.76;
+        const floorY = (grp.userData.floorOffsetCm || 0) / 100;
+        const nextY = dropY * 0.72;
         if (nextY < 0.003) {
-          grp.position.y = 0;
+          grp.position.y = floorY;
           dropAnimMapRef.current.delete(instId);
         } else {
-          grp.position.y = nextY;
+          grp.position.y = floorY + nextY;
           dropAnimMapRef.current.set(instId, nextY);
         }
       });
@@ -1462,40 +1504,81 @@ export default function Real3DRoomScene({
     }
   };
 
-  // Exports the user's currently arranged furniture in the room into a live .GLB and opens Qiens-style Native Hardware AR (ARCore / ARKit) where it locks to the physical floor and you can walk 360° around it!
-  const launchNativeHardwareFloorAR = () => {
-    const containerGrp = furnitureContainerRef.current;
+  const activePieceObj =
+    placedPieces.find((p) => p.instanceId === activeInstanceId) ||
+    placedPieces[placedPieces.length - 1] ||
+    null;
+
+  // Exports either ONLY the currently selected single piece (with its custom cm size & floor offset!) OR the user's multi-piece custom arrangement into a live .GLB and opens Qiens-style Native Hardware AR (ARCore / ARKit)!
+  const launchNativeHardwareFloorAR = (
+    mode: 'single' | 'all' = 'single',
+    directSpec?: FurniturePieceSpec
+  ) => {
     const mv = arModelViewerRef.current;
     if (!mv) return;
 
-    if (!containerGrp || placedPieces.length === 0) {
-      mv.src = '/models/limoon-koltuk-tam-takim.glb';
+    // 1. Direct single-piece launch from the 1-tap piece picker when room was empty
+    if (directSpec) {
+      setShowSingleArPicker(false);
+      onSpawnPieceFromAR?.(directSpec);
+      const targetUrl = directSpec.url || '/models/limoon-berjer.glb';
+      setArExportBlobUrl(targetUrl);
+      mv.src = targetUrl;
       setTimeout(() => {
         if (typeof mv.activateAR === 'function') mv.activateAR();
-      }, 120);
+      }, 100);
       return;
     }
 
-    // If only 1 piece is placed and unmodified, launch its direct .glb immediately for instant AR startup
-    if (placedPieces.length === 1 && placedPieces[0].url) {
-      mv.src = placedPieces[0].url;
+    // 2. If room is currently empty, open the 1-tap single-piece picker instead of dumping all 4 pieces together!
+    if (placedPieces.length === 0) {
+      if (availablePieces.length > 0) {
+        setShowSingleArPicker((prev) => !prev);
+        return;
+      }
+      mv.src = '/models/limoon-3lu-koltuk.glb';
       setTimeout(() => {
         if (typeof mv.activateAR === 'function') mv.activateAR();
-      }, 80);
+      }, 100);
       return;
     }
 
     setIsExportingAR(true);
     try {
       const exporter = new GLTFExporter();
-      // Clone furniture meshes without the floor selection rings
       const exportClone = new THREE.Group();
-      pieceGroupsMapRef.current.forEach((grp) => {
-        const clone = grp.clone(true);
-        // Remove selection ring & contact shadow disc from AR export
-        clone.children = clone.children.filter((ch: any) => !(ch.geometry && (ch.geometry.type === 'RingGeometry' || ch.geometry.type === 'CircleGeometry')));
-        exportClone.add(clone);
-      });
+
+      if (mode === 'single' && activePieceObj) {
+        const targetGrp = pieceGroupsMapRef.current.get(activePieceObj.instanceId);
+        if (targetGrp) {
+          const clone = targetGrp.clone(true);
+          // Center the single piece at (0, floorOffsetM, 0) so ARCore places it right on the carpet target reticle at its custom floor height & cm dimensions!
+          const floorY = (activePieceObj.floorOffsetCm || 0) / 100;
+          clone.position.set(0, floorY, 0);
+          clone.children = clone.children.filter(
+            (ch: any) => !(ch.geometry && (ch.geometry.type === 'RingGeometry' || ch.geometry.type === 'CircleGeometry'))
+          );
+          exportClone.add(clone);
+        }
+      } else {
+        pieceGroupsMapRef.current.forEach((grp) => {
+          const clone = grp.clone(true);
+          clone.children = clone.children.filter(
+            (ch: any) => !(ch.geometry && (ch.geometry.type === 'RingGeometry' || ch.geometry.type === 'CircleGeometry'))
+          );
+          exportClone.add(clone);
+        });
+      }
+
+      if (exportClone.children.length === 0) {
+        setIsExportingAR(false);
+        const fallbackUrl = activePieceObj?.url || '/models/limoon-3lu-koltuk.glb';
+        mv.src = fallbackUrl;
+        setTimeout(() => {
+          if (typeof mv.activateAR === 'function') mv.activateAR();
+        }, 90);
+        return;
+      }
 
       exporter.parse(
         exportClone,
@@ -1508,19 +1591,19 @@ export default function Real3DRoomScene({
             mv.src = url;
             setTimeout(() => {
               if (typeof mv.activateAR === 'function') mv.activateAR();
-            }, 150);
+            }, 140);
           }
         },
         () => {
           setIsExportingAR(false);
-          mv.src = placedPieces[0]?.url || '/models/limoon-koltuk-tam-takim.glb';
+          mv.src = activePieceObj?.url || '/models/limoon-3lu-koltuk.glb';
           if (typeof mv.activateAR === 'function') mv.activateAR();
         },
         { binary: true }
       );
     } catch {
       setIsExportingAR(false);
-      mv.src = placedPieces[0]?.url || '/models/limoon-koltuk-tam-takim.glb';
+      mv.src = activePieceObj?.url || '/models/limoon-3lu-koltuk.glb';
       if (typeof mv.activateAR === 'function') mv.activateAR();
     }
   };
@@ -1669,21 +1752,84 @@ export default function Real3DRoomScene({
         />
       </div>
 
-      {/* Prominent Top-Left Qiens-Style "Zemine Sabitle & Etrafında Yürü (Lazer AR)" Button */}
-      <div className={`absolute ${isFullScreen ? 'top-16' : 'top-3'} left-3 z-30 flex items-center gap-2`}>
-        <button
-          type="button"
-          onClick={launchNativeHardwareFloorAR}
-          className="px-3.5 py-2 rounded-full text-xs font-bold shadow-lg border flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 text-white"
-          style={{
-            backgroundColor: '#10b981',
-            borderColor: '#059669',
-          }}
-          title="Qiens Showroom tarzı gerçek zemine oturt, boyutunu ayarla ve etrafında 360° yürü"
-        >
-          <Box size={14} />
-          <span>{isExportingAR ? 'Zemine Hazırlanıyor...' : 'Gerçek Zemine Oturt & Etrafında Dön (AR)'}</span>
-        </button>
+      {/* Prominent Top-Left Piece-by-Piece & Custom-Layout Floor AR Controls */}
+      <div className={`absolute ${isFullScreen ? 'top-16' : 'top-3'} left-3 z-30 flex flex-col items-start gap-1.5`}>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => launchNativeHardwareFloorAR('single')}
+            className="px-3.5 py-2 rounded-full text-xs font-bold shadow-lg border flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 text-white"
+            style={{
+              backgroundColor: '#10b981',
+              borderColor: '#059669',
+            }}
+            title="Sadece seçili parçayı ayarladığınız santim ölçüsüyle gerçek halı/zemine oturtun ve etrafında 360° yürüyün"
+          >
+            <Box size={14} />
+            <span>
+              {isExportingAR
+                ? 'Zemine Hazırlanıyor...'
+                : activePieceObj
+                ? `${activePieceObj.shortName} (${Math.round(
+                    activePieceObj.widthCm * (activePieceObj.scale ?? 1)
+                  )}×${Math.round(
+                    activePieceObj.depthCm * (activePieceObj.scale ?? 1)
+                  )} cm) Zemine Oturt (AR)`
+                : 'Tek Tek Gerçek Zemine Oturt (AR)'}
+            </span>
+          </button>
+
+          {placedPieces.length > 1 && (
+            <button
+              type="button"
+              onClick={() => launchNativeHardwareFloorAR('all')}
+              className="px-3 py-2 rounded-full text-[11px] font-bold shadow-md border flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+              style={{
+                backgroundColor: studioTheme.bgCard,
+                color: studioTheme.textPrimary,
+                borderColor: studioTheme.accentHex,
+              }}
+              title="Dizdiğiniz tüm parçaları ayarladığınız konum ve ölçülerle birlikte gerçek zemine oturtun"
+            >
+              <Box size={13} style={{ color: studioTheme.accentHex }} />
+              <span>Dizdiğin {placedPieces.length} Parçayı Beraber AR&apos;da Aç</span>
+            </button>
+          )}
+        </div>
+
+        {/* 1-Tap Single Piece AR Selector when user taps "Tek Tek Gerçek Zemine Oturt (AR)" while room is empty */}
+        {showSingleArPicker && availablePieces.length > 0 && (
+          <div
+            className="rounded-2xl p-2.5 shadow-xl border flex flex-wrap items-center gap-1.5 max-w-md"
+            style={{
+              backgroundColor: `${studioTheme.bgCard}F8`,
+              color: studioTheme.textPrimary,
+              borderColor: studioTheme.accentHex,
+            }}
+          >
+            <span className="text-[11px] font-bold w-full px-1" style={{ color: studioTheme.accentHex }}>
+              Hangi parçayı tek başına halınıza/zemine oturtmak istersiniz?
+            </span>
+            {availablePieces.map((spec) => (
+              <button
+                key={spec.id}
+                type="button"
+                onClick={() => launchNativeHardwareFloorAR('single', spec)}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold border cursor-pointer flex items-center gap-1 transition-all hover:opacity-90"
+                style={{
+                  backgroundColor: studioTheme.bgPage,
+                  color: studioTheme.textPrimary,
+                  borderColor: studioTheme.borderHex,
+                }}
+              >
+                <Box size={11} style={{ color: '#10b981' }} />
+                <span>
+                  {spec.shortName} ({spec.widthCm}×{spec.depthCm} cm)
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Minimal Top-Right Controls in Inline 3D View */}

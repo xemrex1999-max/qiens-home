@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  RotateCw, Trash2, Plus, Maximize2, Move,
-  X, DoorOpen, Ruler, MessageCircle, RotateCcw, Camera, Lock, Unlock, Check, Minus
+  RotateCw, Trash2, Plus, Maximize2,
+  X, Ruler, MessageCircle, RotateCcw, Camera, Lock, Unlock, Minus, Wand2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors } from './Real3DRoomScene';
@@ -49,27 +49,32 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
 
   if (combined.includes('yemek') || combined.includes('masa')) {
     return [
-      { id: 'piece-console', name: 'Konsol & Ayna Ünitesi', shortName: 'Konsol', type: 'console', widthCm: 210, depthCm: 48, heightCm: 85, url: '/models/konsol.glb', defaultX: 145, defaultY: 16, defaultRot: 0 },
-      { id: 'piece-table', name: 'Açılır Yemek Masası', shortName: 'Yemek Masası', type: 'table', widthCm: 200, depthCm: 100, heightCm: 78, url: '/models/yemek-masasi.glb', defaultX: 150, defaultY: 160, defaultRot: 0 },
-      { id: 'piece-chair-1', name: 'Yemek Sandalyesi 1', shortName: 'Sandalye 1', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 175, defaultY: 98, defaultRot: 0 },
-      { id: 'piece-chair-2', name: 'Yemek Sandalyesi 2', shortName: 'Sandalye 2', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 270, defaultY: 98, defaultRot: 0 },
+      { id: 'piece-console', name: 'Konsol & Ayna Ünitesi', shortName: 'Konsol', type: 'console', widthCm: 210, depthCm: 48, heightCm: 85, url: '/models/konsol.glb', defaultX: 160, defaultY: 28, defaultRot: 0 },
+      { id: 'piece-table', name: 'Açılır Yemek Masası', shortName: 'Yemek Masası', type: 'table', widthCm: 200, depthCm: 100, heightCm: 78, url: '/models/yemek-masasi.glb', defaultX: 165, defaultY: 165, defaultRot: 0 },
+      { id: 'piece-chair-1', name: 'Yemek Sandalyesi (Sol)', shortName: 'Sandalye 1', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 185, defaultY: 102, defaultRot: 0 },
+      { id: 'piece-chair-2', name: 'Yemek Sandalyesi (Sağ)', shortName: 'Sandalye 2', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 285, defaultY: 102, defaultRot: 0 },
     ];
   }
 
   if (combined.includes('koltuk') || combined.includes('sofa') || combined.includes('oturma') || combined.includes('kose')) {
+    // Architectural magazine layout matching the Limoon Sofa Set catalog shoot:
+    // - 1. İkili Koltuk: Center back facing front (0°)
+    // - 2. İkili Koltuk: Left wing facing right (90°)
+    // - Tekli Berjer: Right corner angled inward (245°)
+    // - Orta Sehpa: Center in front of main sofa (0°)
     return [
-      { id: 'piece-berjer-1', name: 'Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 390, defaultY: 155, defaultRot: 245 },
-      { id: 'piece-sofa3', name: '1. İkili / Ana Bukle Koltuk', shortName: '1. İkili Koltuk', type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 145, defaultY: 28, defaultRot: 0 },
-      { id: 'piece-sofa2', name: '2. İkili Yan Bukle Koltuk', shortName: '2. İkili Koltuk', type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 22, defaultY: 145, defaultRot: 90 },
-      { id: 'piece-coffee', name: 'Füme Camlı Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 195, defaultY: 165, defaultRot: 0 }
+      { id: 'piece-berjer-1', name: 'Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 382, defaultY: 162, defaultRot: 245 },
+      { id: 'piece-sofa3', name: '1. İkili / Ana Bukle Koltuk', shortName: '1. İkili Koltuk', type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 152, defaultY: 52, defaultRot: 0 },
+      { id: 'piece-sofa2', name: '2. İkili Yan Bukle Koltuk', shortName: '2. İkili Koltuk', type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 32, defaultY: 148, defaultRot: 90 },
+      { id: 'piece-coffee', name: 'Füme Camlı Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 202, defaultY: 175, defaultRot: 0 }
     ];
   }
 
   return [
-    { id: 'piece-wardrobe', name: '6 Kapaklı Gardırop', shortName: 'Gardırop', type: 'wardrobe', widthCm: 210, depthCm: 60, heightCm: 215, url: '/models/gardirop.glb', defaultX: 18, defaultY: 16, defaultRot: 0 },
-    { id: 'piece-bed', name: 'Yatak & Baza Başlık', shortName: 'Yatak & Baza', type: 'bed', widthCm: 165, depthCm: 205, heightCm: 125, url: '/models/yatak-baza.glb', defaultX: 285, defaultY: 16, defaultRot: 0 },
-    { id: 'piece-dresser', name: 'Şifonyer & Ayna', shortName: 'Şifonyer', type: 'dresser', widthCm: 125, depthCm: 48, heightCm: 85, url: '/models/sifonyer.glb', defaultX: 35, defaultY: 310, defaultRot: 180 },
-    { id: 'piece-nightstand-l', name: 'Komodin', shortName: 'Komodin', type: 'nightstand', widthCm: 52, depthCm: 44, heightCm: 50, url: '/models/komodin.glb', defaultX: 228, defaultY: 16, defaultRot: 0 },
+    { id: 'piece-wardrobe', name: '6 Kapaklı Gardırop', shortName: 'Gardırop', type: 'wardrobe', widthCm: 210, depthCm: 60, heightCm: 215, url: '/models/gardirop.glb', defaultX: 24, defaultY: 22, defaultRot: 0 },
+    { id: 'piece-bed', name: 'Yatak & Baza Başlık', shortName: 'Yatak & Baza', type: 'bed', widthCm: 165, depthCm: 205, heightCm: 125, url: '/models/yatak-baza.glb', defaultX: 285, defaultY: 22, defaultRot: 0 },
+    { id: 'piece-dresser', name: 'Şifonyer & Ayna', shortName: 'Şifonyer', type: 'dresser', widthCm: 125, depthCm: 48, heightCm: 85, url: '/models/sifonyer.glb', defaultX: 45, defaultY: 300, defaultRot: 180 },
+    { id: 'piece-nightstand-l', name: 'Komodin', shortName: 'Komodin', type: 'nightstand', widthCm: 52, depthCm: 44, heightCm: 50, url: '/models/komodin.glb', defaultX: 228, defaultY: 22, defaultRot: 0 },
   ];
 };
 
@@ -151,6 +156,7 @@ export default function ShowroomRoomPlanner({
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
   const [activeColor, setActiveColor] = useState<string>(selectedColor);
   const [expandedRoomModal, setExpandedRoomModal] = useState<boolean>(false);
+  const [eraserTrigger, setEraserTrigger] = useState<number>(0);
 
   useEffect(() => {
     setActiveColor(selectedColor);
@@ -164,7 +170,6 @@ export default function ShowroomRoomPlanner({
   const openFullScreenCameraAR = () => {
     setInlineViewMode('real3d');
     setIsCameraAR(true);
-    // Start EMPTY so the user taps each piece one by one from the clean top menu and locks each piece in place!
     setPlacedPieces([]);
     setActiveInstanceId(null);
     setExpandedRoomModal(true);
@@ -199,8 +204,8 @@ export default function ShowroomRoomPlanner({
     const initial: PlacedPiece[] = availablePieces.map((spec, idx) => ({
       ...spec,
       instanceId: `${spec.id}-${Date.now()}-${idx}`,
-      xCm: Math.min(Math.max(8, spec.defaultX), Math.max(8, roomWidthCm - spec.widthCm - 8)),
-      yCm: Math.min(Math.max(8, spec.defaultY), Math.max(8, roomDepthCm - spec.depthCm - 8)),
+      xCm: spec.defaultX,
+      yCm: spec.defaultY,
       rotation: spec.defaultRot,
       scale: 1.0,
       isLocked: false,
@@ -215,52 +220,28 @@ export default function ShowroomRoomPlanner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProduct?.id]);
 
-  // Spawns a piece and automatically locks previously placed pieces in their corners so they never shift or overlap!
+  // Spawns a piece directly at its natural architectural slot (defaultX, defaultY, defaultRot) so the room always looks harmonious and non-cluttered!
+  // Keeps pieces unlocked by default so the user can freely play with, drag, resize, or lock/unlock any piece at any time!
   const addPieceToRoom = (spec: FurniturePieceSpec, dropXCm?: number, dropYCm?: number) => {
     setPlacedPieces((prev) => {
-      // Lock any previously placed pieces at their exact spot so placing the new piece never moves them!
-      const lockedPrev = prev.map((p) => ({ ...p, isLocked: true }));
-      const count = lockedPrev.length;
-      // Offset spawn position slightly for each added piece so two pieces never spawn right on top of each other
-      const offsetTable = [
-        { dx: -95, dy: 0 },
-        { dx: 75, dy: -20 },
-        { dx: -15, dy: 55 },
-        { dx: 15, dy: 20 },
-      ];
-      const off = offsetTable[count % offsetTable.length];
-
-      const defaultCenterX = Math.round((roomWidthCm - spec.widthCm) / 2 + off.dx);
-      const defaultCenterY = Math.round((roomDepthCm - spec.depthCm) / 2 + off.dy);
-
       const newInstance: PlacedPiece = {
         ...spec,
         instanceId: `${spec.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        xCm: dropXCm !== undefined ? dropXCm - Math.round(spec.widthCm / 2) : defaultCenterX,
-        yCm: dropYCm !== undefined ? dropYCm - Math.round(spec.depthCm / 2) : defaultCenterY,
+        xCm: dropXCm !== undefined ? dropXCm - Math.round(spec.widthCm / 2) : spec.defaultX,
+        yCm: dropYCm !== undefined ? dropYCm - Math.round(spec.depthCm / 2) : spec.defaultY,
         rotation: spec.defaultRot || 0,
         scale: 1.0,
         isLocked: false,
         isOpen: false,
       };
       setActiveInstanceId(newInstance.instanceId);
-      return [...lockedPrev, newInstance];
+      return [...prev, newInstance];
     });
   };
 
-  // Select a piece from the top bar (unlocking it for adjustment while locking others in AR mode)
   const selectOrSpawnPiece = (spec: FurniturePieceSpec) => {
     const existing = placedPieces.find((p) => p.id === spec.id);
     if (existing) {
-      setPlacedPieces((prev) =>
-        prev.map((p) =>
-          p.instanceId === existing.instanceId
-            ? { ...p, isLocked: false }
-            : isCameraAR
-            ? { ...p, isLocked: true }
-            : p
-        )
-      );
       setActiveInstanceId(existing.instanceId);
     } else {
       addPieceToRoom(spec);
@@ -274,7 +255,7 @@ export default function ShowroomRoomPlanner({
   };
 
   const updatePieceScale = (instanceId: string, nextScale: number) => {
-    const clamped = Math.max(0.4, Math.min(2.2, Number(nextScale.toFixed(2))));
+    const clamped = Math.max(0.45, Math.min(2.1, Number(nextScale.toFixed(2))));
     setPlacedPieces((prev) =>
       prev.map((p) => (p.instanceId === instanceId ? { ...p, scale: clamped } : p))
     );
@@ -404,14 +385,16 @@ export default function ShowroomRoomPlanner({
       const base = availablePieces.find((s) => s.id === item.id);
       if (!base) return acc;
       const baseVol = base.widthCm * base.depthCm * base.heightCm;
-      const curVol = item.widthCm * item.depthCm * item.heightCm;
+      const s = item.scale ?? 1.0;
+      const curVol = item.widthCm * s * (item.depthCm * s) * (item.heightCm * s);
       const ratioDiff = (curVol - baseVol) / Math.max(1, baseVol);
       const isModified =
         item.widthCm !== base.widthCm ||
         item.depthCm !== base.depthCm ||
-        item.heightCm !== base.heightCm;
+        item.heightCm !== base.heightCm ||
+        s !== 1.0;
       if (isModified) {
-        acc.modifiedList.push(`${item.shortName}: ${item.widthCm}×${item.depthCm}×${item.heightCm} cm`);
+        acc.modifiedList.push(`${item.shortName}: ${Math.round(item.widthCm * s)}×${Math.round(item.depthCm * s)}×${Math.round(item.heightCm * s)} cm`);
       }
       acc.totalRatio += ratioDiff / Math.max(1, placedPieces.length);
       return acc;
@@ -428,13 +411,15 @@ export default function ShowroomRoomPlanner({
 
   const sendCustomParametricWhatsApp = () => {
     const pieceLines = placedPieces
-      .map((p) => `• ${p.shortName}: ${p.widthCm}×${p.depthCm}×${p.heightCm} cm`)
+      .map((p) => {
+        const s = p.scale ?? 1.0;
+        return `• ${p.shortName}: ${Math.round(p.widthCm * s)}×${Math.round(p.depthCm * s)}×${Math.round(p.heightCm * s)} cm`;
+      })
       .join('\n');
     const msg = `Merhaba ${brandName},\n3D Showroom'da odama göre yerleşim hazırladım:\n\nTakım: ${selectedProduct?.name || 'Mobilya Takımı'}\nSeçilen Renk / Kumaş: ${activeColor}\n\nYerleştirilen Parçalar:\n${pieceLines}\n\nToplam Fiyat: ${liveCustomPrice.toLocaleString('tr-TR')} ₺ (~€${liveCustomEuro.toLocaleString('de-DE')})\n\nSipariş ve teslimat bilgisi alabilir miyim?`;
     window.open(`https://wa.me/905077567887?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // Renders clean 2D Floor Plan
   const renderRoomFloorCanvas = () => (
     <div
       ref={floorRef}
@@ -458,10 +443,11 @@ export default function ShowroomRoomPlanner({
     >
       {placedPieces.map((item) => {
         const isSelected = item.instanceId === activeInstanceId;
+        const s = item.scale ?? 1;
         const leftPct = (item.xCm / roomWidthCm) * 100;
         const topPct = (item.yCm / roomDepthCm) * 100;
-        const widthPct = (item.widthCm / roomWidthCm) * 100 * (item.scale ?? 1);
-        const heightPct = (item.depthCm / roomDepthCm) * 100 * (item.scale ?? 1);
+        const widthPct = (item.widthCm / roomWidthCm) * 100 * s;
+        const heightPct = (item.depthCm / roomDepthCm) * 100 * s;
 
         return (
           <div
@@ -484,13 +470,13 @@ export default function ShowroomRoomPlanner({
               borderColor: isSelected ? studioTheme.accentHex : '#8C7A68',
             }}
             className={cn(
-              'absolute rounded-lg select-none touch-none flex items-center justify-center p-1 shadow-md border-2',
+              'absolute rounded-lg select-none touch-none flex flex-col items-center justify-center p-1 shadow-md border-2',
               item.isLocked ? 'cursor-pointer opacity-95' : 'cursor-grab active:cursor-grabbing',
               isSelected ? 'z-30' : 'z-20'
             )}
           >
             <span className="text-[8px] font-bold text-[#261E19] bg-white/90 px-1.5 py-0.5 rounded text-center leading-tight shadow-2xs">
-              {item.isLocked ? '🔒 ' : ''}{item.shortName}
+              {item.isLocked ? '🔒 ' : ''}{item.shortName} ({Math.round(item.widthCm * s)}×{Math.round(item.depthCm * s)} cm)
             </span>
           </div>
         );
@@ -498,96 +484,102 @@ export default function ShowroomRoomPlanner({
     </div>
   );
 
-  // Reusable Clean Single-Row Piece Manipulation Bar (Scale + Rotate + Lock + Remove)
-  const renderCleanPieceControls = (piece: PlacedPiece) => {
-    const curScalePct = Math.round((piece.scale ?? 1.0) * 100);
+  // Compact Centered Bottom Dock with Live Centimeter Readout + Lock/Unlock Playable Anchor + Rotate + Scale
+  const renderCenteredBottomDock = (piece: PlacedPiece) => {
+    const s = piece.scale ?? 1.0;
+    const curScalePct = Math.round(s * 100);
+    const liveW = Math.round(piece.widthCm * s);
+    const liveD = Math.round(piece.depthCm * s);
+    const liveH = Math.round(piece.heightCm * s);
+
     return (
       <div
-        className="rounded-2xl px-4 py-3 border shadow-md flex flex-wrap items-center justify-between gap-3"
+        className="max-w-3xl mx-auto rounded-2xl px-3.5 py-2.5 border shadow-lg flex flex-wrap items-center justify-between gap-2.5"
         style={{
           backgroundColor: `${studioTheme.bgCard}F5`,
           color: studioTheme.textPrimary,
           borderColor: studioTheme.borderHex,
         }}
       >
-        {/* Active Piece Title & Lock Toggle */}
-        <div className="flex items-center gap-2.5">
+        {/* Left: Piece Name + Live Centimeter Dimensions + Playable Lock Toggle */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => toggleLockPiece(piece.instanceId)}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer border transition-all"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 cursor-pointer border transition-all"
             style={
               piece.isLocked
                 ? { backgroundColor: '#10b981', color: '#FFFFFF', borderColor: '#10b981' }
-                : { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
             }
-            title="Bu parçayı koyduğun yere sabitle ve diğer parçaya geç"
+            title="Sabitle / Oynatmak için kilidi aç"
           >
-            {piece.isLocked ? <Lock size={13} /> : <Check size={13} />}
-            <span>{piece.isLocked ? 'Sabitlendi (Kilidi Aç)' : 'Yerine Sabitle'}</span>
+            {piece.isLocked ? <Lock size={12} /> : <Unlock size={12} style={{ color: studioTheme.accentHex }} />}
+            <span>{piece.isLocked ? 'Sabit (Oynat)' : 'Sabitle'}</span>
           </button>
 
           <div>
             <div className="text-xs font-bold leading-tight">{piece.shortName}</div>
-            <div className="text-[10px]" style={{ color: studioTheme.textMuted }}>
-              {piece.isLocked ? 'Konumu kilitli • Üstten yeni parça seçebilirsiniz' : 'Parmağınızla sürükleyin veya iki parmakla boyutlandırın'}
+            <div className="text-[11px] font-semibold" style={{ color: studioTheme.accentHex }}>
+              {liveW} × {liveD} × {liveH} cm
             </div>
           </div>
         </div>
 
-        {/* Clean Manual Scale (Küçült/Büyüt) & 360° Rotation Sliders */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Manual Scale Slider */}
+        {/* Center: Boyut (with live cm & %) + 360° Çevir */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Scale Slider with Live Centimeter Display */}
           <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
             style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
           >
-            <span className="text-[11px] font-medium" style={{ color: studioTheme.textMuted }}>Boyut:</span>
+            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Boyut:</span>
             <button
               type="button"
-              onClick={() => updatePieceScale(piece.instanceId, (piece.scale ?? 1.0) - 0.1)}
+              onClick={() => updatePieceScale(piece.instanceId, s - 0.08)}
               className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
               style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
               title="Küçült"
             >
-              <Minus size={11} />
+              <Minus size={10} />
             </button>
             <input
               type="range"
-              min={45}
-              max={190}
+              min={50}
+              max={180}
               step={5}
               value={curScalePct}
               onChange={(e) => updatePieceScale(piece.instanceId, Number(e.target.value) / 100)}
-              className="w-20 sm:w-24 cursor-pointer"
+              className="w-16 sm:w-20 cursor-pointer"
               style={{ accentColor: studioTheme.accentHex }}
             />
             <button
               type="button"
-              onClick={() => updatePieceScale(piece.instanceId, (piece.scale ?? 1.0) + 0.1)}
+              onClick={() => updatePieceScale(piece.instanceId, s + 0.08)}
               className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
               style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
               title="Büyüt"
             >
-              <Plus size={11} />
+              <Plus size={10} />
             </button>
-            <span className="text-[11px] font-bold w-9 text-right">%{curScalePct}</span>
+            <span className="text-[10px] font-bold whitespace-nowrap">
+              {liveW}×{liveD}cm (%{curScalePct})
+            </span>
           </div>
 
-          {/* Manual 360° Rotation Slider */}
+          {/* 360° Rotation Slider */}
           <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
             style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
           >
-            <span className="text-[11px] font-medium" style={{ color: studioTheme.textMuted }}>Çevir:</span>
+            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Yön:</span>
             <button
               type="button"
               onClick={() => rotatePieceById(piece.instanceId, -30)}
               className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
               style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Sola Çevir"
             >
-              <RotateCcw size={11} />
+              <RotateCcw size={10} />
             </button>
             <input
               type="range"
@@ -596,7 +588,7 @@ export default function ShowroomRoomPlanner({
               step={5}
               value={piece.rotation}
               onChange={(e) => setPieceRotation(piece.instanceId, Number(e.target.value))}
-              className="w-20 sm:w-24 cursor-pointer"
+              className="w-16 sm:w-20 cursor-pointer"
               style={{ accentColor: studioTheme.accentHex }}
             />
             <button
@@ -604,46 +596,45 @@ export default function ShowroomRoomPlanner({
               onClick={() => rotatePieceById(piece.instanceId, 30)}
               className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
               style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Sağa Çevir"
             >
-              <RotateCw size={11} />
+              <RotateCw size={10} />
             </button>
-            <span className="text-[11px] font-bold w-8 text-right">{piece.rotation}°</span>
+            <span className="text-[10px] font-bold w-7 text-right">{piece.rotation}°</span>
           </div>
+        </div>
 
-          {/* Remove & Optional Custom Cm Sizing */}
-          <div className="flex items-center gap-1.5">
-            {!isCameraAR && (
-              <button
-                type="button"
-                onClick={() => setShowSizingDrawer(!showSizingDrawer)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 cursor-pointer"
-                style={{
-                  backgroundColor: showSizingDrawer ? studioTheme.accentHex : studioTheme.bgPage,
-                  color: showSizingDrawer ? '#FFFFFF' : studioTheme.textPrimary,
-                  borderColor: studioTheme.borderHex,
-                }}
-              >
-                <Ruler size={12} /> Özel Ölçü
-              </button>
-            )}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1.5">
+          {!isCameraAR && (
             <button
               type="button"
-              onClick={removeActivePiece}
-              className="p-2 rounded-full border hover:opacity-80 cursor-pointer text-red-600"
-              style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-              title="Bu parçayı kaldır"
+              onClick={() => setShowSizingDrawer(!showSizingDrawer)}
+              className="px-2.5 py-1.5 rounded-full text-[11px] font-semibold border flex items-center gap-1 cursor-pointer"
+              style={{
+                backgroundColor: showSizingDrawer ? studioTheme.accentHex : studioTheme.bgPage,
+                color: showSizingDrawer ? '#FFFFFF' : studioTheme.textPrimary,
+                borderColor: studioTheme.borderHex,
+              }}
             >
-              <Trash2 size={14} />
+              <Ruler size={12} /> Ölçü
             </button>
-            <button
-              type="button"
-              onClick={sendCustomParametricWhatsApp}
-              className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-            >
-              <MessageCircle size={13} /> Sipariş
-            </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={removeActivePiece}
+            className="p-1.5 rounded-full border hover:opacity-80 cursor-pointer text-red-600"
+            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+            title="Kaldır"
+          >
+            <Trash2 size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={sendCustomParametricWhatsApp}
+            className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer"
+          >
+            <MessageCircle size={12} /> Sipariş
+          </button>
         </div>
       </div>
     );
@@ -651,9 +642,9 @@ export default function ShowroomRoomPlanner({
 
   return (
     <div className="w-full flex flex-col gap-3 select-none">
-      {/* 1. CLEAN THEME-MATCHED TOP BAR (4 PIECE BUTTONS + ODANDA GÖR BUTTON) */}
+      {/* 1. COMPACT CENTERED TOP BAR */}
       <div
-        className="rounded-2xl px-3.5 py-2.5 border shadow-xs flex flex-wrap items-center justify-between gap-2.5"
+        className="rounded-2xl px-3.5 py-2 border shadow-2xs flex flex-wrap items-center justify-between gap-2"
         style={{
           backgroundColor: studioTheme.bgCard,
           color: studioTheme.textPrimary,
@@ -671,7 +662,7 @@ export default function ShowroomRoomPlanner({
                 draggable={true}
                 onDragStart={(e) => handleDragStartFromShelf(e, spec)}
                 onClick={() => selectOrSpawnPiece(spec)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1"
                 style={
                   isActive
                     ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
@@ -688,7 +679,7 @@ export default function ShowroomRoomPlanner({
           <button
             type="button"
             onClick={() => { setPlacedPieces([]); setActiveInstanceId(null); }}
-            className="px-3 py-1.5 rounded-full text-[11px] font-medium border cursor-pointer whitespace-nowrap hover:opacity-80"
+            className="px-2.5 py-1 rounded-full text-[11px] font-medium border cursor-pointer whitespace-nowrap hover:opacity-80"
             style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textMuted, borderColor: studioTheme.borderHex }}
           >
             Temizle
@@ -696,18 +687,18 @@ export default function ShowroomRoomPlanner({
           <button
             type="button"
             onClick={applyAutoLayout}
-            className="px-3 py-1.5 rounded-full text-[11px] font-medium border cursor-pointer whitespace-nowrap hover:opacity-80"
+            className="px-2.5 py-1 rounded-full text-[11px] font-medium border cursor-pointer whitespace-nowrap hover:opacity-80"
             style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textMuted, borderColor: studioTheme.borderHex }}
           >
             Tam Takım
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={openFullScreenCameraAR}
-            className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs text-white"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs text-white"
             style={{ backgroundColor: studioTheme.accentHex }}
           >
             <Camera size={13} />
@@ -721,7 +712,7 @@ export default function ShowroomRoomPlanner({
             <button
               type="button"
               onClick={() => { setInlineViewMode('real3d'); setIsCameraAR(false); }}
-              className="px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+              className="px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
               style={
                 inlineViewMode === 'real3d' && !isCameraAR
                   ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', fontWeight: 600 }
@@ -733,21 +724,21 @@ export default function ShowroomRoomPlanner({
             <button
               type="button"
               onClick={() => { setInlineViewMode('plan'); setIsCameraAR(false); }}
-              className="px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+              className="px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
               style={
                 inlineViewMode === 'plan'
                   ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', fontWeight: 600 }
                   : { color: studioTheme.textMuted }
               }
             >
-              2D Plan
+              2D
             </button>
           </div>
 
           <button
             type="button"
             onClick={() => setExpandedRoomModal(true)}
-            className="p-2 rounded-full border hover:opacity-80 cursor-pointer"
+            className="p-1.5 rounded-full border hover:opacity-80 cursor-pointer"
             style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
             title="Tam Ekran"
           >
@@ -769,6 +760,7 @@ export default function ShowroomRoomPlanner({
           heightClass="h-[440px] sm:h-[520px]"
           isCameraAR={isCameraAR}
           studioTheme={studioTheme}
+          eraserTrigger={eraserTrigger}
           onToggleCameraAR={() => {
             if (!isCameraAR) {
               openFullScreenCameraAR();
@@ -803,8 +795,8 @@ export default function ShowroomRoomPlanner({
         </div>
       )}
 
-      {/* 3. CLEAN BOTTOM PIECE CONTROL BAR */}
-      {activePiece && renderCleanPieceControls(activePiece)}
+      {/* 3. CENTERED BOTTOM DOCK */}
+      {activePiece && renderCenteredBottomDock(activePiece)}
 
       {/* OPTIONAL COLLAPSIBLE CM SIZING DRAWER */}
       {activePiece && showSizingDrawer && (() => {
@@ -816,7 +808,7 @@ export default function ShowroomRoomPlanner({
             style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
           >
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="font-semibold">{activePiece.name} — Santim Ölçü Özelleştirme</span>
+              <span className="font-semibold">{activePiece.name} — Özel Üretim Santim Ayarı</span>
               <button
                 type="button"
                 onClick={resetActivePieceDims}
@@ -858,83 +850,74 @@ export default function ShowroomRoomPlanner({
         );
       })()}
 
-      {/* 4. 100% EDGE-TO-EDGE FULL-SCREEN 3D & LIVE REAR-CAMERA AR STUDIO */}
+      {/* 4. 100% EDGE-TO-EDGE FULL-SCREEN CAMERA AR STUDIO (WITH CENTERED TOP CAPSULE & CENTERED BOTTOM DOCK) */}
       {expandedRoomModal && (
         <div
           className="fixed inset-0 z-[150] w-screen h-[100dvh] overflow-hidden select-none"
           style={{ backgroundColor: studioTheme.bgPage }}
         >
-          {/* CLEAN FLOATING TOP PIECE PILLS OVER FULL-SCREEN CAMERA (MATCHING WEBSITE THEME COLOR!) */}
-          <div
-            className="absolute top-3 left-3 right-3 z-40 rounded-2xl px-3 py-2 border shadow-lg flex items-center justify-between gap-2"
-            style={{
-              backgroundColor: `${studioTheme.bgCard}F2`,
-              color: studioTheme.textPrimary,
-              borderColor: studioTheme.borderHex,
-            }}
-          >
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              {availablePieces.map((spec) => {
-                const existing = placedPieces.find((p) => p.id === spec.id);
-                const isActive = existing && existing.instanceId === activePiece?.instanceId;
-                return (
+          {/* COMPACT CENTERED TOP CAPSULE BAR */}
+          <div className="absolute top-3 left-3 right-3 z-40 flex justify-center pointer-events-none">
+            <div
+              className="pointer-events-auto max-w-2xl w-full rounded-full px-3 py-1.5 border shadow-lg flex items-center justify-between gap-2"
+              style={{
+                backgroundColor: `${studioTheme.bgCard}F2`,
+                color: studioTheme.textPrimary,
+                borderColor: studioTheme.borderHex,
+              }}
+            >
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                {availablePieces.map((spec) => {
+                  const existing = placedPieces.find((p) => p.id === spec.id);
+                  const isActive = existing && existing.instanceId === activePiece?.instanceId;
+                  return (
+                    <button
+                      key={spec.id}
+                      type="button"
+                      onClick={() => selectOrSpawnPiece(spec)}
+                      className="px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1"
+                      style={
+                        isActive
+                          ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                          : existing
+                          ? { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                          : { backgroundColor: '#FFFFFF', color: studioTheme.textPrimary, borderColor: studioTheme.accentHex, borderStyle: 'dashed' }
+                      }
+                    >
+                      {existing?.isLocked ? (
+                        <Lock size={10} className="text-emerald-600" />
+                      ) : !existing ? (
+                        <Plus size={11} style={{ color: studioTheme.accentHex }} />
+                      ) : null}
+                      <span>{spec.shortName}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                {isCameraAR && (
                   <button
-                    key={spec.id}
                     type="button"
-                    onClick={() => selectOrSpawnPiece(spec)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1"
-                    style={
-                      isActive
-                        ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
-                        : existing
-                        ? { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-                        : { backgroundColor: '#FFFFFF', color: studioTheme.textPrimary, borderColor: studioTheme.accentHex, borderStyle: 'dashed' }
-                    }
+                    onClick={() => setEraserTrigger((c) => c + 1)}
+                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold border flex items-center gap-1 cursor-pointer"
+                    style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
+                    title="Eski eşyayı sil"
                   >
-                    {existing?.isLocked ? (
-                      <Lock size={11} className="text-emerald-600" />
-                    ) : !existing ? (
-                      <Plus size={12} style={{ color: studioTheme.accentHex }} />
-                    ) : null}
-                    <span>{spec.shortName}</span>
+                    <Wand2 size={12} style={{ color: studioTheme.accentHex }} />
+                    <span className="hidden sm:inline">Eski Eşyayı Sil</span>
                   </button>
-                );
-              })}
-              {placedPieces.length > 0 && (
+                )}
                 <button
                   type="button"
-                  onClick={() => { setPlacedPieces([]); setActiveInstanceId(null); }}
-                  className="px-2.5 py-1.5 rounded-full text-[11px] font-medium border cursor-pointer whitespace-nowrap"
-                  style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textMuted, borderColor: studioTheme.borderHex }}
+                  onClick={closeFullScreenModal}
+                  className="p-1.5 rounded-full border cursor-pointer hover:opacity-80"
+                  style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
+                  title="Kapat"
                 >
-                  Temizle
+                  <X size={14} />
                 </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsCameraAR((prev) => !prev)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 cursor-pointer border"
-                style={
-                  isCameraAR
-                    ? { backgroundColor: '#10b981', color: '#FFFFFF', borderColor: '#10b981' }
-                    : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-                }
-              >
-                <Camera size={13} />
-                <span className="hidden sm:inline">{isCameraAR ? 'Kamera Açık' : 'Kamera'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={closeFullScreenModal}
-                className="p-2 rounded-full border cursor-pointer hover:opacity-80"
-                style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
-                title="Kapat"
-              >
-                <X size={15} />
-              </button>
+              </div>
             </div>
           </div>
 
@@ -951,6 +934,7 @@ export default function ShowroomRoomPlanner({
             isFullScreen={true}
             isCameraAR={isCameraAR}
             studioTheme={studioTheme}
+            eraserTrigger={eraserTrigger}
             onToggleCameraAR={() => setIsCameraAR((prev) => !prev)}
             activeInstanceId={activeInstanceId}
             onSelectPiece3D={(id) => setActiveInstanceId(id)}
@@ -971,10 +955,10 @@ export default function ShowroomRoomPlanner({
             }}
           />
 
-          {/* CLEAN FLOATING BOTTOM CONTROL BAR FOR SELECTED PIECE (NO MESSY CORNER BUTTONS!) */}
+          {/* COMPACT CENTERED BOTTOM DOCK */}
           {activePiece && (
             <div className="absolute bottom-3 left-3 right-3 z-40">
-              {renderCleanPieceControls(activePiece)}
+              {renderCenteredBottomDock(activePiece)}
             </div>
           )}
         </div>

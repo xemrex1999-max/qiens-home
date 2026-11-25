@@ -980,8 +980,9 @@ export default function Real3DRoomScene({
     if (isCameraAR) {
       camera.position.set(0, 1.45, D * 0.68);
     } else {
-      // Symmetrical, magazine-centered Limoon Home showroom camera angle (never pushed off to one side!)
-      camera.position.set(0, 2.32, D * 1.18);
+      // Symmetrical, magazine-centered Limoon Home showroom camera angle (zooms out slightly on narrow mobile portrait screens so left sofa & right berjer fit 100% in frame!)
+      const mobileFit = isMobileViewport ? 1.34 : 1.0;
+      camera.position.set(0, 2.32 * mobileFit, D * 1.18 * mobileFit);
     }
     cameraRef.current = camera;
 

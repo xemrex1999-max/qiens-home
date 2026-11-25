@@ -311,7 +311,7 @@
       <iframe
         id="lmw-inline-iframe-3d"
         src="${iframeUrl}"
-        style="width:100%;height:740px;border:0;display:block;"
+        style="width:100%;height:810px;border:0;display:block;"
         allow="camera; accelerometer; gyroscope; magnetometer; xr-spatial-tracking; fullscreen"
         loading="lazy"
       ></iframe>

@@ -875,7 +875,7 @@ export default function ShowroomRoomPlanner({
           onChangeColor={handleColorUpdate}
           onTogglePieceOpen={(id) => toggleOpenPiece(id)}
           onToggleAllOpen={toggleOpenAll}
-          heightClass="h-[440px] sm:h-[520px]"
+          heightClass="h-[360px] sm:h-[520px]"
           isCameraAR={isCameraAR}
           studioTheme={studioTheme}
           eraserTrigger={eraserTrigger}

@@ -1,8 +1,4 @@
 (function () {
-  if (typeof window !== 'undefined' && window.location.protocol === 'http:' && window.location.hostname.indexOf('limoonhome.com') !== -1) {
-    window.location.replace('https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash);
-    return;
-  }
   if (window.__LIMOON_WIDGET_LOADED__) return;
   window.__LIMOON_WIDGET_LOADED__ = true;
 
@@ -219,9 +215,14 @@
 
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
-    <button class="lmw-3d-btn" id="lmw-open-3d">
-      <span>🧊 3D Showroom</span>
-    </button>
+    <div style="position:fixed;bottom:22px;left:18px;z-index:9990;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button class="lmw-3d-btn" id="lmw-open-3d" style="position:static;">
+        <span>🧊 3D Showroom</span>
+      </button>
+      <button class="lmw-3d-btn" id="lmw-toggle-music" style="position:static;padding:11px 15px;" title="Mağaza Ambiyans Müziği">
+        <span id="lmw-music-label">🔇 Mağaza Müziği</span>
+      </button>
+    </div>
 
     <div class="lmw-modal-bg" id="lmw-modal-info">
       <div class="lmw-modal-card">
@@ -289,6 +290,91 @@
     }
     modal3d.classList.add('open');
   }
+
+  // Global Luxury Store Lounge Music Synthesizer on limoonhome.com
+  let audioCtx = null;
+  let musicTimer = null;
+  let musicPlaying = false;
+  let chordIdx = 0;
+  let autoMusicTriggered = false;
+  const CHORDS = [
+    [174.61, 220.0, 261.63, 329.63, 392.0],
+    [164.81, 196.0, 246.94, 293.66, 392.0],
+    [146.83, 174.61, 220.0, 261.63, 329.63],
+    [130.81, 164.81, 196.0, 246.94, 293.66]
+  ];
+  const musicBtn = document.getElementById('lmw-toggle-music');
+  const musicLabel = document.getElementById('lmw-music-label');
+
+  function updateMusicUI() {
+    if (!musicBtn || !musicLabel) return;
+    musicLabel.textContent = musicPlaying ? '🎵 Mağaza Müziği: Açık' : '🔇 Mağaza Müziği';
+    musicBtn.style.background = musicPlaying ? hostTheme.accent : hostTheme.bg;
+    musicBtn.style.color = musicPlaying ? '#fff' : hostTheme.text;
+  }
+
+  function playLoungeChord() {
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    const now = audioCtx.currentTime;
+    const notes = CHORDS[chordIdx % CHORDS.length];
+    chordIdx++;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(760, now);
+    filter.connect(audioCtx.destination);
+    notes.forEach(function (freq, idx) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const st = idx * 0.14;
+      osc.frequency.setValueAtTime(freq, now + st);
+      gain.gain.setValueAtTime(0.0001, now + st);
+      gain.gain.linearRampToValueAtTime(0.022 / (1 + idx * 0.2), now + st + 0.45);
+      gain.gain.exponentialRampToValueAtTime(0.0006, now + st + 4.1);
+      osc.connect(gain);
+      gain.connect(filter);
+      osc.start(now + st);
+      osc.stop(now + st + 4.2);
+    });
+  }
+
+  function startStoreMusic() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      musicPlaying = true;
+      updateMusicUI();
+      playLoungeChord();
+      if (musicTimer) clearInterval(musicTimer);
+      musicTimer = setInterval(playLoungeChord, 4200);
+    } catch (e) {}
+  }
+
+  function stopStoreMusic() {
+    musicPlaying = false;
+    updateMusicUI();
+    if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+    if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+  }
+
+  if (musicBtn) {
+    musicBtn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      autoMusicTriggered = true;
+      if (musicPlaying) stopStoreMusic(); else startStoreMusic();
+    });
+  }
+
+  function onFirstUserGesture(ev) {
+    if (autoMusicTriggered) return;
+    if (ev && ev.target && ev.target.closest && ev.target.closest('#lmw-toggle-music')) return;
+    autoMusicTriggered = true;
+    startStoreMusic();
+  }
+  window.addEventListener('click', onFirstUserGesture, { once: true });
+  window.addEventListener('touchend', onFirstUserGesture, { once: true });
 
   document.getElementById('lmw-open-3d').addEventListener('click', open3DModal);
   document.getElementById('lmw-close-info').addEventListener('click', () => infoModal.classList.remove('open'));

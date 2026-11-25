@@ -1,4 +1,8 @@
 (function () {
+  if (typeof window !== 'undefined' && window.location.protocol === 'http:' && window.location.hostname.indexOf('limoonhome.com') !== -1) {
+    window.location.replace('https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash);
+    return;
+  }
   if (window.__LIMOON_WIDGET_LOADED__) return;
   window.__LIMOON_WIDGET_LOADED__ = true;
 

@@ -1079,117 +1079,39 @@ export default function Real3DRoomScene({
       floorReticleRef.current = reticleGrp;
     } else {
       floorReticleRef.current = null;
-      const floorMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(W + 0.24, 0.14, D + 0.24),
-        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.48, metalness: 0.05 })
+      // Minimalist Open-Studio Architectural Rug & Soft Infinite Shadow Floor (matches limoonhome.com hero image!)
+      const infiniteShadowFloor = new THREE.Mesh(
+        new THREE.PlaneGeometry(22, 22),
+        new THREE.ShadowMaterial({ opacity: 0.16 })
       );
-      floorMesh.position.set(0, -0.07, 0);
+      infiniteShadowFloor.rotation.x = -Math.PI / 2;
+      infiniteShadowFloor.position.set(0, 0.001, 0);
+      infiniteShadowFloor.receiveShadow = true;
+      scene.add(infiniteShadowFloor);
+
+      // Subtle architectural studio platform under the carpet
+      const floorMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(W + 0.1, 0.025, D + 0.1),
+        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.58, metalness: 0.03 })
+      );
+      floorMesh.position.set(0, -0.013, 0);
       floorMesh.receiveShadow = true;
       scene.add(floorMesh);
 
-      // Back Wall + Left Wall + Right Wall (creates a balanced, symmetrical Limoon Home architectural salon!)
-      const backWall = new THREE.Mesh(new THREE.BoxGeometry(W + 0.24, H, 0.12), matWall);
-      backWall.position.set(0, H / 2, -D / 2 - 0.06);
-      backWall.receiveShadow = true;
-      scene.add(backWall);
-
-      const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, D + 0.12), matWall);
-      leftWall.position.set(-W / 2 - 0.06, H / 2, 0);
-      leftWall.receiveShadow = true;
-      scene.add(leftWall);
-
-      const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, D + 0.12), matWall);
-      rightWall.position.set(W / 2 + 0.06, H / 2, 0);
-      rightWall.receiveShadow = true;
-      scene.add(rightWall);
-
-      // Baseboards
-      const bbBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.1, 0.025), matBaseboard);
-      bbBack.position.set(0, 0.05, -D / 2 + 0.012);
-      scene.add(bbBack);
-      const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.1, D), matBaseboard);
-      bbLeft.position.set(-W / 2 + 0.012, 0.05, 0);
-      scene.add(bbLeft);
-      const bbRight = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.1, D), matBaseboard);
-      bbRight.position.set(W / 2 - 0.012, 0.05, 0);
-      scene.add(bbRight);
-
-      // 1. Limoon Home Catalog Signature 3D Geometric / Fluted Accent Wall Panel (Left-Center of Back Wall)
-      const panelMat = new THREE.MeshStandardMaterial({ color: 0xc8beb0, roughness: 0.65 });
-      const woodSlatMat = new THREE.MeshStandardMaterial({ color: 0x6e4c30, roughness: 0.42 });
-      const panelBack = new THREE.Mesh(new THREE.BoxGeometry(1.15, H - 0.08, 0.025), panelMat);
-      panelBack.position.set(-W * 0.22, H / 2 + 0.02, -D / 2 + 0.014);
-      scene.add(panelBack);
-      for (let si = -6; si <= 6; si++) {
-        const slat = new THREE.Mesh(new THREE.BoxGeometry(0.036, H - 0.12, 0.035), si % 2 === 0 ? woodSlatMat : panelMat);
-        slat.position.set(-W * 0.22 + si * 0.085, H / 2 + 0.02, -D / 2 + 0.028);
-        slat.castShadow = true;
-        scene.add(slat);
-      }
-
-      // 2. Limoon Home Catalog Walnut-Framed Minimalist Gallery Artwork (Right-Center of Back Wall)
-      const frameOuter = new THREE.Mesh(new THREE.BoxGeometry(1.08, 1.38, 0.04), woodSlatMat);
-      frameOuter.position.set(W * 0.18, 1.48, -D / 2 + 0.02);
-      frameOuter.castShadow = true;
-      scene.add(frameOuter);
-      const artCanvas = new THREE.Mesh(
-        new THREE.BoxGeometry(0.96, 1.26, 0.046),
-        new THREE.MeshStandardMaterial({ color: 0xf6efe2, roughness: 0.85 })
-      );
-      artCanvas.position.set(W * 0.18, 1.48, -D / 2 + 0.022);
-      scene.add(artCanvas);
-      const artHorizon = new THREE.Mesh(
-        new THREE.BoxGeometry(0.74, 0.06, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0xb5893a, roughness: 0.5 })
-      );
-      artHorizon.position.set(W * 0.18, 1.62, -D / 2 + 0.024);
-      scene.add(artHorizon);
-
-      // 3. Right Window with Warm Architectural Venetian Blinds & Daylight Glow (matching limoon-koltuk-takimi.jpg!)
-      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.75, 1.85), matBaseboard);
-      winFrame.position.set(W / 2 - 0.02, 1.45, 0.15);
-      scene.add(winFrame);
-      const winGlass = new THREE.Mesh(
-        new THREE.BoxGeometry(0.055, 1.64, 1.72),
-        new THREE.MeshStandardMaterial({ color: 0xfff8eb, emissive: 0xffeacc, emissiveIntensity: 0.55, roughness: 0.1 })
-      );
-      winGlass.position.set(W / 2 - 0.025, 1.45, 0.15);
-      scene.add(winGlass);
-
-      // 4. Decorative Indoor Botanical Pot in Back-Right Corner
-      const potMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.18, 0.13, 0.38, 20),
-        new THREE.MeshStandardMaterial({ color: 0xf2eee6, roughness: 0.7 })
-      );
-      potMesh.position.set(W * 0.39, 0.19, -D * 0.38);
-      potMesh.castShadow = true;
-      scene.add(potMesh);
-      const foliageMat = new THREE.MeshStandardMaterial({ color: 0x5c7457, roughness: 0.8 });
-      for (const [fx, fy, fz, fr] of [
-        [0, 0.68, 0, 0.24],
-        [-0.12, 0.85, 0.08, 0.19],
-        [0.11, 0.92, -0.06, 0.21],
-      ]) {
-        const leafCluster = new THREE.Mesh(new THREE.SphereGeometry(fr, 14, 12), foliageMat);
-        leafCluster.position.set(W * 0.39 + fx, fy, -D * 0.38 + fz);
-        leafCluster.castShadow = true;
-        scene.add(leafCluster);
-      }
-
-      // 5. Large Centered Cream Woven Showroom Carpet with Subtle Border
+      // Large Textured Stone-Taupe / Warm Greige Studio Carpet (matching the minimalist rug in limoonhome.com hero photo!)
       const rugBorder = new THREE.Mesh(
-        new THREE.BoxGeometry(W * 0.78, 0.012, D * 0.72),
-        new THREE.MeshStandardMaterial({ color: 0xd8cbb8, roughness: 0.94 })
+        new THREE.BoxGeometry(W * 0.88, 0.012, D * 0.84),
+        new THREE.MeshStandardMaterial({ color: 0xb8b2a6, roughness: 0.94 })
       );
-      rugBorder.position.set(0, 0.006, D * 0.03);
+      rugBorder.position.set(0, 0.005, 0.02);
       rugBorder.receiveShadow = true;
       scene.add(rugBorder);
 
       const rug = new THREE.Mesh(
-        new THREE.BoxGeometry(W * 0.74, 0.016, D * 0.68),
-        new THREE.MeshStandardMaterial({ color: 0xf1ebe0, roughness: 0.96 })
+        new THREE.BoxGeometry(W * 0.85, 0.016, D * 0.81),
+        new THREE.MeshStandardMaterial({ color: 0xc8c2b6, roughness: 0.97 })
       );
-      rug.position.set(0, 0.008, D * 0.03);
+      rug.position.set(0, 0.008, 0.02);
       rug.receiveShadow = true;
       scene.add(rug);
     }
@@ -1990,9 +1912,9 @@ export default function Real3DRoomScene({
         )}
       </div>
 
-      {/* Minimal Top-Right Controls in Inline 3D View */}
+      {/* Minimal Top-Right Controls in Inline 3D View (no overlapping on mobile!) */}
       {!isFullScreen && (
-        <div className="absolute top-3 right-3 z-20 flex flex-wrap items-center gap-1.5">
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
@@ -2003,20 +1925,23 @@ export default function Real3DRoomScene({
               borderColor: studioTheme.borderHex,
             }}
           >
-            <Palette size={13} style={{ color: studioTheme.accentHex }} /> Renk &amp; Parke
+            <Palette size={13} style={{ color: studioTheme.accentHex }} />
+            <span className="hidden sm:inline">Renk &amp; Kumaş</span>
           </button>
-          <button
-            type="button"
-            onClick={onToggleAllOpen}
-            className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs"
-            style={{
-              backgroundColor: studioTheme.bgCard,
-              color: studioTheme.textPrimary,
-              borderColor: studioTheme.borderHex,
-            }}
-          >
-            <DoorOpen size={13} style={{ color: studioTheme.accentHex }} /> Kapak / Baza Aç
-          </button>
+          {placedPieces.some((p) => p.type === 'wardrobe' || p.type === 'bed' || p.type === 'table' || p.type === 'console' || p.type === 'dresser') && (
+            <button
+              type="button"
+              onClick={onToggleAllOpen}
+              className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all hidden sm:flex items-center gap-1.5 cursor-pointer border shadow-xs"
+              style={{
+                backgroundColor: studioTheme.bgCard,
+                color: studioTheme.textPrimary,
+                borderColor: studioTheme.borderHex,
+              }}
+            >
+              <DoorOpen size={13} style={{ color: studioTheme.accentHex }} /> Kapak / Baza Aç
+            </button>
+          )}
         </div>
       )}
 

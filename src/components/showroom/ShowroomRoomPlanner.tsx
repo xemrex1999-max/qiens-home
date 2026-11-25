@@ -61,16 +61,16 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
   }
 
   if (combined.includes('koltuk') || combined.includes('sofa') || combined.includes('oturma') || combined.includes('kose')) {
-    // Architectural magazine layout matching the Limoon Sofa Set catalog shoot:
-    // - 1. İkili Koltuk: Center back facing front (0°)
-    // - 2. İkili Koltuk: Left wing facing right (90°)
-    // - Tekli Berjer: Right corner angled inward (245°)
+    // Open-studio L/U architectural layout matching limoonhome.com hero image (zero overlap, left sofa facing inward toward coffee table!):
+    // - 1. İkili Koltuk: Back center facing front (0°)
+    // - 2. İkili Koltuk: Left wing facing right/inward toward coffee table (270°)
+    // - Tekli Berjer: Right wing angled inward toward coffee table (115°)
     // - Orta Sehpa: Center in front of main sofa (0°)
     return [
-      { id: 'piece-berjer-1', name: 'Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 382, defaultY: 162, defaultRot: 245 },
-      { id: 'piece-sofa3', name: '1. İkili / Ana Bukle Koltuk', shortName: '1. İkili Koltuk', type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 152, defaultY: 52, defaultRot: 0 },
-      { id: 'piece-sofa2', name: '2. İkili Yan Bukle Koltuk', shortName: '2. İkili Koltuk', type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 32, defaultY: 148, defaultRot: 90 },
-      { id: 'piece-coffee', name: 'Füme Camlı Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 202, defaultY: 175, defaultRot: 0 }
+      { id: 'piece-sofa3', name: '1. İkili / Ana Bukle Koltuk', shortName: '1. İkili Koltuk', type: 'sofa3', widthCm: 225, depthCm: 98, heightCm: 85, url: '/models/limoon-3lu-koltuk.glb', defaultX: 162, defaultY: 38, defaultRot: 0 },
+      { id: 'piece-sofa2', name: '2. İkili Yan Bukle Koltuk', shortName: '2. İkili Koltuk', type: 'sofa2', widthCm: 195, depthCm: 96, heightCm: 85, url: '/models/limoon-2li-koltuk.glb', defaultX: 12, defaultY: 182, defaultRot: 270 },
+      { id: 'piece-berjer-1', name: 'Tekli Bukle Berjer', shortName: 'Tekli Berjer', type: 'armchair', widthCm: 84, depthCm: 86, heightCm: 86, url: '/models/limoon-berjer.glb', defaultX: 412, defaultY: 178, defaultRot: 115 },
+      { id: 'piece-coffee', name: 'Füme Camlı Ceviz Orta Sehpa', shortName: 'Orta Sehpa', type: 'coffeetable', widthCm: 125, depthCm: 70, heightCm: 44, url: '/models/limoon-orta-sehpa.glb', defaultX: 212, defaultY: 182, defaultRot: 0 }
     ];
   }
 

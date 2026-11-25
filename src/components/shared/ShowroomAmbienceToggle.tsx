@@ -8,15 +8,13 @@ interface ShowroomAmbienceToggleProps {
   bgHex?: string;
   textHex?: string;
   borderHex?: string;
-  autoStartOnFirstClick?: boolean;
 }
 
-// Luxury İnegöl Furniture Showroom Acoustic Lounge / Rhodes Piano Ambience Engine (0 MB external dependency, copyright-free)
 const LOUNGE_CHORDS: number[][] = [
-  [174.61, 220.0, 261.63, 329.63, 392.0], // Fmaj9 (warm opening chord)
-  [164.81, 196.0, 246.94, 293.66, 392.0], // Em7(11)
-  [146.83, 174.61, 220.0, 261.63, 329.63], // Dm9
-  [130.81, 164.81, 196.0, 246.94, 293.66], // Cmaj9
+  [174.61, 220.0, 261.63, 329.63, 392.0],
+  [164.81, 196.0, 246.94, 293.66, 392.0],
+  [146.83, 174.61, 220.0, 261.63, 329.63],
+  [130.81, 164.81, 196.0, 246.94, 293.66],
 ];
 
 export default function ShowroomAmbienceToggle({
@@ -24,16 +22,32 @@ export default function ShowroomAmbienceToggle({
   bgHex = '#FAF8F4',
   textHex = '#261E19',
   borderHex = '#E4DCCF',
-  autoStartOnFirstClick = true,
 }: ShowroomAmbienceToggleProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEmbeddedInParent, setIsEmbeddedInParent] = useState(false);
+  const isPlayingRef = useRef(false);
   const ctxRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<number | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const chordIdxRef = useRef<number>(0);
-  const autoArmedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      setIsEmbeddedInParent(true);
+      const onMsg = (ev: MessageEvent) => {
+        if (ev.data && ev.data.type === 'LIMOON_MUSIC_STATE') {
+          isPlayingRef.current = !!ev.data.playing;
+          setIsPlaying(!!ev.data.playing);
+        }
+      };
+      window.addEventListener('message', onMsg);
+      window.parent.postMessage({ type: 'LIMOON_MUSIC_QUERY' }, '*');
+      return () => window.removeEventListener('message', onMsg);
+    }
+  }, []);
 
   const playWarmLoungeChord = () => {
+    if (!isPlayingRef.current) return;
     const ctx = ctxRef.current;
     const master = masterGainRef.current;
     if (!ctx || !master || ctx.state !== 'running') return;
@@ -42,7 +56,6 @@ export default function ShowroomAmbienceToggle({
     const notes = LOUNGE_CHORDS[chordIdxRef.current % LOUNGE_CHORDS.length];
     chordIdxRef.current += 1;
 
-    // Warm low-pass filter for velvet showroom speakers feel
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(780, now);
@@ -50,114 +63,99 @@ export default function ShowroomAmbienceToggle({
 
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
-      const subOsc = ctx.createOscillator();
       const noteGain = ctx.createGain();
-
       osc.type = 'sine';
-      subOsc.type = 'triangle';
-
-      // Gentle harp/piano arpeggio stagger
       const startOffset = idx * 0.14;
       osc.frequency.setValueAtTime(freq, now + startOffset);
-      subOsc.frequency.setValueAtTime(freq * 2, now + startOffset);
-
       noteGain.gain.setValueAtTime(0.0001, now + startOffset);
-      noteGain.gain.linearRampToValueAtTime(0.032 / (1 + idx * 0.18), now + startOffset + 0.45);
-      noteGain.gain.exponentialRampToValueAtTime(0.0008, now + startOffset + 4.2);
-
-      const overtoneGain = ctx.createGain();
-      overtoneGain.gain.setValueAtTime(0.14, now + startOffset);
-
+      noteGain.gain.linearRampToValueAtTime(0.026 / (1 + idx * 0.18), now + startOffset + 0.45);
+      noteGain.gain.exponentialRampToValueAtTime(0.0008, now + startOffset + 4.0);
       osc.connect(noteGain);
-      subOsc.connect(overtoneGain);
-      overtoneGain.connect(noteGain);
       noteGain.connect(filter);
-
       osc.start(now + startOffset);
-      subOsc.start(now + startOffset);
-      osc.stop(now + startOffset + 4.3);
-      subOsc.stop(now + startOffset + 4.3);
+      osc.stop(now + startOffset + 4.1);
     });
   };
 
-  const startMusic = async () => {
+  const startLocalMusic = async () => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
-      if (!ctxRef.current) {
-        const ctx = new AudioCtx();
-        const master = ctx.createGain();
-        master.gain.setValueAtTime(0.48, ctx.currentTime);
-        master.connect(ctx.destination);
-        ctxRef.current = ctx;
-        masterGainRef.current = master;
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      if (ctxRef.current) {
+        try { await ctxRef.current.close(); } catch {}
       }
-      if (ctxRef.current.state === 'suspended') {
-        await ctxRef.current.resume();
-      }
+      const ctx = new AudioCtx();
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.45, ctx.currentTime);
+      master.connect(ctx.destination);
+      ctxRef.current = ctx;
+      masterGainRef.current = master;
+      if (ctx.state === 'suspended') await ctx.resume();
+      isPlayingRef.current = true;
       setIsPlaying(true);
       playWarmLoungeChord();
-      if (timerRef.current) window.clearInterval(timerRef.current);
       timerRef.current = window.setInterval(playWarmLoungeChord, 4200);
     } catch {}
   };
 
-  const stopMusic = () => {
+  const stopLocalMusic = () => {
+    isPlayingRef.current = false;
     setIsPlaying(false);
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    if (ctxRef.current && ctxRef.current.state === 'running') {
-      ctxRef.current.suspend().catch(() => {});
+    if (ctxRef.current) {
+      const oldCtx = ctxRef.current;
+      ctxRef.current = null;
+      masterGainRef.current = null;
+      oldCtx.close().catch(() => {});
     }
   };
 
-  const toggleMusic = () => {
-    autoArmedRef.current = true;
-    if (isPlaying) {
-      stopMusic();
+  const toggleMusic = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // When embedded inside WordPress (limoonhome.com), delegate to the single parent WordPress music engine so two tracks NEVER play at once!
+    if (isEmbeddedInParent && typeof window !== 'undefined' && window.parent) {
+      window.parent.postMessage({ type: 'LIMOON_MUSIC_TOGGLE' }, '*');
+      return;
+    }
+    if (isPlayingRef.current) {
+      stopLocalMusic();
     } else {
-      startMusic();
+      startLocalMusic();
     }
   };
 
   useEffect(() => {
-    if (!autoStartOnFirstClick) return;
-    const handleFirstInteraction = (e: Event) => {
-      if (autoArmedRef.current) return;
-      const target = e.target as HTMLElement | null;
-      if (target && target.closest && target.closest('[data-ambience-toggle]')) return;
-      autoArmedRef.current = true;
-      startMusic();
-    };
-    window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
     return () => {
-      window.removeEventListener('pointerdown', handleFirstInteraction);
+      isPlayingRef.current = false;
       if (timerRef.current) window.clearInterval(timerRef.current);
       if (ctxRef.current) {
         ctxRef.current.close().catch(() => {});
         ctxRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If embedded inline inside a WordPress product page, the main WordPress header already has the music button, so don't duplicate it!
+  if (isEmbeddedInParent) return null;
 
   return (
     <button
       type="button"
       data-ambience-toggle
       onClick={toggleMusic}
-      className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border"
+      className="p-2 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer border"
       style={
         isPlaying
           ? { backgroundColor: accentHex, color: '#FFFFFF', borderColor: accentHex }
           : { backgroundColor: bgHex, color: textHex, borderColor: borderHex }
       }
-      title={isPlaying ? 'Mağaza Ambiyans Müziğini Kapat' : 'Mağaza Ambiyans Müziğini Aç'}
+      title={isPlaying ? 'Müziği Kapat' : 'Mağaza Müziğini Aç'}
     >
-      {isPlaying ? <Volume2 size={13} /> : <VolumeX size={13} />}
-      <span>{isPlaying ? 'Mağaza Müziği: Açık' : 'Mağaza Müziği'}</span>
+      {isPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
     </button>
   );
 }

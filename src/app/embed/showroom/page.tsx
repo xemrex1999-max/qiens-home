@@ -12,6 +12,8 @@ export default function EmbedShowroomPage() {
     SHARED_DEMO_PRODUCTS.find((p) => p.category === 'Koltuk Takımı') || SHARED_DEMO_PRODUCTS[0];
 
   const [firma, setFirma] = useState<string>('LİMOON HOME');
+  const [customProductName, setCustomProductName] = useState<string>('');
+  const [isInlineProductMode, setIsInlineProductMode] = useState<boolean>(false);
   const [activeProduct, setActiveProduct] = useState<DemoProduct>(defaultSofaProduct);
   const [activeColor, setActiveColor] = useState<string>(defaultSofaProduct.colors[0]?.name || 'Krem Boucle');
   const [tab, setTab] = useState<'planner' | '360'>('planner');
@@ -42,6 +44,27 @@ export default function EmbedShowroomPage() {
       const params = new URLSearchParams(window.location.search);
       const f = params.get('firma')?.trim();
       if (f) setFirma(f.slice(0, 48).toUpperCase());
+      const urunParam = params.get('urun')?.trim();
+      const katParam = (params.get('kategori') || urunParam || '').toLowerCase();
+      if (urunParam) {
+        setCustomProductName(urunParam.slice(0, 64));
+      }
+      if (params.get('inline') === '1') {
+        setIsInlineProductMode(true);
+      }
+      if (katParam.includes('yemek') || katParam.includes('masa') || katParam.includes('konsol') || katParam.includes('sandalye')) {
+        const diningProd = SHARED_DEMO_PRODUCTS.find((p) => p.category === 'Yemek Odası');
+        if (diningProd) {
+          setActiveProduct(diningProd);
+          setActiveColor(diningProd.colors[0].name);
+        }
+      } else if (katParam.includes('yatak') || katParam.includes('gardirop') || katParam.includes('dolap') || katParam.includes('karyola') || katParam.includes('baza')) {
+        const bedProd = SHARED_DEMO_PRODUCTS.find((p) => p.category === 'Yatak Odası');
+        if (bedProd) {
+          setActiveProduct(bedProd);
+          setActiveColor(bedProd.colors[0].name);
+        }
+      }
       if (params.get('helper') === '1' || params.get('kod') === '1') {
         setShowCode(true);
       }
@@ -102,25 +125,28 @@ export default function EmbedShowroomPage() {
       >
         <div className="flex items-center gap-3">
           <div className="text-sm font-bold tracking-wider uppercase">
-            {firma} <span style={{ color: studioTheme.accentHex }} className="font-medium">• 3D Showroom</span>
+            {customProductName ? customProductName : firma}{' '}
+            <span style={{ color: studioTheme.accentHex }} className="font-medium">• 3D &amp; Odanda Gör</span>
           </div>
-          <div className="hidden md:flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: studioTheme.borderHex }}>
-            {orderedCategories.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
-                className="px-3.5 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer border"
-                style={
-                  activeProduct.id === p.id
-                    ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
-                    : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-                }
-              >
-                {p.category}
-              </button>
-            ))}
-          </div>
+          {!isInlineProductMode && (
+            <div className="hidden md:flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: studioTheme.borderHex }}>
+              {orderedCategories.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
+                  className="px-3.5 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer border"
+                  style={
+                    activeProduct.id === p.id
+                      ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                      : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                  }
+                >
+                  {p.category}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
@@ -151,24 +177,26 @@ export default function EmbedShowroomPage() {
         </div>
       </div>
 
-      {/* Mobile Category Switcher */}
-      <div className="md:hidden flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-        {orderedCategories.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
-            className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer whitespace-nowrap"
-            style={
-              activeProduct.id === p.id
-                ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
-                : { backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-            }
-          >
-            {p.category}
-          </button>
-        ))}
-      </div>
+      {/* Mobile Category Switcher (hidden when embedded inline inside a specific product page) */}
+      {!isInlineProductMode && (
+        <div className="md:hidden flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+          {orderedCategories.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => { setActiveProduct(p); setActiveColor(p.colors[0].name); }}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer whitespace-nowrap"
+              style={
+                activeProduct.id === p.id
+                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                  : { backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+              }
+            >
+              {p.category}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showCode && (
         <div

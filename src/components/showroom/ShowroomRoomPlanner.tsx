@@ -51,10 +51,12 @@ export const getDetailedPiecesForProduct = (productName: string, category: strin
 
   if (combined.includes('yemek') || combined.includes('masa')) {
     return [
-      { id: 'piece-console', name: 'Konsol & Ayna Ünitesi', shortName: 'Konsol', type: 'console', widthCm: 210, depthCm: 48, heightCm: 85, url: '/models/konsol.glb', defaultX: 160, defaultY: 28, defaultRot: 0 },
-      { id: 'piece-table', name: 'Açılır Yemek Masası', shortName: 'Yemek Masası', type: 'table', widthCm: 200, depthCm: 100, heightCm: 78, url: '/models/yemek-masasi.glb', defaultX: 165, defaultY: 165, defaultRot: 0 },
-      { id: 'piece-chair-1', name: 'Yemek Sandalyesi (Sol)', shortName: 'Sandalye 1', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 185, defaultY: 102, defaultRot: 0 },
-      { id: 'piece-chair-2', name: 'Yemek Sandalyesi (Sağ)', shortName: 'Sandalye 2', type: 'chair', widthCm: 52, depthCm: 55, heightCm: 88, url: '/models/SheenChair.glb', defaultX: 285, defaultY: 102, defaultRot: 0 },
+      { id: 'piece-table', name: 'Limoon Traverten & Ceviz Yemek Masası', shortName: 'Yemek Masası', type: 'table', widthCm: 200, depthCm: 100, heightCm: 78, url: '/models/yemek-masasi.glb', defaultX: 165, defaultY: 165, defaultRot: 0 },
+      { id: 'piece-console', name: 'Limoon Лазер Ceviz Konsol & Yuvarlak Ayna', shortName: 'Konsol & Ayna', type: 'console', widthCm: 210, depthCm: 48, heightCm: 86, url: '/models/konsol.glb', defaultX: 160, defaultY: 22, defaultRot: 0 },
+      { id: 'piece-chair-1', name: 'Bukle Yemek Sandalyesi (Sol Ön)', shortName: 'Sandalye 1', type: 'chair', widthCm: 54, depthCm: 56, heightCm: 84, url: '', defaultX: 185, defaultY: 272, defaultRot: 180 },
+      { id: 'piece-chair-2', name: 'Bukle Yemek Sandalyesi (Sağ Ön)', shortName: 'Sandalye 2', type: 'chair', widthCm: 54, depthCm: 56, heightCm: 84, url: '', defaultX: 285, defaultY: 272, defaultRot: 180 },
+      { id: 'piece-chair-3', name: 'Bukle Yemek Sandalyesi (Sol Baş)', shortName: 'Sandalye 3', type: 'chair', widthCm: 54, depthCm: 56, heightCm: 84, url: '', defaultX: 98, defaultY: 188, defaultRot: 90 },
+      { id: 'piece-chair-4', name: 'Bukle Yemek Sandalyesi (Sağ Baş)', shortName: 'Sandalye 4', type: 'chair', widthCm: 54, depthCm: 56, heightCm: 84, url: '', defaultX: 378, defaultY: 188, defaultRot: 270 },
     ];
   }
 
@@ -236,10 +238,23 @@ export default function ShowroomRoomPlanner({
     setActiveInstanceId(initial[0]?.instanceId || null);
   };
 
-  // Start EMPTY by default so the user taps each piece one by one (+ Tekli Berjer -> place in corner -> + 1. İkili Koltuk -> place in corner)
+  // In 3D Studio mode, open with the full harmonious Limoon Home showroom layout so the room looks like a luxury curated store!
+  // (When the user taps "Odanda Gör (Kamera)", openFullScreenCameraAR clears the scene so they can place pieces one by one on their real carpet.)
   useEffect(() => {
-    setPlacedPieces([]);
-    setActiveInstanceId(null);
+    const initial: PlacedPiece[] = availablePieces.map((spec, idx) => ({
+      ...spec,
+      instanceId: `${spec.id}-${Date.now()}-${idx}`,
+      xCm: spec.defaultX,
+      yCm: spec.defaultY,
+      rotation: spec.defaultRot,
+      scale: 1.0,
+      floorOffsetCm: 0,
+      isLocked: false,
+      isOpen: false,
+    }));
+    setPlacedPieces(initial);
+    setActiveInstanceId(initial[0]?.instanceId || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProduct?.id]);
 
   // Spawns a piece directly at its natural architectural slot (defaultX, defaultY, defaultRot) so the room always looks harmonious and non-cluttered!

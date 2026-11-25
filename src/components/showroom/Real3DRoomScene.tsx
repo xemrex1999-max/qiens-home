@@ -658,7 +658,7 @@ export default function Real3DRoomScene({
     const useRealGlb =
       item.url &&
       item.url.endsWith('.glb') &&
-      (item.type === 'sofa3' || item.type === 'sofa2' || item.type === 'armchair' || item.type === 'coffeetable' || item.type === 'chair');
+      (item.type === 'sofa3' || item.type === 'sofa2' || item.type === 'armchair' || item.type === 'coffeetable');
 
     if (useRealGlb) {
       const fallbackGrp = new THREE.Group();
@@ -764,28 +764,36 @@ export default function Real3DRoomScene({
         baseRot: bazaPivot.rotation.clone(),
       });
     } else if (item.type === 'dresser' || item.type === 'nightstand' || item.type === 'console') {
-      const legH = item.type === 'nightstand' ? 0.12 : 0.18;
+      const legH = item.type === 'nightstand' ? 0.12 : 0.16;
       const bodyH = Math.max(0.35, ph - legH - 0.03);
-      for (const sx of [-pw / 2 + 0.06, pw / 2 - 0.06]) {
+      for (const sx of [-pw / 2 + 0.08, pw / 2 - 0.08]) {
         for (const sz of [-pd / 2 + 0.06, pd / 2 - 0.06]) {
           bodyContainer.add(mkCyl(0.018, legH, matGold, sx, legH / 2, sz));
         }
       }
+      // Warm walnut body with rounded side profiles
       bodyContainer.add(mkBox(pw, bodyH, pd - 0.04, matWood, 0, legH + bodyH / 2, -0.02));
-      bodyContainer.add(mkBox(pw + 0.02, 0.03, pd + 0.02, matMarble, 0, legH + bodyH + 0.015, 0));
+      // Cream travertine marble top slab
+      bodyContainer.add(mkBox(pw + 0.02, 0.032, pd + 0.02, matMarble, 0, legH + bodyH + 0.016, 0));
 
-      const rows = item.type === 'nightstand' ? 2 : 3;
-      const cols = item.type === 'nightstand' ? 1 : 2;
+      const rows = item.type === 'nightstand' ? 2 : item.type === 'console' ? 1 : 3;
+      const cols = item.type === 'nightstand' ? 1 : item.type === 'console' ? 4 : 2;
       const drW = (pw - 0.08) / cols;
       const drH = (bodyH - 0.06) / rows;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const dx = cols === 1 ? 0 : (c === 0 ? -drW / 2 - 0.01 : drW / 2 + 0.01);
+          const dx = -pw / 2 + 0.04 + drW / 2 + c * drW;
           const dy = legH + 0.03 + drH / 2 + r * drH;
           const drawerGrp = new THREE.Group();
           drawerGrp.position.set(dx, dy, pd / 2 - 0.02);
-          drawerGrp.add(mkBox(drW - 0.02, drH - 0.02, 0.025, matMain, 0, 0, 0.01));
-          drawerGrp.add(mkBox(Math.min(0.16, drW * 0.35), 0.016, 0.025, matGold, 0, 0, 0.03));
+          drawerGrp.add(mkBox(drW - 0.018, drH - 0.02, 0.026, matMain, 0, 0, 0.01));
+          // Vertical fluted slats on console doors for Limoon bohemian look
+          if (item.type === 'console') {
+            for (let si = -2; si <= 2; si++) {
+              drawerGrp.add(mkBox(0.014, drH - 0.06, 0.012, matWood, si * (drW * 0.16), 0, 0.024));
+            }
+          }
+          drawerGrp.add(mkBox(item.type === 'console' ? 0.018 : Math.min(0.16, drW * 0.35), item.type === 'console' ? 0.14 : 0.016, 0.025, matGold, 0, 0, 0.032));
           bodyContainer.add(drawerGrp);
           animTargetsRef.current.push({
             type: 'drawer',
@@ -796,18 +804,76 @@ export default function Real3DRoomScene({
           });
         }
       }
+
+      // Signature Circular Bronze-Framed Wall Mirror above Console or Dresser
+      if (item.type === 'console' || item.type === 'dresser') {
+        const mirR = item.type === 'console' ? 0.44 : 0.36;
+        const mirY = legH + bodyH + mirR + 0.14;
+        const rim = mkCyl(mirR + 0.025, 0.03, matGold, 0, mirY, -pd / 2 + 0.03, 36);
+        rim.rotation.x = Math.PI / 2;
+        const glass = mkCyl(mirR, 0.034, matMirror, 0, mirY, -pd / 2 + 0.032, 36);
+        glass.rotation.x = Math.PI / 2;
+        bodyContainer.add(rim, glass);
+      }
     } else if (item.type === 'table') {
-      bodyContainer.add(mkBox(0.16, ph - 0.06, pd * 0.55, matWood, -pw * 0.28, (ph - 0.06) / 2, 0));
-      bodyContainer.add(mkBox(0.16, ph - 0.06, pd * 0.55, matWood, pw * 0.28, (ph - 0.06) / 2, 0));
-      const leftHalf = mkBox(pw / 2, 0.055, pd, matMarble, -pw / 4, ph - 0.028, 0);
-      const rightHalf = mkBox(pw / 2, 0.055, pd, matMarble, pw / 4, ph - 0.028, 0);
-      const centerLeaf = mkBox(0.42, 0.05, pd - 0.04, matGold, 0, ph - 0.09, 0);
-      bodyContainer.add(leftHalf, rightHalf, centerLeaf);
+      // Limoon Luxury Travertine & Fluted Double-Pedestal Walnut Dining Table
+      const pedH = ph - 0.055;
+      for (const px of [-pw * 0.26, pw * 0.26]) {
+        // Fluted cylindrical walnut pedestal column
+        bodyContainer.add(mkCyl(0.15, pedH, matWood, px, pedH / 2, 0, 24));
+        // Brushed brass floor ring
+        bodyContainer.add(mkCyl(0.165, 0.035, matGold, px, 0.018, 0, 24));
+        // Vertical fluted wood ribs around each pedestal
+        for (let ri = 0; ri < 10; ri++) {
+          const ang = (ri / 10) * Math.PI * 2;
+          bodyContainer.add(
+            mkCyl(0.016, pedH - 0.02, matWarmLeg, px + Math.cos(ang) * 0.15, pedH / 2 + 0.01, Math.sin(ang) * 0.15, 8)
+          );
+        }
+      }
+      // Warm walnut under-apron beam
+      bodyContainer.add(mkBox(pw * 0.78, 0.04, pd * 0.62, matWood, 0, ph - 0.06, 0));
+      // Cream Travertine / Marble Tabletop with expandable leaves
+      const leftHalf = mkBox(pw / 2, 0.046, pd, matMarble, -pw / 4, ph - 0.023, 0);
+      const rightHalf = mkBox(pw / 2, 0.046, pd, matMarble, pw / 4, ph - 0.023, 0);
+      const centerLeaf = mkBox(0.42, 0.042, pd - 0.04, matGold, 0, ph - 0.075, 0);
+      // Decorative centerpiece bowl on dining table
+      const bowlBase = mkCyl(0.11, 0.025, matGold, 0, ph + 0.012, 0, 24);
+      const bowlBody = mkCyl(0.16, 0.038, matWood, 0, ph + 0.038, 0, 24);
+      bodyContainer.add(leftHalf, rightHalf, centerLeaf, bowlBase, bowlBody);
       animTargetsRef.current.push(
         { type: 'table-left', object: leftHalf, instanceId: item.instanceId, basePos: leftHalf.position.clone(), baseRot: leftHalf.rotation.clone() },
         { type: 'table-right', object: rightHalf, instanceId: item.instanceId, basePos: rightHalf.position.clone(), baseRot: rightHalf.rotation.clone() },
         { type: 'table-leaf', object: centerLeaf, instanceId: item.instanceId, basePos: centerLeaf.position.clone(), baseRot: centerLeaf.rotation.clone() }
       );
+    } else if (item.type === 'chair') {
+      // Limoon Sculpted Boucle & Warm Walnut Tub Dining Chair (replaces generic orange SheenChair!)
+      const seatY = 0.45;
+      for (const lx of [-pw * 0.36, pw * 0.36]) {
+        for (const lz of [-pd * 0.35, pd * 0.35]) {
+          const leg = mkCyl(0.017, seatY, matWarmLeg, lx, seatY / 2, lz, 14);
+          leg.rotation.z = lx < 0 ? 0.07 : -0.07;
+          leg.rotation.x = lz < 0 ? -0.06 : 0.06;
+          bodyContainer.add(leg);
+          bodyContainer.add(mkCyl(0.018, 0.045, matGold, lx * 1.04, 0.022, lz * 1.04, 12));
+        }
+      }
+      // Walnut seat frame + plush rounded boucle seat cushion
+      bodyContainer.add(mkBox(pw * 0.84, 0.035, pd * 0.82, matWood, 0, seatY - 0.01, 0));
+      const seatCushion = mkCyl(pw * 0.46, 0.085, matMain, 0, seatY + 0.038, 0.01, 24);
+      seatCushion.scale.set(1, 1, pd / Math.max(0.01, pw));
+      bodyContainer.add(seatCushion);
+
+      // Curved wrap-around Boucle tub backrest & side wings
+      const backH = ph - seatY - 0.02;
+      const backCenter = mkBox(pw * 0.86, backH, 0.075, matMain, 0, seatY + backH / 2 + 0.02, -pd * 0.36);
+      backCenter.rotation.x = -0.08;
+      bodyContainer.add(backCenter);
+      for (const sign of [-1, 1]) {
+        const wing = mkBox(0.07, backH * 0.82, pd * 0.48, matMain, sign * (pw * 0.41), seatY + backH * 0.42, -pd * 0.14);
+        wing.rotation.y = sign * 0.14;
+        bodyContainer.add(wing);
+      }
     } else {
       bodyContainer.add(mkBox(pw, ph * 0.55, pd, matMain, 0, ph * 0.4, 0));
     }
@@ -914,7 +980,8 @@ export default function Real3DRoomScene({
     if (isCameraAR) {
       camera.position.set(0, 1.45, D * 0.68);
     } else {
-      camera.position.set(W * 0.82, 3.45, D * 1.12);
+      // Symmetrical, magazine-centered Limoon Home showroom camera angle (never pushed off to one side!)
+      camera.position.set(0, 2.32, D * 1.18);
     }
     cameraRef.current = camera;
 
@@ -941,12 +1008,13 @@ export default function Real3DRoomScene({
     controls.maxPolarAngle = Math.PI / 2 - 0.02;
     controls.minDistance = 1.2;
     controls.maxDistance = 15;
-    controls.target.set(0, isCameraAR ? 0.35 : 0.65, 0);
+    controls.target.set(0, isCameraAR ? 0.35 : 0.58, isCameraAR ? 0 : -0.15);
     // Keep OrbitControls ENABLED in both 3D Room and Camera AR so swiping outside a piece lets the user orbit 360° around the furniture!
     controls.enabled = true;
     controls.enableZoom = true;
     controls.enableRotate = true;
-    controls.enablePan = true;
+    // Prevent accidental 2-finger/right-click pan from shoving the room off-center in 3D studio mode
+    controls.enablePan = isCameraAR;
     controls.update();
     controlsRef.current = controls;
 
@@ -1013,12 +1081,13 @@ export default function Real3DRoomScene({
       floorReticleRef.current = null;
       const floorMesh = new THREE.Mesh(
         new THREE.BoxGeometry(W + 0.24, 0.14, D + 0.24),
-        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.52, metalness: 0.05 })
+        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.48, metalness: 0.05 })
       );
       floorMesh.position.set(0, -0.07, 0);
       floorMesh.receiveShadow = true;
       scene.add(floorMesh);
 
+      // Back Wall + Left Wall + Right Wall (creates a balanced, symmetrical Limoon Home architectural salon!)
       const backWall = new THREE.Mesh(new THREE.BoxGeometry(W + 0.24, H, 0.12), matWall);
       backWall.position.set(0, H / 2, -D / 2 - 0.06);
       backWall.receiveShadow = true;
@@ -1029,28 +1098,98 @@ export default function Real3DRoomScene({
       leftWall.receiveShadow = true;
       scene.add(leftWall);
 
-      const bbBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.11, 0.025), matBaseboard);
-      bbBack.position.set(0, 0.055, -D / 2 + 0.012);
-      scene.add(bbBack);
-      const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.11, D), matBaseboard);
-      bbLeft.position.set(-W / 2 + 0.012, 0.055, 0);
-      scene.add(bbLeft);
+      const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, D + 0.12), matWall);
+      rightWall.position.set(W / 2 + 0.06, H / 2, 0);
+      rightWall.receiveShadow = true;
+      scene.add(rightWall);
 
-      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.35, 1.55), matBaseboard);
-      winFrame.position.set(-W / 2 + 0.02, 1.48, 0);
+      // Baseboards
+      const bbBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.1, 0.025), matBaseboard);
+      bbBack.position.set(0, 0.05, -D / 2 + 0.012);
+      scene.add(bbBack);
+      const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.1, D), matBaseboard);
+      bbLeft.position.set(-W / 2 + 0.012, 0.05, 0);
+      scene.add(bbLeft);
+      const bbRight = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.1, D), matBaseboard);
+      bbRight.position.set(W / 2 - 0.012, 0.05, 0);
+      scene.add(bbRight);
+
+      // 1. Limoon Home Catalog Signature 3D Geometric / Fluted Accent Wall Panel (Left-Center of Back Wall)
+      const panelMat = new THREE.MeshStandardMaterial({ color: 0xc8beb0, roughness: 0.65 });
+      const woodSlatMat = new THREE.MeshStandardMaterial({ color: 0x6e4c30, roughness: 0.42 });
+      const panelBack = new THREE.Mesh(new THREE.BoxGeometry(1.15, H - 0.08, 0.025), panelMat);
+      panelBack.position.set(-W * 0.22, H / 2 + 0.02, -D / 2 + 0.014);
+      scene.add(panelBack);
+      for (let si = -6; si <= 6; si++) {
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(0.036, H - 0.12, 0.035), si % 2 === 0 ? woodSlatMat : panelMat);
+        slat.position.set(-W * 0.22 + si * 0.085, H / 2 + 0.02, -D / 2 + 0.028);
+        slat.castShadow = true;
+        scene.add(slat);
+      }
+
+      // 2. Limoon Home Catalog Walnut-Framed Minimalist Gallery Artwork (Right-Center of Back Wall)
+      const frameOuter = new THREE.Mesh(new THREE.BoxGeometry(1.08, 1.38, 0.04), woodSlatMat);
+      frameOuter.position.set(W * 0.18, 1.48, -D / 2 + 0.02);
+      frameOuter.castShadow = true;
+      scene.add(frameOuter);
+      const artCanvas = new THREE.Mesh(
+        new THREE.BoxGeometry(0.96, 1.26, 0.046),
+        new THREE.MeshStandardMaterial({ color: 0xf6efe2, roughness: 0.85 })
+      );
+      artCanvas.position.set(W * 0.18, 1.48, -D / 2 + 0.022);
+      scene.add(artCanvas);
+      const artHorizon = new THREE.Mesh(
+        new THREE.BoxGeometry(0.74, 0.06, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0xb5893a, roughness: 0.5 })
+      );
+      artHorizon.position.set(W * 0.18, 1.62, -D / 2 + 0.024);
+      scene.add(artHorizon);
+
+      // 3. Right Window with Warm Architectural Venetian Blinds & Daylight Glow (matching limoon-koltuk-takimi.jpg!)
+      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.75, 1.85), matBaseboard);
+      winFrame.position.set(W / 2 - 0.02, 1.45, 0.15);
       scene.add(winFrame);
       const winGlass = new THREE.Mesh(
-        new THREE.BoxGeometry(0.06, 1.22, 1.42),
-        new THREE.MeshStandardMaterial({ color: 0xd8eeff, emissive: 0xb5deff, emissiveIntensity: 0.45, roughness: 0.1 })
+        new THREE.BoxGeometry(0.055, 1.64, 1.72),
+        new THREE.MeshStandardMaterial({ color: 0xfff8eb, emissive: 0xffeacc, emissiveIntensity: 0.55, roughness: 0.1 })
       );
-      winGlass.position.set(-W / 2 + 0.025, 1.48, 0);
+      winGlass.position.set(W / 2 - 0.025, 1.45, 0.15);
       scene.add(winGlass);
 
-      const rug = new THREE.Mesh(
-        new THREE.BoxGeometry(W * 0.62, 0.014, D * 0.58),
-        new THREE.MeshStandardMaterial({ color: 0xebe3d5, roughness: 0.96 })
+      // 4. Decorative Indoor Botanical Pot in Back-Right Corner
+      const potMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.13, 0.38, 20),
+        new THREE.MeshStandardMaterial({ color: 0xf2eee6, roughness: 0.7 })
       );
-      rug.position.set(0, 0.007, D * 0.04);
+      potMesh.position.set(W * 0.39, 0.19, -D * 0.38);
+      potMesh.castShadow = true;
+      scene.add(potMesh);
+      const foliageMat = new THREE.MeshStandardMaterial({ color: 0x5c7457, roughness: 0.8 });
+      for (const [fx, fy, fz, fr] of [
+        [0, 0.68, 0, 0.24],
+        [-0.12, 0.85, 0.08, 0.19],
+        [0.11, 0.92, -0.06, 0.21],
+      ]) {
+        const leafCluster = new THREE.Mesh(new THREE.SphereGeometry(fr, 14, 12), foliageMat);
+        leafCluster.position.set(W * 0.39 + fx, fy, -D * 0.38 + fz);
+        leafCluster.castShadow = true;
+        scene.add(leafCluster);
+      }
+
+      // 5. Large Centered Cream Woven Showroom Carpet with Subtle Border
+      const rugBorder = new THREE.Mesh(
+        new THREE.BoxGeometry(W * 0.78, 0.012, D * 0.72),
+        new THREE.MeshStandardMaterial({ color: 0xd8cbb8, roughness: 0.94 })
+      );
+      rugBorder.position.set(0, 0.006, D * 0.03);
+      rugBorder.receiveShadow = true;
+      scene.add(rugBorder);
+
+      const rug = new THREE.Mesh(
+        new THREE.BoxGeometry(W * 0.74, 0.016, D * 0.68),
+        new THREE.MeshStandardMaterial({ color: 0xf1ebe0, roughness: 0.96 })
+      );
+      rug.position.set(0, 0.008, D * 0.03);
       rug.receiveShadow = true;
       scene.add(rug);
     }
@@ -1357,6 +1496,11 @@ export default function Real3DRoomScene({
       renderer.setSize(w, h);
     };
     window.addEventListener('resize', handleResize);
+    const resizeObs =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => handleResize())
+        : null;
+    resizeObs?.observe(container);
 
     const targetCameraQuat = new THREE.Quaternion();
     const aimRaycaster = new THREE.Raycaster();
@@ -1462,6 +1606,7 @@ export default function Real3DRoomScene({
 
     return () => {
       cancelAnimationFrame(frameId);
+      resizeObs?.disconnect();
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
@@ -1483,11 +1628,11 @@ export default function Real3DRoomScene({
     const W = roomWidthCm / 100;
     const D = roomDepthCm / 100;
     if (preset === 'corner') {
-      cam.position.set(W * 0.82, 3.45, D * 1.12);
-      ctrl.target.set(0, 0.65, 0);
+      cam.position.set(0, 2.32, D * 1.18);
+      ctrl.target.set(0, 0.58, -0.15);
     } else if (preset === 'walk') {
-      cam.position.set(W * 0.35, 1.48, D * 0.72);
-      ctrl.target.set(-0.2, 0.85, -D * 0.25);
+      cam.position.set(0, 1.48, D * 0.96);
+      ctrl.target.set(0, 0.65, -0.35);
     } else {
       cam.position.set(0, Math.max(W, D) * 1.35, 0.4);
       ctrl.target.set(0, 0, 0);

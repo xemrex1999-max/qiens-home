@@ -5,6 +5,7 @@ import { Box, Layers, Copy, Check, Download } from 'lucide-react';
 import { SHARED_DEMO_PRODUCTS, DemoProduct } from '@/data/demoThemes';
 import ShowroomRoomPlanner, { getDetailedPiecesForProduct } from '@/components/showroom/ShowroomRoomPlanner';
 import { DEFAULT_LIGHT_STUDIO_THEME, StudioThemeColors } from '@/components/showroom/Real3DRoomScene';
+import ShowroomAmbienceToggle from '@/components/shared/ShowroomAmbienceToggle';
 
 export default function EmbedShowroomPage() {
   const defaultSofaProduct =
@@ -123,6 +124,12 @@ export default function EmbedShowroomPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <ShowroomAmbienceToggle
+            accentHex={studioTheme.accentHex}
+            bgHex={studioTheme.bgPage}
+            textHex={studioTheme.textPrimary}
+            borderHex={studioTheme.borderHex}
+          />
           {[
             { id: 'planner', label: '3D Oda & Kamerayla Yerleştir', icon: <Layers size={13} /> },
             { id: '360', label: '360° & 1:1 Lazer AR', icon: <Box size={13} /> },

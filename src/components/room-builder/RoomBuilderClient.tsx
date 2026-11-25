@@ -556,7 +556,7 @@ export default function RoomBuilderClient() {
                 key={item.instanceId}
                 item={item}
                 isActive={activeInstanceId === item.instanceId}
-                canvasRef={canvasRef}
+                canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
                 setActiveInstanceId={setActiveInstanceId}
                 handleRotateItem={handleRotateItem}
                 handleScaleItem={handleScaleItem}

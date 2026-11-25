@@ -280,7 +280,9 @@
 
   function open3DModal() {
     attachParentGyroBridge();
-    if (!iframe3d.getAttribute('src')) iframe3d.setAttribute('src', EMBED_3D_URL);
+    if (!iframe3d.getAttribute('src')) {
+      iframe3d.setAttribute('src', EMBED_3D_URL + '&v=' + Date.now());
+    }
     modal3d.classList.add('open');
   }
 

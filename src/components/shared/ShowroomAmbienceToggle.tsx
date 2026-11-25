@@ -152,7 +152,7 @@ export default function ShowroomAmbienceToggle({
       style={
         isPlaying
           ? { backgroundColor: accentHex, color: '#FFFFFF', borderColor: accentHex }
-          : { backgroundColor: bgHex, color: textHex, borderColor }
+          : { backgroundColor: bgHex, color: textHex, borderColor: borderHex }
       }
       title={isPlaying ? 'Mağaza Ambiyans Müziğini Kapat' : 'Mağaza Ambiyans Müziğini Aç'}
     >

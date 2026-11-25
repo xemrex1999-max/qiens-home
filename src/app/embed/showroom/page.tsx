@@ -149,31 +149,32 @@ export default function EmbedShowroomPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <ShowroomAmbienceToggle
             accentHex={studioTheme.accentHex}
             bgHex={studioTheme.bgPage}
             textHex={studioTheme.textPrimary}
             borderHex={studioTheme.borderHex}
           />
-          {[
-            { id: 'planner', label: '3D Oda & Kamerayla Yerleştir', icon: <Layers size={13} /> },
-            { id: '360', label: '360° & 1:1 Lazer AR', icon: <Box size={13} /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id as 'planner' | '360')}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border"
-              style={
-                tab === item.id
-                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
-                  : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-              }
-            >
-              {item.icon} {item.label}
-            </button>
-          ))}
+          {!isInlineProductMode &&
+            [
+              { id: 'planner', label: '3D Oda', icon: <Layers size={13} /> },
+              { id: '360', label: '360° İncele', icon: <Box size={13} /> },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id as 'planner' | '360')}
+                className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border"
+                style={
+                  tab === item.id
+                    ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                    : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                }
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
         </div>
       </div>
 

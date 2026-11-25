@@ -1831,240 +1831,74 @@ export default function Real3DRoomScene({
         />
       </div>
 
-      {/* Prominent Top-Left Piece-by-Piece & Custom-Layout Floor AR Controls */}
-      <div className={`absolute ${isFullScreen ? 'top-16' : 'top-3'} left-3 z-30 flex flex-col items-start gap-1.5`}>
-        <div className="flex flex-wrap items-center gap-1.5">
+      {/* Minimal Single Top-Left AR Pill & Top-Right Swatch Dots (zero clutter on canvas!) */}
+      {!isFullScreen && (
+        <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
           <button
             type="button"
             onClick={() => (webXRSupported ? setShowWebXRAR(true) : launchNativeHardwareFloorAR('single'))}
-            className="px-3.5 py-2 rounded-full text-xs font-bold shadow-lg border flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 text-white"
+            className="pointer-events-auto px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md border flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 text-white"
             style={{
               backgroundColor: '#10b981',
               borderColor: '#059669',
             }}
-            title="Her parçayı gerçek zemine ayrı ayrı oturtun, çevirin ve boyutlandırın"
           >
-            <Box size={14} />
+            <Box size={13} />
             <span>
-              {webXRSupported
-                ? 'Canlı AR: Parça Parça Yerleştir & Çevir'
-                : isExportingAR
-                ? 'Zemine Hazırlanıyor...'
+              {isExportingAR
+                ? 'Hazırlanıyor...'
                 : activePieceObj
-                ? `${activePieceObj.shortName} (${Math.round(
-                    activePieceObj.widthCm * (activePieceObj.scale ?? 1)
-                  )}×${Math.round(
-                    activePieceObj.depthCm * (activePieceObj.scale ?? 1)
-                  )} cm) Zemine Oturt (AR)`
-                : 'Tek Tek Gerçek Zemine Oturt (AR)'}
+                ? `${activePieceObj.shortName} • Zemine Oturt (AR)`
+                : 'Zemine Oturt (AR)'}
             </span>
           </button>
 
-          {placedPieces.length > 1 && !webXRSupported && (
-            <button
-              type="button"
-              onClick={() => launchNativeHardwareFloorAR('all')}
-              className="px-3 py-2 rounded-full text-[11px] font-bold shadow-md border flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
-              style={{
-                backgroundColor: studioTheme.bgCard,
-                color: studioTheme.textPrimary,
-                borderColor: studioTheme.accentHex,
-              }}
-              title="Dizdiğiniz tüm parçaları ayarladığınız konum ve ölçülerle birlikte gerçek zemine oturtun"
-            >
-              <Box size={13} style={{ color: studioTheme.accentHex }} />
-              <span>Dizdiğin {placedPieces.length} Parçayı Beraber AR&apos;da Aç</span>
-            </button>
-          )}
-        </div>
-
-        {/* 1-Tap Single Piece AR Selector when user taps "Tek Tek Gerçek Zemine Oturt (AR)" while room is empty */}
-        {showSingleArPicker && availablePieces.length > 0 && (
-          <div
-            className="rounded-2xl p-2.5 shadow-xl border flex flex-wrap items-center gap-1.5 max-w-md"
-            style={{
-              backgroundColor: `${studioTheme.bgCard}F8`,
-              color: studioTheme.textPrimary,
-              borderColor: studioTheme.accentHex,
-            }}
-          >
-            <span className="text-[11px] font-bold w-full px-1" style={{ color: studioTheme.accentHex }}>
-              Hangi parçayı tek başına halınıza/zemine oturtmak istersiniz?
-            </span>
-            {availablePieces.map((spec) => (
-              <button
-                key={spec.id}
-                type="button"
-                onClick={() => launchNativeHardwareFloorAR('single', spec)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold border cursor-pointer flex items-center gap-1 transition-all hover:opacity-90"
-                style={{
-                  backgroundColor: studioTheme.bgPage,
-                  color: studioTheme.textPrimary,
-                  borderColor: studioTheme.borderHex,
-                }}
-              >
-                <Box size={11} style={{ color: '#10b981' }} />
-                <span>
-                  {spec.shortName} ({spec.widthCm}×{spec.depthCm} cm)
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Minimal Top-Right Controls in Inline 3D View (no overlapping on mobile!) */}
-      {!isFullScreen && (
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setShowStylePanel(!showStylePanel)}
-            className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs"
+            className="pointer-events-auto px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs"
             style={{
               backgroundColor: studioTheme.bgCard,
               color: studioTheme.textPrimary,
               borderColor: studioTheme.borderHex,
             }}
+            title="Kumaş Rengi Değiştir"
           >
             <Palette size={13} style={{ color: studioTheme.accentHex }} />
-            <span className="hidden sm:inline">Renk &amp; Kumaş</span>
+            <span className="hidden sm:inline">{activeColorName}</span>
           </button>
-          {placedPieces.some((p) => p.type === 'wardrobe' || p.type === 'bed' || p.type === 'table' || p.type === 'console' || p.type === 'dresser') && (
-            <button
-              type="button"
-              onClick={onToggleAllOpen}
-              className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all hidden sm:flex items-center gap-1.5 cursor-pointer border shadow-xs"
-              style={{
-                backgroundColor: studioTheme.bgCard,
-                color: studioTheme.textPrimary,
-                borderColor: studioTheme.borderHex,
-              }}
-            >
-              <DoorOpen size={13} style={{ color: studioTheme.accentHex }} /> Kapak / Baza Aç
-            </button>
-          )}
         </div>
       )}
 
-      {/* Live 3D Wall / Floor / Fabric Customizer Popover */}
+      {/* Compact Fabric Color Swatch Popover (removed unused wall/parquet pickers) */}
       {showStylePanel && (
         <div
-          className="absolute top-14 right-3 z-30 w-64 rounded-2xl p-4 space-y-3.5 shadow-xl border"
+          className="absolute top-13 right-3 z-30 rounded-2xl p-3 shadow-xl border"
           style={{
             backgroundColor: studioTheme.bgCard,
             color: studioTheme.textPrimary,
             borderColor: studioTheme.borderHex,
           }}
         >
-          <div>
-            <div className="text-[11px] font-semibold mb-1.5" style={{ color: studioTheme.textMuted }}>
-              Kumaş &amp; Ahşap ({activeColorName})
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {FABRIC_SWATCH_LIST.map((f) => (
-                <button
-                  key={f.name}
-                  type="button"
-                  onClick={() => { setLocalColor(f.name); onChangeColor?.(f.name); }}
-                  title={f.name}
-                  className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${
-                    activeColorName === f.name ? 'scale-110' : ''
-                  }`}
-                  style={{
-                    backgroundColor: f.hex,
-                    borderColor: activeColorName === f.name ? studioTheme.accentHex : studioTheme.borderHex,
-                  }}
-                />
-              ))}
-            </div>
+          <div className="text-[11px] font-semibold mb-2" style={{ color: studioTheme.textMuted }}>
+            Kumaş &amp; Ahşap: {activeColorName}
           </div>
-          {!isCameraAR && (
-            <>
-              <div>
-                <div className="text-[11px] font-semibold mb-1.5" style={{ color: studioTheme.textMuted }}>
-                  Duvar Rengi
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {WALL_COLOR_OPTIONS.map((w, idx) => (
-                    <button
-                      key={w.name}
-                      type="button"
-                      onClick={() => setWallIdx(idx)}
-                      title={w.name}
-                      className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${
-                        wallIdx === idx ? 'scale-110' : ''
-                      }`}
-                      style={{
-                        backgroundColor: w.hex,
-                        borderColor: wallIdx === idx ? studioTheme.accentHex : studioTheme.borderHex,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold mb-1.5" style={{ color: studioTheme.textMuted }}>
-                  Zemin Parke
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {FLOOR_TONE_OPTIONS.map((fl, idx) => (
-                    <button
-                      key={fl.name}
-                      type="button"
-                      onClick={() => setFloorIdx(idx)}
-                      title={fl.name}
-                      className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${
-                        floorIdx === idx ? 'scale-110' : ''
-                      }`}
-                      style={{
-                        backgroundColor: fl.hex,
-                        borderColor: floorIdx === idx ? studioTheme.accentHex : studioTheme.borderHex,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Subtle Bottom Camera Angle Bar in 3D Room View */}
-      {!isFullScreen && !isCameraAR && (
-        <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
-          <div
-            className="flex items-center gap-1 p-1 rounded-full pointer-events-auto text-[11px] font-medium border shadow-xs"
-            style={{
-              backgroundColor: `${studioTheme.bgCard}E6`,
-              color: studioTheme.textPrimary,
-              borderColor: studioTheme.borderHex,
-            }}
-          >
-            <button type="button" onClick={() => setCameraPreset('corner')} className="px-3 py-1 rounded-full hover:opacity-75 flex items-center gap-1 cursor-pointer">
-              <Compass size={12} /> Köşe
-            </button>
-            <button type="button" onClick={() => setCameraPreset('walk')} className="px-3 py-1 rounded-full hover:opacity-75 flex items-center gap-1 cursor-pointer">
-              <Eye size={12} /> Göz Hizası
-            </button>
-            <button type="button" onClick={() => setCameraPreset('top')} className="px-3 py-1 rounded-full hover:opacity-75 flex items-center gap-1 cursor-pointer">
-              <RotateCcw size={12} /> Üstten
-            </button>
-          </div>
-
-          <div
-            className="flex items-center gap-1 p-1 rounded-full pointer-events-auto border shadow-xs"
-            style={{
-              backgroundColor: `${studioTheme.bgCard}E6`,
-              color: studioTheme.textPrimary,
-              borderColor: studioTheme.borderHex,
-            }}
-          >
-            <button type="button" onClick={() => adjustZoom(0.82)} className="p-1.5 rounded-full hover:opacity-75 cursor-pointer" title="Yakınlaş">
-              <ZoomIn size={14} />
-            </button>
-            <button type="button" onClick={() => adjustZoom(1.22)} className="p-1.5 rounded-full hover:opacity-75 cursor-pointer" title="Uzaklaş">
-              <ZoomOut size={14} />
-            </button>
+          <div className="flex items-center gap-2">
+            {FABRIC_SWATCH_LIST.map((f) => (
+              <button
+                key={f.name}
+                type="button"
+                onClick={() => { setLocalColor(f.name); onChangeColor?.(f.name); setShowStylePanel(false); }}
+                title={f.name}
+                className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-transform ${
+                  activeColorName === f.name ? 'scale-110' : ''
+                }`}
+                style={{
+                  backgroundColor: f.hex,
+                  borderColor: activeColorName === f.name ? studioTheme.accentHex : studioTheme.borderHex,
+                }}
+              />
+            ))}
           </div>
         </div>
       )}

@@ -127,15 +127,18 @@
   }
 
   function broadcastMusicState() {
-    const btn = document.getElementById('lmw-header-sound-btn');
-    if (btn) {
-      btn.innerHTML = musicPlaying
-        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>'
-        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
-      btn.style.color = musicPlaying ? '#B5893A' : '#333';
-      btn.style.borderColor = musicPlaying ? '#B5893A' : 'rgba(0,0,0,0.12)';
+    const iconSvg = musicPlaying
+      ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>'
+      : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
+
+    document.querySelectorAll('.lmw-sound-toggle-btn').forEach(function (btn) {
+      btn.innerHTML = iconSvg;
+      btn.style.color = musicPlaying ? '#B5893A' : '#261E19';
+      btn.style.borderColor = musicPlaying ? '#B5893A' : 'rgba(38,30,25,0.18)';
+      btn.style.background = musicPlaying ? 'rgba(181,137,58,0.12)' : 'transparent';
       btn.title = musicPlaying ? 'Mağaza Müziğini Kapat' : 'Mağaza Müziğini Aç';
-    }
+    });
+
     document.querySelectorAll('iframe').forEach(function (ifr) {
       try {
         if (ifr.contentWindow) {
@@ -225,41 +228,38 @@
     }
   });
 
-  // Mount minimal Sound Icon right inside the WordPress Top Header (next to User Account icon)
+  // Mount minimal Sound Icon inside ALL WoodMart header rows (both desktop and mobile!) + beside the 3D button in product summary
   function mountHeaderSoundIcon() {
-    if (document.getElementById('lmw-header-sound-btn')) return;
-    const accountEl = document.querySelector('.wd-header-my-account') || document.querySelector('.whb-general-header-inner');
-    if (!accountEl) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'lmw-header-sound-btn';
-    btn.type = 'button';
-    btn.style.cssText =
-      'width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,0.12);background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px;margin-right:4px;padding:0;transition:all .2s;';
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleStoreMusic();
+    const accountEls = document.querySelectorAll('.wd-header-my-account');
+    accountEls.forEach(function (accountEl, idx) {
+      const btnId = 'lmw-header-sound-btn-' + idx;
+      if (document.getElementById(btnId)) return;
+      const btn = document.createElement('button');
+      btn.id = btnId;
+      btn.type = 'button';
+      btn.className = 'lmw-sound-toggle-btn';
+      btn.style.cssText =
+        'width:34px;height:34px;border-radius:50%;border:1px solid rgba(38,30,25,0.18);background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px;margin-right:4px;padding:0;transition:all .2s;vertical-align:middle;';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleStoreMusic();
+      });
+      if (accountEl.parentElement) {
+        accountEl.parentElement.insertBefore(btn, accountEl);
+      }
     });
-
-    if (accountEl.classList.contains('wd-header-my-account') && accountEl.parentElement) {
-      accountEl.parentElement.insertBefore(btn, accountEl);
-    } else {
-      accountEl.appendChild(btn);
-    }
     broadcastMusicState();
   }
 
-  // 2. INLINE 3D SHOWROOM & ODANDA GÖR (AR) DIRECTLY INSIDE WORDPRESS PRODUCT PAGES (e.g. Bonbon Koltuk Takımı)
+  // 2. CLEAN "3D İNCELE & ODANDA GÖR (AR)" BUTTON INSIDE PRODUCT SUMMARY (OPENS CLEAN POP-UP MODAL — NO GIANT INLINE BOX BELOW DESCRIPTION!)
   function mountInlineProduct3DShowroom() {
-    if (document.getElementById('lmw-inline-product-3d')) return;
     const productPage = document.querySelector('.single-product-page') || document.querySelector('.single-product');
     if (!productPage) return;
 
     const titleEl = document.querySelector('h1.product_title') || document.querySelector('.entry-title');
     const productName = titleEl ? (titleEl.textContent || '').trim() : 'Limoon Home Koleksiyonu';
 
-    // Determine category from body/product classes or title
     const classBlob = (productPage.className + ' ' + document.body.className + ' ' + productName).toLowerCase();
     let categoryParam = 'koltuk';
     if (classBlob.includes('yemek') || classBlob.includes('masa') || classBlob.includes('konsol') || classBlob.includes('sandalye')) {
@@ -268,16 +268,13 @@
       categoryParam = 'yatak';
     }
 
-    const iframeUrl =
+    const productModalUrl =
       BASE_EMBED_3D_URL +
       '&inline=1&urun=' +
       encodeURIComponent(productName) +
       '&kategori=' +
-      encodeURIComponent(categoryParam) +
-      '&v=' +
-      Date.now();
+      encodeURIComponent(categoryParam);
 
-    // A) Add sleek quick-scroll CTA button right under the product's Add-to-Cart / Summary block
     const summaryTarget =
       document.querySelector('.wd-single-add-cart') ||
       document.querySelector('.product_meta') ||
@@ -286,46 +283,29 @@
     if (summaryTarget && !document.getElementById('lmw-product-summary-cta')) {
       const ctaBar = document.createElement('div');
       ctaBar.id = 'lmw-product-summary-cta';
-      ctaBar.style.cssText = 'margin:16px 0;display:flex;flex-wrap:wrap;gap:10px;';
+      ctaBar.style.cssText = 'margin:16px 0;display:flex;align-items:center;gap:8px;';
       ctaBar.innerHTML = `
-        <button type="button" id="lmw-scroll-to-3d" style="flex:1;min-width:210px;padding:13px 18px;border-radius:12px;border:1.5px solid #B5893A;background:#FAF7F2;color:#261E19;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(181,137,58,0.12);transition:all .2s;">
+        <button type="button" id="lmw-open-product-3d-modal" style="flex:1;min-width:190px;padding:13px 18px;border-radius:12px;border:1.5px solid #B5893A;background:#FAF7F2;color:#261E19;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(181,137,58,0.12);transition:all .2s;">
           <span>🧊 3D İncele &amp; Odanda Gör (AR)</span>
         </button>
+        <button type="button" id="lmw-summary-sound-btn" class="lmw-sound-toggle-btn" style="width:44px;height:44px;border-radius:12px;border:1.5px solid rgba(38,30,25,0.18);background:#FAF7F2;color:#261E19;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;" title="Mağaza Müziğini Aç / Kapat"></button>
       `;
       summaryTarget.parentNode.insertBefore(ctaBar, summaryTarget.nextSibling);
-      const scrollBtn = document.getElementById('lmw-scroll-to-3d');
-      if (scrollBtn) {
-        scrollBtn.addEventListener('click', function () {
-          const sec = document.getElementById('lmw-inline-product-3d');
-          if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const openBtn = document.getElementById('lmw-open-product-3d-modal');
+      if (openBtn) {
+        openBtn.addEventListener('click', function () {
+          open3DModal(productModalUrl);
         });
       }
-    }
-
-    // B) Embed the actual 3D Showroom & AR Studio section directly inside the product page (right above Related Products carousel!)
-    const section = document.createElement('div');
-    section.id = 'lmw-inline-product-3d';
-    section.style.cssText =
-      'width:100%;max-width:1320px;margin:28px auto 36px;border-radius:24px;overflow:hidden;border:1px solid #E4DCCF;background:#F6F3EC;box-shadow:0 16px 48px rgba(38,30,25,0.08);';
-    section.innerHTML = `
-      <iframe
-        id="lmw-inline-iframe-3d"
-        src="${iframeUrl}"
-        style="width:100%;height:810px;border:0;display:block;"
-        allow="camera; accelerometer; gyroscope; magnetometer; xr-spatial-tracking; fullscreen"
-        loading="lazy"
-      ></iframe>
-    `;
-
-    const relatedCarousel =
-      document.querySelector('.wd-products-element') ||
-      document.querySelector('.related.products') ||
-      document.querySelector('#carousel-719');
-
-    if (relatedCarousel && relatedCarousel.parentNode) {
-      relatedCarousel.parentNode.insertBefore(section, relatedCarousel);
-    } else {
-      productPage.appendChild(section);
+      const sumSoundBtn = document.getElementById('lmw-summary-sound-btn');
+      if (sumSoundBtn) {
+        sumSoundBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleStoreMusic();
+        });
+      }
+      broadcastMusicState();
     }
   }
 
@@ -491,9 +471,10 @@
   }
   attachParentGyroBridge();
 
-  function open3DModal() {
-    if (!iframe3d.getAttribute('src')) {
-      iframe3d.setAttribute('src', BASE_EMBED_3D_URL + '&v=' + Date.now());
+  function open3DModal(customUrl) {
+    const target = (customUrl || BASE_EMBED_3D_URL) + '&v=' + Date.now();
+    if (iframe3d.getAttribute('src') !== target) {
+      iframe3d.setAttribute('src', target);
     }
     modal3d.classList.add('open');
   }

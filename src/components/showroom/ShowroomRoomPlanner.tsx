@@ -545,7 +545,8 @@ export default function ShowroomRoomPlanner({
     </div>
   );
 
-  // Compact Centered Bottom Dock with Live Centimeter Readout + Floor Height Calibration + Lock/Unlock + Rotate + Scale
+  // Minimalist Bottom Bar: Shows Piece Name + Live cm Dimensions + 1 "Boyut & Yön Ayarla" Drawer Toggle + "Sipariş"
+  // (All sliders are collapsed by default so the screen stays calm and uncluttered!)
   const renderCenteredBottomDock = (piece: PlacedPiece) => {
     const s = piece.scale ?? 1.0;
     const curScalePct = Math.round(s * 100);
@@ -556,194 +557,176 @@ export default function ShowroomRoomPlanner({
 
     return (
       <div
-        className="max-w-4xl mx-auto rounded-2xl px-3.5 py-2.5 border shadow-lg flex flex-wrap items-center justify-between gap-2.5"
+        className="max-w-3xl mx-auto rounded-2xl px-3.5 py-2.5 border shadow-md space-y-2.5"
         style={{
-          backgroundColor: `${studioTheme.bgCard}F5`,
+          backgroundColor: `${studioTheme.bgCard}F8`,
           color: studioTheme.textPrimary,
           borderColor: studioTheme.borderHex,
         }}
       >
-        {/* Left: Piece Name + Live Centimeter Dimensions + Playable Lock Toggle */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => toggleLockPiece(piece.instanceId)}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 cursor-pointer border transition-all"
-            style={
-              piece.isLocked
-                ? { backgroundColor: '#10b981', color: '#FFFFFF', borderColor: '#10b981' }
-                : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
-            }
-            title="Sabitle / Oynatmak için kilidi aç"
-          >
-            {piece.isLocked ? <Lock size={12} /> : <Unlock size={12} style={{ color: studioTheme.accentHex }} />}
-            <span>{piece.isLocked ? 'Sabit (Oynat)' : 'Sabitle'}</span>
-          </button>
-
-          <div>
-            <div className="text-xs font-bold leading-tight">{piece.shortName}</div>
-            <div className="text-[11px] font-semibold" style={{ color: studioTheme.accentHex }}>
-              {liveW} × {liveD} × {liveH} cm
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="truncate">
+              <span className="text-xs font-bold">{piece.shortName}</span>
+              <span className="text-xs font-semibold ml-2" style={{ color: studioTheme.accentHex }}>
+                {liveW} × {liveD} × {liveH} cm
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Center: Boyut (with live cm & %) + Zemin Hizası (cm) + 360° Çevir */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Scale Slider with Live Centimeter Display */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
-            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-          >
-            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Boyut:</span>
-            <button
-              type="button"
-              onClick={() => updatePieceScale(piece.instanceId, s - 0.08)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Küçült"
-            >
-              <Minus size={10} />
-            </button>
-            <input
-              type="range"
-              min={50}
-              max={180}
-              step={5}
-              value={curScalePct}
-              onChange={(e) => updatePieceScale(piece.instanceId, Number(e.target.value) / 100)}
-              className="w-14 sm:w-20 cursor-pointer"
-              style={{ accentColor: studioTheme.accentHex }}
-            />
-            <button
-              type="button"
-              onClick={() => updatePieceScale(piece.instanceId, s + 0.08)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Büyüt"
-            >
-              <Plus size={10} />
-            </button>
-            <span className="text-[10px] font-bold whitespace-nowrap">
-              {liveW}×{liveD}cm
-            </span>
-          </div>
-
-          {/* Floor Height / Contact Calibration (Zemin Mesafesi İnce Ayarı) */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
-            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-            title="Koltuğun halı/zemin ile dikey oturma hizasını ayarlayın"
-          >
-            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Zemin:</span>
-            <button
-              type="button"
-              onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset - 3)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Zemine Daha Aşağı Oturt"
-            >
-              <Minus size={10} />
-            </button>
-            <input
-              type="range"
-              min={-35}
-              max={35}
-              step={1}
-              value={curFloorOffset}
-              onChange={(e) => updatePieceFloorOffset(piece.instanceId, Number(e.target.value))}
-              className="w-12 sm:w-16 cursor-pointer"
-              style={{ accentColor: '#10b981' }}
-            />
-            <button
-              type="button"
-              onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset + 3)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-              title="Zeminden Yukarı Kaldır"
-            >
-              <Plus size={10} />
-            </button>
-            <button
-              type="button"
-              onClick={() => updatePieceFloorOffset(piece.instanceId, 0)}
-              className="text-[10px] font-bold whitespace-nowrap cursor-pointer underline"
-              style={{ color: curFloorOffset === 0 ? studioTheme.textPrimary : '#10b981' }}
-              title="Sıfır Noktasına Oturt"
-            >
-              {curFloorOffset > 0 ? `+${curFloorOffset}cm` : `${curFloorOffset}cm`}
-            </button>
-          </div>
-
-          {/* 360° Rotation Slider */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
-            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-          >
-            <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Yön:</span>
-            <button
-              type="button"
-              onClick={() => rotatePieceById(piece.instanceId, -30)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-            >
-              <RotateCcw size={10} />
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={355}
-              step={5}
-              value={piece.rotation}
-              onChange={(e) => setPieceRotation(piece.instanceId, Number(e.target.value))}
-              className="w-14 sm:w-18 cursor-pointer"
-              style={{ accentColor: studioTheme.accentHex }}
-            />
-            <button
-              type="button"
-              onClick={() => rotatePieceById(piece.instanceId, 30)}
-              className="w-5 h-5 rounded-full flex items-center justify-center hover:opacity-75 cursor-pointer"
-              style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
-            >
-              <RotateCw size={10} />
-            </button>
-            <span className="text-[10px] font-bold w-7 text-right">{piece.rotation}°</span>
-          </div>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1.5">
-          {!isCameraAR && (
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={() => setShowSizingDrawer(!showSizingDrawer)}
-              className="px-2.5 py-1.5 rounded-full text-[11px] font-semibold border flex items-center gap-1 cursor-pointer"
-              style={{
-                backgroundColor: showSizingDrawer ? studioTheme.accentHex : studioTheme.bgPage,
-                color: showSizingDrawer ? '#FFFFFF' : studioTheme.textPrimary,
-                borderColor: studioTheme.borderHex,
-              }}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all"
+              style={
+                showSizingDrawer
+                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', borderColor: studioTheme.accentHex }
+                  : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+              }
             >
-              <Ruler size={12} /> Ölçü
+              <Ruler size={12} />
+              <span>{showSizingDrawer ? 'Ayarları Gizle' : 'Boyut & Yön Ayarla'}</span>
             </button>
-          )}
-          <button
-            type="button"
-            onClick={removeActivePiece}
-            className="p-1.5 rounded-full border hover:opacity-80 cursor-pointer text-red-600"
-            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-            title="Kaldır"
-          >
-            <Trash2 size={13} />
-          </button>
-          <button
-            type="button"
-            onClick={sendCustomParametricWhatsApp}
-            className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer"
-          >
-            <MessageCircle size={12} /> Sipariş
-          </button>
+
+            <button
+              type="button"
+              onClick={sendCustomParametricWhatsApp}
+              className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+            >
+              <MessageCircle size={12} />
+              <span>WhatsApp Sipariş</span>
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible Sliders Drawer (ONLY visible when user clicks "Boyut & Yön Ayarla") */}
+        {showSizingDrawer && (
+          <div
+            className="pt-2.5 border-t flex flex-wrap items-center justify-between gap-2"
+            style={{ borderColor: studioTheme.borderHex }}
+          >
+            {/* Scale Slider */}
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
+              style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+            >
+              <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Boyut:</span>
+              <button
+                type="button"
+                onClick={() => updatePieceScale(piece.instanceId, s - 0.08)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <Minus size={10} />
+              </button>
+              <input
+                type="range"
+                min={50}
+                max={180}
+                step={5}
+                value={curScalePct}
+                onChange={(e) => updatePieceScale(piece.instanceId, Number(e.target.value) / 100)}
+                className="w-16 cursor-pointer"
+                style={{ accentColor: studioTheme.accentHex }}
+              />
+              <button
+                type="button"
+                onClick={() => updatePieceScale(piece.instanceId, s + 0.08)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <Plus size={10} />
+              </button>
+              <span className="text-[10px] font-bold">%{curScalePct}</span>
+            </div>
+
+            {/* 360° Rotation Slider */}
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs"
+              style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+            >
+              <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Yön:</span>
+              <button
+                type="button"
+                onClick={() => rotatePieceById(piece.instanceId, -30)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <RotateCcw size={10} />
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={355}
+                step={5}
+                value={piece.rotation}
+                onChange={(e) => setPieceRotation(piece.instanceId, Number(e.target.value))}
+                className="w-16 cursor-pointer"
+                style={{ accentColor: studioTheme.accentHex }}
+              />
+              <button
+                type="button"
+                onClick={() => rotatePieceById(piece.instanceId, 30)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <RotateCw size={10} />
+              </button>
+              <span className="text-[10px] font-bold w-7 text-right">{piece.rotation}°</span>
+            </div>
+
+            {/* Floor Height Offset */}
+            <div
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs"
+              style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+            >
+              <span className="text-[10px] font-semibold" style={{ color: studioTheme.textMuted }}>Zemin:</span>
+              <button
+                type="button"
+                onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset - 2)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <Minus size={10} />
+              </button>
+              <span className="text-[10px] font-bold px-1">{curFloorOffset}cm</span>
+              <button
+                type="button"
+                onClick={() => updatePieceFloorOffset(piece.instanceId, curFloorOffset + 2)}
+                className="w-5 h-5 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary }}
+              >
+                <Plus size={10} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => toggleLockPiece(piece.instanceId)}
+                className="px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 cursor-pointer border"
+                style={
+                  piece.isLocked
+                    ? { backgroundColor: '#10b981', color: '#FFFFFF', borderColor: '#10b981' }
+                    : { backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }
+                }
+              >
+                {piece.isLocked ? <Lock size={11} /> : <Unlock size={11} />}
+                <span>{piece.isLocked ? 'Sabit' : 'Sabitle'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={removeActivePiece}
+                className="p-1.5 rounded-full border hover:opacity-80 cursor-pointer text-red-600"
+                style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
+                title="Parçayı Kaldır"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -820,46 +803,6 @@ export default function ShowroomRoomPlanner({
             <Camera size={13} />
             <span>Odanda Gör (Kamera)</span>
           </button>
-
-          <div
-            className="inline-flex rounded-full border p-0.5 text-[11px] font-medium"
-            style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-          >
-            <button
-              type="button"
-              onClick={() => { setInlineViewMode('real3d'); setIsCameraAR(false); }}
-              className="px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
-              style={
-                inlineViewMode === 'real3d' && !isCameraAR
-                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', fontWeight: 600 }
-                  : { color: studioTheme.textMuted }
-              }
-            >
-              3D
-            </button>
-            <button
-              type="button"
-              onClick={() => { setInlineViewMode('plan'); setIsCameraAR(false); }}
-              className="px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
-              style={
-                inlineViewMode === 'plan'
-                  ? { backgroundColor: studioTheme.accentHex, color: '#FFFFFF', fontWeight: 600 }
-                  : { color: studioTheme.textMuted }
-              }
-            >
-              2D
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setExpandedRoomModal(true)}
-            className="p-1.5 rounded-full border hover:opacity-80 cursor-pointer"
-            style={{ backgroundColor: studioTheme.bgPage, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
-            title="Tam Ekran"
-          >
-            <Maximize2 size={13} />
-          </button>
         </div>
       </div>
 
@@ -918,58 +861,6 @@ export default function ShowroomRoomPlanner({
 
       {/* 3. CENTERED BOTTOM DOCK */}
       {activePiece && renderCenteredBottomDock(activePiece)}
-
-      {/* OPTIONAL COLLAPSIBLE CM SIZING DRAWER */}
-      {activePiece && showSizingDrawer && (() => {
-        const origSpec = availablePieces.find((s) => s.id === activePiece.id);
-        const bounds = getParametricBounds(activePiece, origSpec);
-        return (
-          <div
-            className="rounded-2xl p-4 border space-y-3"
-            style={{ backgroundColor: studioTheme.bgCard, color: studioTheme.textPrimary, borderColor: studioTheme.borderHex }}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="font-semibold">{activePiece.name} — Özel Üretim Santim Ayarı</span>
-              <button
-                type="button"
-                onClick={resetActivePieceDims}
-                className="text-xs underline cursor-pointer"
-                style={{ color: studioTheme.accentHex }}
-              >
-                Standart Ölçüye Dön
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { label: 'Genişlik', field: 'widthCm' as const, min: bounds.wMin, max: bounds.wMax, val: activePiece.widthCm },
-                { label: 'Derinlik', field: 'depthCm' as const, min: bounds.dMin, max: bounds.dMax, val: activePiece.depthCm },
-                { label: 'Yükseklik', field: 'heightCm' as const, min: bounds.hMin, max: bounds.hMax, val: activePiece.heightCm },
-              ].map((dim) => (
-                <div
-                  key={dim.field}
-                  className="rounded-xl p-2.5 border"
-                  style={{ backgroundColor: studioTheme.bgPage, borderColor: studioTheme.borderHex }}
-                >
-                  <div className="flex justify-between text-xs font-medium mb-1">
-                    <span>{dim.label}</span>
-                    <span className="font-bold" style={{ color: studioTheme.accentHex }}>{dim.val} cm</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={dim.min}
-                    max={dim.max}
-                    step={2}
-                    value={dim.val}
-                    onChange={(e) => updateActivePieceDim(dim.field, Number(e.target.value))}
-                    className="w-full cursor-pointer"
-                    style={{ accentColor: studioTheme.accentHex }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
 
       {/* 4. 100% EDGE-TO-EDGE FULL-SCREEN CAMERA AR STUDIO (WITH CENTERED TOP CAPSULE & CENTERED BOTTOM DOCK) */}
       {expandedRoomModal && (

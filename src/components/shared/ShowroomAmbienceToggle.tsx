@@ -139,23 +139,21 @@ export default function ShowroomAmbienceToggle({
     };
   }, []);
 
-  // If embedded inline inside a WordPress product page, the main WordPress header already has the music button, so don't duplicate it!
-  if (isEmbeddedInParent) return null;
-
   return (
     <button
       type="button"
       data-ambience-toggle
       onClick={toggleMusic}
-      className="p-2 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer border"
+      className="px-2.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 justify-center transition-all cursor-pointer border"
       style={
         isPlaying
           ? { backgroundColor: accentHex, color: '#FFFFFF', borderColor: accentHex }
           : { backgroundColor: bgHex, color: textHex, borderColor: borderHex }
       }
-      title={isPlaying ? 'Müziği Kapat' : 'Mağaza Müziğini Aç'}
+      title={isPlaying ? 'Mağaza Müziğini Kapat' : 'Mağaza Müziğini Aç'}
     >
       {isPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
+      <span className="hidden sm:inline">{isPlaying ? 'Müzik Açık' : 'Müzik'}</span>
     </button>
   );
 }

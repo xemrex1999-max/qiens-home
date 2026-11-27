@@ -290,9 +290,9 @@
 
   function mountHeaderMusic() {
     if (document.querySelector('.lm2-sound-wrap')) { updateSoundUI(); return; }
-    var acc = document.querySelector('.wd-header-my-account');
-    var desktopCol = document.querySelector('.whb-general-header .whb-col-right.whb-visible-lg, .whb-header .whb-col-right.whb-visible-lg');
-    var mobileCol = document.querySelector('.whb-general-header .whb-col-right.whb-hidden-lg');
+    var desktopBottomRight = document.querySelector('.whb-header-bottom .whb-col-right.whb-visible-lg');
+    var desktopTopRight = document.querySelector('.whb-general-header .whb-col-right.whb-visible-lg');
+    var mobileAcc = document.querySelector('.whb-mobile-right .wd-header-my-account, .wd-header-my-account');
 
     var wrap = document.createElement('span');
     wrap.className = 'lm2-sound-wrap';
@@ -309,15 +309,23 @@
     wrap.appendChild(btn);
     wrap.appendChild(nbtn);
 
-    if (acc && acc.offsetParent !== null && acc.parentElement) {
-      acc.parentElement.insertBefore(wrap, acc);
-    } else if (desktopCol && desktopCol.offsetParent !== null) {
-      desktopCol.classList.remove('whb-empty-column');
-      desktopCol.prepend(wrap);
-    } else if (mobileCol && mobileCol.offsetParent !== null) {
-      mobileCol.prepend(wrap);
-    } else if (acc && acc.parentElement) {
-      acc.parentElement.insertBefore(wrap, acc);
+    var isDesktop = window.innerWidth >= 1025;
+    if (isDesktop && desktopBottomRight) {
+      desktopBottomRight.classList.remove('whb-empty-column');
+      desktopBottomRight.style.display = 'flex';
+      desktopBottomRight.style.alignItems = 'center';
+      desktopBottomRight.style.justifyContent = 'flex-end';
+      desktopBottomRight.appendChild(wrap);
+    } else if (!isDesktop && mobileAcc && mobileAcc.parentElement) {
+      mobileAcc.parentElement.insertBefore(wrap, mobileAcc);
+    } else if (desktopBottomRight) {
+      desktopBottomRight.classList.remove('whb-empty-column');
+      desktopBottomRight.appendChild(wrap);
+    } else if (desktopTopRight) {
+      desktopTopRight.classList.remove('whb-empty-column');
+      desktopTopRight.appendChild(wrap);
+    } else if (mobileAcc && mobileAcc.parentElement) {
+      mobileAcc.parentElement.insertBefore(wrap, mobileAcc);
     }
     updateSoundUI();
   }

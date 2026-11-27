@@ -21,12 +21,16 @@
   var css = document.createElement('style');
   css.id = 'lm-studio-v2-css';
   css.textContent = [
-    '.lm2-sound-wrap{display:inline-flex!important;align-items:center!important;gap:4px!important;vertical-align:middle!important;margin:0 6px!important;flex-shrink:0!important;}',
-    '.lm2-sbtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;height:32px!important;min-width:32px!important;padding:0 10px!important;border-radius:999px!important;border:1.5px solid #D4A017!important;background:#FFFDF8!important;color:#1C1917!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important;transition:all .2s!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 2px 6px rgba(212,160,23,.14)!important;}',
-    '.lm2-sbtn.on{background:#D4A017!important;color:#FFF!important;}',
-    '.lm2-next{display:none!important;align-items:center!important;justify-content:center!important;width:28px!important;height:28px!important;padding:0!important;border-radius:50%!important;border:1.5px solid #D4A017!important;background:#FFFDF8!important;color:#1C1917!important;font-size:11px!important;cursor:pointer!important;line-height:1!important;}',
+    '.lm2-sound-wrap{display:inline-flex!important;align-items:center!important;gap:4px!important;vertical-align:middle!important;margin:0 8px 0 4px!important;flex-shrink:0!important;padding:2px!important;border-radius:999px!important;background:#FAF8F4!important;border:1px solid #E4DCCB!important;}',
+    '.lm2-sbtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important;padding:0!important;border-radius:50%!important;border:0!important;background:transparent!important;color:#1C1917!important;cursor:pointer!important;transition:all .2s!important;line-height:1!important;box-sizing:border-box!important;}',
+    '.lm2-sbtn:hover{background:rgba(212,160,23,.12)!important;}',
+    '.lm2-sbtn.on{background:#1C1917!important;color:#D4A017!important;}',
+    '.lm2-next{display:none!important;align-items:center!important;justify-content:center!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;max-width:28px!important;max-height:28px!important;padding:0!important;border-radius:50%!important;border:0!important;background:transparent!important;color:#1C1917!important;cursor:pointer!important;line-height:1!important;box-sizing:border-box!important;transition:all .2s!important;}',
+    '.lm2-next:hover{background:rgba(28,25,23,.08)!important;}',
     '.lm2-next.show{display:inline-flex!important;}',
-    '@media(max-width:768px){.lm2-slbl{display:none!important;}.lm2-sbtn{padding:0!important;width:32px!important;}}',
+    '@keyframes lm2Eq{0%,100%{transform:scaleY(.45);}50%{transform:scaleY(1);}}',
+    '.lm2-eq-bar{transform-origin:bottom;animation:lm2Eq .9s ease-in-out infinite;}',
+    '.lm2-eq-bar:nth-child(2){animation-delay:.2s;}.lm2-eq-bar:nth-child(3){animation-delay:.4s;}',
     '#lm2-modal{display:none;position:fixed;inset:0;z-index:2147483640;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:contain;}',
     '#lm2-modal.open{display:flex;}',
     '.lm2-backdrop{position:absolute;inset:0;background:rgba(20,16,14,.76);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}',
@@ -78,9 +82,11 @@
     '.lm2-typing span{width:6px;height:6px;border-radius:50%;background:#D4A017;animation:lm2Dot 1.1s infinite ease;}',
     '.lm2-typing span:nth-child(2){animation-delay:.18s;}.lm2-typing span:nth-child(3){animation-delay:.36s;}',
     '@keyframes lm2Dot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}',
-    '.lm2-qwrap{display:flex;flex-wrap:wrap;gap:5px;padding:2px 0;}',
-    '.lm2-qbtn{padding:5px 11px;border-radius:999px;border:1.5px solid #D4A017;background:#FFF;color:#1C1917;font-size:11.2px;font-weight:600;cursor:pointer;transition:all .18s;}',
-    '.lm2-qbtn:hover{background:#D4A017;color:#FFF;}'
+    '.lm2-qwrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px 0;}',
+    '.lm2-qbtn{padding:7px 9px!important;min-height:34px!important;height:auto!important;border-radius:10px!important;border:1px solid #E2D7C3!important;background:#FFF!important;color:#1C1917!important;font-size:11px!important;font-weight:600!important;cursor:pointer!important;transition:all .18s!important;line-height:1.2!important;text-align:left!important;display:flex!important;align-items:center!important;gap:5px!important;box-shadow:0 1px 3px rgba(0,0,0,.04)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}',
+    '.lm2-qbtn:hover{background:#1C1917!important;color:#FFF!important;border-color:#1C1917!important;}',
+    '.lm2-link-chip{display:inline-block;margin:4px 4px 0 0;padding:5px 10px;border-radius:8px;background:#FAF6EE;border:1px solid #DFC896;color:#1C1917!important;font-size:11px;font-weight:700;text-decoration:none!important;transition:all .15s;}',
+    '.lm2-link-chip:hover{background:#D4A017;color:#FFF!important;border-color:#D4A017;}'
   ].join('');
   document.head.appendChild(css);
 
@@ -128,16 +134,19 @@
     } catch (e) {}
   }
 
+  var SVG_MUSIC_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>';
+  var SVG_MUSIC_ON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect class="lm2-eq-bar" x="4" y="8" width="3" height="12" rx="1.5"/><rect class="lm2-eq-bar" x="10.5" y="4" width="3" height="16" rx="1.5"/><rect class="lm2-eq-bar" x="17" y="9" width="3" height="11" rx="1.5"/></svg>';
+  var SVG_NEXT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>';
+
   function updateSoundUI() {
-    var track = PLAYLIST[currentIdx];
     document.querySelectorAll('.lm2-sbtn').forEach(function (b) {
       if (isPlaying) {
         b.classList.add('on');
-        b.innerHTML = '<span>🔊</span><span class="lm2-slbl" style="margin-left:5px;">' + track.title + '</span>';
-        b.title = 'Müziği Kapat (' + track.title + ')';
+        b.innerHTML = SVG_MUSIC_ON;
+        b.title = 'Mağaza Müziğini Kapat';
       } else {
         b.classList.remove('on');
-        b.innerHTML = '<span>🎵</span><span class="lm2-slbl" style="margin-left:5px;">Mağaza Müziği</span>';
+        b.innerHTML = SVG_MUSIC_OFF;
         b.title = 'Mağaza Müziğini Aç';
       }
     });
@@ -295,7 +304,7 @@
     nbtn.type = 'button';
     nbtn.className = 'lm2-next';
     nbtn.title = 'Sonraki Parça';
-    nbtn.textContent = '⏭';
+    nbtn.innerHTML = SVG_NEXT;
     nbtn.addEventListener('click', nextTrack);
     wrap.appendChild(btn);
     wrap.appendChild(nbtn);
@@ -800,10 +809,10 @@
     w.id = 'limoon-3d-btn-wrapper';
     w.style.cssText = 'margin-top:10px;margin-bottom:14px;width:100%;clear:both;';
     w.innerHTML =
-      '<button type="button" id="limoon-trigger-3d" style="display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:12px 20px;background:#1C1917;color:#FFF;border:1.5px solid #D4A017;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.1);transition:all .2s;">' +
-        '<span style="font-size:18px;margin-right:8px;">🧊</span>' +
+      '<button type="button" id="limoon-trigger-3d" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:12px 20px;background:#1C1917;color:#FFF;border:1.5px solid #D4A017;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.1);transition:all .2s;">' +
+        '<span style="font-size:17px;">🧊</span>' +
         '<span>3D İncele &amp; Odanda Gör (AR)</span>' +
-        '<span style="margin-left:auto;padding:2px 8px;background:#D4A017;color:#FFF;font-size:10px;font-weight:800;border-radius:4px;">1:1 BOYUT</span>' +
+        '<span style="padding:2px 7px;background:#D4A017;color:#FFF;font-size:10px;font-weight:800;border-radius:4px;">1:1</span>' +
       '</button>';
     if (wa.nextSibling) wa.parentNode.insertBefore(w, wa.nextSibling);
     else wa.parentNode.appendChild(w);
@@ -817,16 +826,16 @@
    * 3. LIMOON HOME LIVE PROACTIVE ASSISTANT (Evseren Engine + Limoon Identity)
    * ========================================================================= */
   var ALL_TOPICS = [
-    '🛋️ Koltuk takımı & ölçüler',
-    '🛏️ Yatak odası modelleri',
-    '🍽️ Yemek odası modelleri',
-    '💍 Düğün paketi',
+    '🛋️ Koltuk Takımları',
+    '🛏️ Yatak Odaları',
+    '🍽️ Yemek Odaları',
+    '📺 TV Üniteleri',
+    '💍 Düğün Paketi',
+    '🎨 Renk Kartelası',
     '🚚 Teslimat & Kurulum',
     '💳 Taksit & Ödeme',
-    '📦 Sipariş takibi',
-    '🎨 Kumaş & Renk kartelası',
-    '📍 Mağaza adresiniz',
-    '💰 Fiyat / Teklif al'
+    '📦 Sipariş Takibi',
+    '📍 Mağaza Adresi'
   ];
 
   var chatFab = document.createElement('button');
@@ -865,38 +874,61 @@
     var waBtn = '<br><a href="' + waLink + '" target="_blank" style="display:inline-block;margin-top:8px;padding:7px 13px;background:#25D366;color:#FFF;border-radius:999px;font-weight:700;text-decoration:none;font-size:11.5px;">📲 WhatsApp\'tan Hemen Teklif Al</a>';
 
     if (s.indexOf('başka') !== -1 || s.indexOf('baska') !== -1 || s.indexOf('neler var') !== -1 || s.indexOf('liste') !== -1 || s.indexOf('yardım') !== -1 || s.indexOf('yardim') !== -1 || s.indexOf('menu') !== -1 || s.indexOf('menü') !== -1) {
-      return '✨ <strong>Limoon Home\'da Size Yardımcı Olabileceğim Tüm Konular:</strong><br>• 🛋️ Koltuk Takımları &amp; 3D/AR Ölçüler (Bonbon, Arden)<br>• 🛏️ Yatak Odası Modelleri<br>• 🍽️ Yemek Odası Modelleri<br>• 💍 Komple Düğün Paketleri<br>• 🎨 Silinebilir Kumaş &amp; Renk Kartelası<br>• 🚚 Türkiye (81 İl) &amp; Avrupa Teslimat / Kurulum<br>• 💳 Taksit &amp; Ödeme Seçenekleri<br>• 📦 Sipariş Takibi &amp; 📍 İnegöl Mağaza Adresimiz<br>Aşağıdaki başlıklardan istediğinize hemen tıklayabilirsiniz!';
+      return '<strong>Limoon Home Koleksiyonlarımız:</strong><br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/koltuk-takimi/">🛋️ Koltuk Takımları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/kose-koltuk/">🛋️ Köşe Koltuklar →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yemek-odasi-takimi/">🍽️ Yemek Odaları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yatak-odasi-takimlari/">🛏️ Yatak Odaları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/tv-unitesi/">📺 TV Üniteleri →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/kampanyalar/">🔥 Kampanyalar →</a>';
     }
     if (s.indexOf('düğün') !== -1 || s.indexOf('dugun') !== -1 || s.indexOf('paket') !== -1 || s.indexOf('çeyiz') !== -1 || s.indexOf('ceyiz') !== -1) {
-      return '💍 <strong>Limoon Home Komple Düğün Paketleri:</strong><br>Koltuk Takımı + Yatak Odası + Yemek Odası 3\'lü kombinasyonlarında İnegöl fabrika çıkışı özel paket indirimi, ücretsiz kumaş/renk değişikliği ve 81 ile ücretsiz kurulum sunuyoruz!' + waBtn;
+      return '<strong>💍 Komple Düğün Paketleri:</strong><br>Koltuk Takımı + Yatak Odası + Yemek Odası 3\'lü kombinasyonlarında İnegöl fabrika çıkışı özel paket indirimi, ücretsiz renk/kumaş seçimi ve 81 ile ücretsiz kurulum sunuyoruz!<br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/kampanyalar/">🔥 Kampanyalı Setleri Gör →</a>' + waBtn;
     }
     if (s.indexOf('yatak') !== -1 || s.indexOf('gardırop') !== -1 || s.indexOf('gardirop') !== -1 || s.indexOf('baza') !== -1 || s.indexOf('karyola') !== -1 || s.indexOf('şifonyer') !== -1) {
-      return '🛏️ <strong>Yatak Odası Modellerimiz:</strong><br>Sürgülü veya kapaklı gardırop, bazalı karyola, şifonyer ve komodin takımlarımız 1. sınıf MDF lake ve doğal ahşap kaplama ile üretilir. Odanızın duvar ölçüsüne göre <strong>özel ölçü gardırop</strong> üretimi yapıyoruz.' + waBtn;
+      return '<strong>🛏️ Yatak Odası Koleksiyonu:</strong><br>Sürgülü/kapaklı gardırop, bazalı karyola, şifonyer ve komodin takımları 1. sınıf MDF lake ve doğal ahşap kaplama ile odanıza özel ölçüde üretilir.<br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yatak-odasi-takimlari/">Tüm Yatak Odaları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yatak-odasi-takimlari/dolap/">Dolaplar →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yatak-odasi-takimlari/karyola/">Karyolalar →</a>' + waBtn;
     }
     if (s.indexOf('yemek') !== -1 || s.indexOf('masa') !== -1 || s.indexOf('konsol') !== -1 || s.indexOf('sandalye') !== -1) {
-      return '🍽️ <strong>Yemek Odası Modellerimiz:</strong><br>Açılır/sabit traverten ve ahşap yemek masaları, aynalı konsol ve 6 adet silinebilir buklet/kadife sandalye seçenekleriyle üretilir. Masa ölçüsü ve sandalye rengi tamamen size özel hazırlanır.' + waBtn;
+      return '<strong>🍽️ Yemek Odası Koleksiyonu:</strong><br>Açılır/sabit traverten ve ahşap yemek masaları, aynalı konsol ve 6 adet silinebilir buklet/kadife sandalye seçenekleriyle üretilir.<br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yemek-odasi-takimi/">Tüm Yemek Odaları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yemek-odasi-takimi/yemek-masasi/">Yemek Masaları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yemek-odasi-takimi/konsol/">Konsollar →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/yemek-odasi-takimi/sandalye/">Sandalyeler →</a>' + waBtn;
+    }
+    if (s.indexOf('tv') !== -1 || s.indexOf('ünite') !== -1 || s.indexOf('unite') !== -1 || s.indexOf('sehpa') !== -1) {
+      return '<strong>📺 TV Üniteleri &amp; Sehpalar:</strong><br>Modern salonlara özel lake ve doğal ahşap TV üniteleri ile orta/yan sehpalar.<br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/tv-unitesi/">Tüm TV Üniteleri →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/tamamlayici-urunler/">Tamamlayıcı Ürünler →</a>' + waBtn;
     }
     if (s.indexOf('taksit') !== -1 || s.indexOf('ödeme') !== -1 || s.indexOf('odeme') !== -1 || s.indexOf('kart') !== -1 || s.indexOf('havale') !== -1 || s.indexOf('kupon') !== -1) {
-      return '💳 <strong>Taksit ve Ödeme Seçenekleri:</strong><br>• Tüm kredi kartlarına avantajlı <strong>taksit imkânı</strong><br>• Havale / EFT ödemelerinde ekstra fabrika nakit indirimi<br>• 256-bit SSL ve 3D Secure ile %100 güvenli ödeme.' + waBtn;
+      return '<strong>💳 Taksit ve Ödeme Seçenekleri:</strong><br>• Tüm kredi kartlarına avantajlı <strong>taksit imkânı</strong><br>• Havale / EFT ödemelerinde ekstra fabrika nakit indirimi<br>• 256-bit SSL ve 3D Secure ile %100 güvenli ödeme.' + waBtn;
     }
     if (s.indexOf('takip') !== -1 || s.indexOf('sipariş') !== -1 || s.indexOf('siparis') !== -1 || s.indexOf('durum') !== -1 || (s.indexOf('nerede') !== -1 && s.indexOf('adres') === -1 && s.indexOf('mağaza') === -1 && s.indexOf('magaza') === -1)) {
       var trackWa = 'https://wa.me/' + PHONE + '?text=' + encodeURIComponent('Merhaba, siparişimin üretim ve sevkiyat durumunu öğrenmek istiyorum.');
-      return '📦 <strong>Sipariş Takibi:</strong><br>İnegöl üretim tesisimizdeki siparişinizin anlık üretim veya nakliye aşamasını ad-soyad ya da sipariş numaranızla hemen öğrenebilirsiniz:<br><a href="' + trackWa + '" target="_blank" style="display:inline-block;margin-top:8px;padding:7px 13px;background:#1C1917;color:#FFF;border:1px solid #D4A017;border-radius:999px;font-weight:700;text-decoration:none;font-size:11.5px;">📦 WhatsApp\'tan Sipariş Sorgula</a>';
+      return '<strong>📦 Sipariş Takibi:</strong><br>İnegöl üretim tesisimizdeki siparişinizin anlık üretim veya nakliye aşamasını ad-soyad ya da sipariş numaranızla hemen öğrenebilirsiniz:<br><a href="' + trackWa + '" target="_blank" style="display:inline-block;margin-top:8px;padding:7px 13px;background:#1C1917;color:#FFF;border:1px solid #D4A017;border-radius:999px;font-weight:700;text-decoration:none;font-size:11.5px;">📦 WhatsApp\'tan Sipariş Sorgula</a>';
     }
     if (s.indexOf('adres') !== -1 || s.indexOf('mağaza') !== -1 || s.indexOf('magaza') !== -1 || s.indexOf('showroom') !== -1 || s.indexOf('konum') !== -1 || s.indexOf('inegöl') !== -1 || s.indexOf('inegol') !== -1 || s.indexOf('yeriniz') !== -1 || s.indexOf('telefon') !== -1 || s.indexOf('iletişim') !== -1) {
-      return '📍 <strong>Limoon Home &amp; Living Showroom:</strong><br>• <strong>Adres:</strong> Wobilimoda Mobilya AVM, No: 85, İnegöl / Bursa<br>• <strong>Tel &amp; WhatsApp:</strong> +90 533 485 22 16<br>• <strong>E-posta:</strong> info@limoonhome.com<br>• <strong>Çalışma Saatleri:</strong> Pzt–Cmt 09:00–19:00 | Pazar 10:00–18:00' + waBtn;
+      return '<strong>📍 Limoon Home &amp; Living Showroom:</strong><br>• <strong>Adres:</strong> Wobilimoda Mobilya AVM, No: 85, İnegöl / Bursa<br>• <strong>Tel &amp; WhatsApp:</strong> +90 533 485 22 16<br>• <strong>E-posta:</strong> info@limoonhome.com<br>• <strong>Saatler:</strong> Pzt–Cmt 09:00–19:00 | Pazar 10:00–18:00' + waBtn;
     }
     if (s.indexOf('teslim') !== -1 || s.indexOf('kurulum') !== -1 || s.indexOf('kargo') !== -1 || s.indexOf('nakliye') !== -1 || s.indexOf('avrupa') !== -1 || s.indexOf('garanti') !== -1 || s.indexOf('iade') !== -1) {
-      return '🚚 <strong>Teslimat, Kurulum &amp; Garanti:</strong><br>• Stok ürünlerde <strong>7–14 iş günü</strong>, özel üretimde <strong>15–25 iş günü</strong> teslimat<br>• Türkiye\'nin 81 iline özel mobilya nakliyesiyle <strong>katınıza kadar taşıma ve ücretsiz kurulum</strong><br>• Tüm Avrupa\'ya gümrük dahil sigortalı kapı teslim ihracat<br>• <strong>2 Yıl Limoon Home Fabrika Garantisi</strong>.' + waBtn;
+      return '<strong>🚚 Teslimat, Kurulum &amp; Garanti:</strong><br>• Stok ürünlerde <strong>7–14 iş günü</strong>, özel üretimde <strong>15–25 iş günü</strong> teslimat<br>• Türkiye\'nin 81 iline özel mobilya nakliyesiyle <strong>katınıza kadar taşıma ve ücretsiz kurulum</strong><br>• Tüm Avrupa\'ya gümrük dahil sigortalı kapı teslim ihracat<br>• <strong>2 Yıl Limoon Home Fabrika Garantisi</strong>.' + waBtn;
     }
     if (s.indexOf('ölçü') !== -1 || s.indexOf('olcu') !== -1 || s.indexOf('ebat') !== -1 || s.indexOf('boyut') !== -1 || s.indexOf('cm') !== -1 || s.indexOf('koltuk') !== -1 || s.indexOf('bonbon') !== -1 || s.indexOf('arden') !== -1) {
-      return '🛋️ <strong>Koltuk Takımı Modelleri &amp; Ölçüler (Bonbon / Arden):</strong><br>• 3\'lü Koltuk: <strong>235 × 95 × 82 cm</strong><br>• 2\'li Koltuk: <strong>185 × 95 × 82 cm</strong><br>• Tekli Berjer: <strong>82 × 85 × 88 cm</strong><br>• Orta Sehpa: <strong>90 × 90 × 42 cm</strong><br>1. sınıf fırınlanmış gürgen iskelet ile odanıza özel ölçü üretimi mevcuttur. Sayfadaki <strong>3D İncele &amp; Odanda Gör</strong> butonuyla evinizde canlı deneyebilirsiniz!' + waBtn;
+      return '<strong>🛋️ Koltuk Takımları &amp; Standart Ölçüler:</strong><br>• 3\'lü: <strong>235×95 cm</strong> • 2\'li: <strong>185×95 cm</strong> • Berjer: <strong>82×85 cm</strong><br>1. sınıf fırınlanmış gürgen iskelet, odanıza özel ölçü üretimi.<br>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/koltuk-takimi/">Tüm Koltuk Takımları →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun/bonbon-koltuk-takimi/">Bonbon Koltuk →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun/arden-koltuk-takimi/">Arden Koltuk →</a>' +
+        '<a class="lm2-link-chip" href="/index.php/urun-kategori/kose-koltuk/">Köşe Koltuklar →</a>' + waBtn;
     }
     if (s.indexOf('renk') !== -1 || s.indexOf('kumaş') !== -1 || s.indexOf('kumas') !== -1 || s.indexOf('kartela') !== -1) {
-      return '🎨 <strong>Kumaş &amp; Renk Kartelası:</strong><br>Silinebilir ithal <strong>Boucle</strong> ve <strong>Kadife</strong> kartelamızda Krem, Vizon/Bej, Antrasit, Terracotta, Zümrüt Yeşili ve Gece Mavisi dahil 30+ renk seçeneğimiz vardır. 3D ekrandan renkleri canlı deneyebilirsiniz!' + waBtn;
+      return '<strong>🎨 Kumaş &amp; Renk Kartelası:</strong><br>Silinebilir ithal <strong>Boucle</strong> ve <strong>Kadife</strong> kartelamızda Krem, Vizon/Bej, Antrasit, Terracotta, Zümrüt Yeşili ve Gece Mavisi dahil 30+ renk seçeneğimiz vardır. Ürün sayfasındaki <strong>3D İncele</strong> butonundan renkleri canlı deneyebilirsiniz!' + waBtn;
     }
     if (s.indexOf('fiyat') !== -1 || s.indexOf('kaç') !== -1 || s.indexOf('kac') !== -1 || s.indexOf('teklif') !== -1 || s.indexOf('ücret') !== -1 || s.indexOf('ne kadar') !== -1) {
-      return '💰 <strong>Güncel Fabrika Satış Fiyatı &amp; Teklif:</strong><br><strong>' + prodTitle + '</strong> için seçtiğiniz kumaş, modül sayısı ve teslimat şehrine göre en avantajlı fabrika fiyatını hemen WhatsApp hattımızdan iletelim:' + waBtn;
+      return '<strong>💰 Güncel Fabrika Satış Fiyatı &amp; Teklif:</strong><br><strong>' + prodTitle + '</strong> için seçtiğiniz kumaş, modül sayısı ve teslimat şehrine göre en avantajlı fabrika fiyatını hemen WhatsApp hattımızdan iletelim:' + waBtn;
     }
     if (s.indexOf('merhaba') !== -1 || s.indexOf('selam') !== -1 || s.indexOf('iyi günler') !== -1) {
       return 'Merhaba! 👋 <strong>Limoon Home &amp; Living</strong> İnegöl dijital asistanına hoş geldiniz. Aşağıdaki konulardan birini seçebilir veya aklınızdaki her şeyi yazabilirsiniz!';
@@ -960,9 +992,10 @@
     }, 320);
   }
 
-  // Initial welcome + proactive topic buttons
+  // Initial welcome + proactive topic buttons (keep scroll at top so greeting is fully visible)
   addChatBubble('bot', 'Merhaba! 👋 <strong>Limoon Home &amp; Living</strong> canlı dijital asistanıyım.<br><br>Koltuk takımları, yatak/yemek odası, düğün paketleri, taksit, sipariş takibi veya İnegöl showroomumuz hakkında size nasıl yardımcı olabilirim?');
   renderQuickReplies(ALL_TOPICS);
+  msgsEl.scrollTop = 0;
 
   chatFab.onclick = function () {
     var open = chatBox.classList.toggle('open');

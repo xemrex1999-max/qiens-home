@@ -59,8 +59,8 @@
     /* Limoon Home Live Proactive Assistant (Evseren Engine + Limoon Brand Palette) */
     '#lm2-chat-fab{position:fixed;bottom:24px;right:22px;z-index:99998;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1C1917,#2E261F);color:#FFF;border:1.5px solid #D4A017;box-shadow:0 8px 22px rgba(28,25,23,.28);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:21px;transition:transform .22s,box-shadow .22s;}',
     '#lm2-chat-fab:hover{transform:scale(1.06);box-shadow:0 10px 28px rgba(28,25,23,.38);}',
-    '.scrollToTop,.wd-scroll-top{right:auto!important;left:18px!important;}',
-    '@media(max-width:768px){.scrollToTop,.wd-scroll-top{bottom:78px!important;left:14px!important;right:auto!important;}}',
+    '.scrollToTop,.wd-scroll-top{right:auto!important;inset-inline-end:auto!important;left:18px!important;inset-inline-start:18px!important;}',
+    '@media(max-width:768px){.scrollToTop,.wd-scroll-top{bottom:78px!important;left:14px!important;inset-inline-start:14px!important;right:auto!important;inset-inline-end:auto!important;}}',
     '.lm2-live-badge{position:absolute;top:-5px;right:-4px;background:#00b894;color:#FFF;font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;border:2px solid #FFF;letter-spacing:.3px;line-height:1.1;}',
     '@media(max-width:768px){#lm2-chat-fab{bottom:78px!important;right:14px!important;width:50px!important;height:50px!important;font-size:20px!important;}}',
     '#lm2-chat-box{position:fixed;bottom:92px;right:22px;z-index:99999;width:360px;max-width:calc(100vw - 24px);height:510px;max-height:74dvh;background:#FFF;border-radius:20px;border:1.5px solid #D4A017;box-shadow:0 22px 60px rgba(0,0,0,.24);display:flex;flex-direction:column;overflow:hidden;font-family:inherit;transform:scale(.9) translateY(18px);transform-origin:bottom right;opacity:0;pointer-events:none;transition:all .26s cubic-bezier(.34,1.56,.64,1);}',
